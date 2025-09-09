@@ -12,7 +12,9 @@
 
   <style>
     :root { --accent:#ff4444; --bg:#0b0b0b; --muted:#9b9b9b; }
-    html,body { background:var(--bg); color:#fff; }
+    html,body { background:var(--bg); color:#fff; overflow-x:hidden; }
+    a { color:#fff; text-decoration:none !important; }
+    a:hover { color:var(--accent); }
     .star { color: var(--accent); }
   </style>
 </head>
@@ -22,21 +24,25 @@
   <div id="header"></div>
 
   <!-- Main -->
-  <main class="flex-1 max-w-6xl mx-auto px-6 py-10">
+  <main class="flex-1 max-w-6xl mx-auto px-4 sm:px-6 py-10">
 
     <!-- Info Section -->
     <section id="info" class="flex flex-col md:flex-row gap-8"></section>
 
     <!-- Watch Section -->
     <section id="watch" class="mt-12">
-      <h2 class="text-2xl font-bold mb-4">🎥 Watch Now</h2>
+      <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+        <i class="fa fa-play-circle text-[--accent]"></i> Watch Now
+      </h2>
       <div id="player" class="w-full aspect-video bg-black rounded-xl overflow-hidden"></div>
     </section>
 
     <!-- Episodes Section (for series/anime) -->
     <section id="episodes" class="mt-12 hidden">
-      <h2 class="text-2xl font-bold mb-4">📺 Episodes</h2>
-      <div id="episode-list" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4"></div>
+      <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+        <i class="fa fa-tv text-[--accent]"></i> Episodes
+      </h2>
+      <div id="episode-list" class="flex flex-wrap gap-3"></div>
     </section>
 
   </main>
@@ -78,42 +84,58 @@
 
     function renderMovie(data) {
       const html = `
-        <img src="${IMG+data.poster_path}" alt="${data.title}" class="w-64 rounded-xl shadow-lg">
+        <img src="${IMG+data.poster_path}" alt="${data.title}" 
+             class="w-full max-w-xs md:w-64 rounded-xl shadow-lg mx-auto md:mx-0">
         <div>
-          <h1 class="text-3xl font-bold mb-2">${data.title}</h1>
-          <p class="text-sm text-gray-400 mb-4">Movie | ${data.release_date.split("-")[0]} | <i class="fa fa-star star"></i> ${data.vote_average.toFixed(1)}</p>
+          <h1 class="text-2xl sm:text-3xl font-bold mb-2 text-white">${data.title}</h1>
+          <p class="text-sm text-gray-400 mb-4">
+            Movie | ${data.release_date.split("-")[0]} | 
+            <i class="fa fa-star star"></i> ${data.vote_average.toFixed(1)}
+          </p>
           <p class="text-[--muted] mb-6">${data.overview}</p>
-          <p class="text-sm">⏱️ ${data.runtime} min | 🎭 ${data.genres.map(g=>g.name).join(", ")}</p>
+          <p class="text-sm">
+            ⏱️ ${data.runtime} min | 🎭 ${data.genres.map(g=>g.name).join(", ")}
+          </p>
         </div>
       `;
       document.getElementById("info").innerHTML = html;
 
       // Player
       document.getElementById("player").innerHTML =
-        `<iframe src="https://player.embed-api.stream/?id=${data.id}&type=movie" class="w-full h-full" frameborder="0" allowfullscreen></iframe>`;
+        `<iframe src="https://player.embed-api.stream/?id=${data.id}&type=movie" 
+                 class="w-full h-full rounded-xl" frameborder="0" allowfullscreen></iframe>`;
     }
 
     function renderSeries(data) {
       const html = `
-        <img src="${IMG+data.poster_path}" alt="${data.name}" class="w-64 rounded-xl shadow-lg">
+        <img src="${IMG+data.poster_path}" alt="${data.name}" 
+             class="w-full max-w-xs md:w-64 rounded-xl shadow-lg mx-auto md:mx-0">
         <div>
-          <h1 class="text-3xl font-bold mb-2">${data.name}</h1>
-          <p class="text-sm text-gray-400 mb-4">Series | ${data.first_air_date.split("-")[0]} | ${data.number_of_seasons} Seasons | <i class="fa fa-star star"></i> ${data.vote_average.toFixed(1)}</p>
+          <h1 class="text-2xl sm:text-3xl font-bold mb-2 text-white">${data.name}</h1>
+          <p class="text-sm text-gray-400 mb-4">
+            Series | ${data.first_air_date.split("-")[0]} | 
+            ${data.number_of_seasons} Seasons | 
+            <i class="fa fa-star star"></i> ${data.vote_average.toFixed(1)}
+          </p>
           <p class="text-[--muted] mb-6">${data.overview}</p>
-          <p class="text-sm">📺 ${data.number_of_episodes} Episodes | 🎭 ${data.genres.map(g=>g.name).join(", ")}</p>
+          <p class="text-sm">
+            📺 ${data.number_of_episodes} Episodes | 🎭 ${data.genres.map(g=>g.name).join(", ")}
+          </p>
         </div>
       `;
       document.getElementById("info").innerHTML = html;
 
       // Default player first episode
       document.getElementById("player").innerHTML =
-        `<iframe src="https://player.embed-api.stream/?id=${data.id}&s=1&e=1" class="w-full h-full" frameborder="0" allowfullscreen></iframe>`;
+        `<iframe src="https://player.embed-api.stream/?id=${data.id}&s=1&e=1" 
+                 class="w-full h-full rounded-xl" frameborder="0" allowfullscreen></iframe>`;
 
       // Episodes list
       if (data.seasons && data.seasons.length > 0) {
         document.getElementById("episodes").classList.remove("hidden");
         const epList = data.seasons.map(s => `
-          <button onclick="loadEpisode(${data.id}, ${s.season_number}, 1)" class="bg-[--accent] text-white text-sm py-2 rounded-xl hover:opacity-90">
+          <button onclick="loadEpisode(${data.id}, ${s.season_number}, 1)" 
+                  class="bg-[--accent] text-white text-sm px-3 py-2 rounded-xl hover:opacity-90">
             Season ${s.season_number}
           </button>
         `).join("");
@@ -123,7 +145,8 @@
 
     window.loadEpisode = function(id, s, e) {
       document.getElementById("player").innerHTML =
-        `<iframe src="https://player.embed-api.stream/?id=${id}&s=${s}&e=${e}" class="w-full h-full" frameborder="0" allowfullscreen></iframe>`;
+        `<iframe src="https://player.embed-api.stream/?id=${id}&s=${s}&e=${e}" 
+                 class="w-full h-full rounded-xl" frameborder="0" allowfullscreen></iframe>`;
     }
 
     loadInfo();
