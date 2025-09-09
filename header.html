@@ -1,29 +1,74 @@
-<header class="w-full bg-[#0b0b0b] border-b border-gray-800">
-  <div class="max-w-6xl mx-auto px-6 py-6 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-    
+<header class="w-full bg-[#0b0b0b] border-b border-gray-800 md:fixed md:top-0 md:left-0 md:right-0 z-50">
+  <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+
     <!-- Logo -->
     <a href="index.html" class="flex items-center gap-3">
       <img src="https://raw.githubusercontent.com/animeneek/MN/refs/heads/main/assets/Movieneek_Raider%20Crusader_001.png" 
-           alt="Neek logo" class="h-12 object-contain" />
+           alt="Neek logo" class="h-10 object-contain" />
     </a>
 
-    <!-- Navigation -->
-    <nav class="flex gap-6 text-sm font-medium justify-center md:justify-start">
-      <a href="movies.html" class="hover:text-[#ff4444] transition">Movies & Series</a>
-      <a href="anime.html" class="hover:text-[#ff4444] transition">Anime</a>
-      <a href="movies.html#trending" class="hover:text-[#ff4444] transition">Trending</a>
-      <a href="movies.html#latest" class="hover:text-[#ff4444] transition">Latest</a>
-      <a href="movies.html#upcoming" class="hover:text-[#ff4444] transition">Upcoming</a>
+    <!-- Desktop Navigation -->
+    <nav class="hidden md:flex gap-8 text-sm font-medium text-white">
+      <!-- Switch Button (Movies <-> Anime) -->
+      <a id="switch-link" href="#" class="hover:text-[#ff4444] transition"></a>
+
+      <a href="trendingmovies.html" class="hover:text-[#ff4444] transition">Trending</a>
+      <a href="latestmovies.html" class="hover:text-[#ff4444] transition">Latest</a>
+      <a href="ongoingmovies.html" class="hover:text-[#ff4444] transition">Ongoing</a>
+      <a href="comingmovies.html" class="hover:text-[#ff4444] transition">Coming Soon</a>
     </nav>
 
     <!-- Search -->
-    <div class="flex-1 md:flex md:justify-end">
-      <div class="relative w-full md:w-72">
+    <div class="hidden md:flex">
+      <div class="relative w-72">
         <input type="text" placeholder="Search..."
-               class="w-full rounded-xl bg-[#1a1a1a] border border-gray-700 px-4 py-2 text-sm focus:outline-none focus:border-[#ff4444]" />
+               class="w-full rounded-xl bg-[#1a1a1a] border border-gray-700 px-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#ff4444]" />
         <i class="fa-solid fa-magnifying-glass absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
       </div>
     </div>
 
   </div>
+
+  <!-- Mobile Bottom Navigation -->
+  <nav class="fixed bottom-0 left-0 right-0 md:hidden bg-black/70 backdrop-blur-lg border-t border-gray-800 flex justify-around text-xs text-white py-3 z-50">
+    <a id="switch-link-mobile" href="#" class="flex flex-col items-center hover:text-[#ff4444] transition">
+      <i class="fa-solid fa-exchange-alt"></i>
+      <span>Switch</span>
+    </a>
+    <a href="trendingmovies.html" class="flex flex-col items-center hover:text-[#ff4444] transition">
+      <i class="fa-solid fa-fire"></i>
+      <span>Trending</span>
+    </a>
+    <a href="latestmovies.html" class="flex flex-col items-center hover:text-[#ff4444] transition">
+      <i class="fa-solid fa-clock"></i>
+      <span>Latest</span>
+    </a>
+    <a href="ongoingmovies.html" class="flex flex-col items-center hover:text-[#ff4444] transition">
+      <i class="fa-solid fa-play-circle"></i>
+      <span>Ongoing</span>
+    </a>
+    <a href="comingmovies.html" class="flex flex-col items-center hover:text-[#ff4444] transition">
+      <i class="fa-solid fa-calendar"></i>
+      <span>Coming</span>
+    </a>
+  </nav>
 </header>
+
+<script>
+  // Detect if current page is movies or anime
+  const isMovies = window.location.pathname.includes("movie");
+  const switchLink = document.getElementById("switch-link");
+  const switchLinkMobile = document.getElementById("switch-link-mobile");
+
+  if (isMovies) {
+    switchLink.textContent = "Anime";
+    switchLink.href = "anime.html";
+    switchLinkMobile.querySelector("span").textContent = "Anime";
+    switchLinkMobile.href = "anime.html";
+  } else {
+    switchLink.textContent = "Movies & Series";
+    switchLink.href = "movies.html";
+    switchLinkMobile.querySelector("span").textContent = "Movies";
+    switchLinkMobile.href = "movies.html";
+  }
+</script>
