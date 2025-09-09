@@ -12,16 +12,36 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
   <style>
-    :root{
+    :root {
       --accent:#ff4444;
       --bg:#0b0b0b;
       --muted:#9b9b9b;
     }
-    html,body { background:var(--bg); color:#fff; overflow-x:hidden; }
-    a { text-decoration: none !important; } /* remove underlines */
-    .card { background:#1a1a1a; }
-    .card h3 { color:#fff; }
-    .star { color: var(--accent); }
+
+    html,body {
+      background:var(--bg);
+      color:#fff;
+      overflow-x:hidden; /* prevent sideways scroll */
+    }
+
+    /* Override browser default link styles */
+    a {
+      color:#fff;
+      text-decoration:none !important;
+    }
+    a:hover {
+      color:var(--accent);
+    }
+
+    .card {
+      background:#1a1a1a;
+    }
+    .card h3 {
+      color:#fff;
+    }
+    .star {
+      color:var(--accent);
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col bg-[#0b0b0b] text-white">
@@ -30,9 +50,10 @@
   <div id="header"></div>
 
   <!-- MAIN CONTENT -->
-  <main class="flex-1 max-w-6xl mx-auto px-4 sm:px-6 py-6 md:pt-28 pb-24 space-y-16">
+  <main class="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-6 py-6 md:pt-28 pb-24 space-y-16">
+
     <!-- Hero Section -->
-    <section class="text-center px-2">
+    <section class="text-center">
       <h1 class="text-3xl md:text-5xl font-extrabold mb-4">🎬 Lights. Camera. Action.</h1>
       <p class="text-[--muted] italic">Your gateway to the world of movies and series.</p>
     </section>
@@ -42,7 +63,7 @@
       <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
         <i class="fa-solid fa-fire text-[--accent]"></i> Trending Now
       </h2>
-      <div id="trending-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 sm:gap-6"></div>
+      <div id="trending-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-6"></div>
     </section>
 
     <!-- Latest -->
@@ -50,7 +71,7 @@
       <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
         <i class="fa-solid fa-clock text-[--accent]"></i> Latest Releases
       </h2>
-      <div id="latest-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 sm:gap-6"></div>
+      <div id="latest-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-6"></div>
     </section>
 
     <!-- Upcoming -->
@@ -58,7 +79,7 @@
       <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
         <i class="fa-solid fa-calendar text-[--accent]"></i> Coming Soon
       </h2>
-      <div id="upcoming-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 sm:gap-6"></div>
+      <div id="upcoming-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-6"></div>
     </section>
 
     <!-- Ongoing -->
@@ -66,7 +87,7 @@
       <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
         <i class="fa-solid fa-tv text-[--accent]"></i> Ongoing Shows
       </h2>
-      <div id="ongoing-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 sm:gap-6"></div>
+      <div id="ongoing-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-6"></div>
     </section>
   </main>
 
@@ -109,7 +130,7 @@
 
       return `
         <a href="info.html?id=${id}&type=${mediaType}" 
-           class="card rounded-xl overflow-hidden hover:scale-105 transition block">
+           class="card rounded-xl overflow-hidden hover:scale-105 transition block max-w-full">
           <img src="${poster}" alt="${title}" class="w-full h-72 object-cover">
           <div class="p-3">
             <h3 class="text-sm font-medium line-clamp-2 hover:text-[--accent] transition">${title}</h3>
