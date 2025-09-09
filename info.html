@@ -18,23 +18,32 @@
     .star { color: var(--accent); }
   </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col bg-[--bg] text-white">
 
   <!-- Header -->
   <div id="header"></div>
 
   <!-- Main -->
-  <main class="flex-1 max-w-6xl mx-auto px-4 sm:px-6 py-10">
+  <main class="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-6 py-6 md:pt-28 pb-24">
 
     <!-- Info Section -->
     <section id="info" class="flex flex-col md:flex-row gap-8"></section>
+
+    <!-- Cast Section -->
+    <section id="cast" class="mt-12">
+      <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+        <i class="fa fa-users text-[--accent]"></i> Cast
+      </h2>
+      <div id="cast-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4"></div>
+    </section>
 
     <!-- Watch Section -->
     <section id="watch" class="mt-12">
       <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
         <i class="fa fa-play-circle text-[--accent]"></i> Watch Now
       </h2>
-      <div id="player" class="w-full aspect-video bg-black rounded-xl overflow-hidden"></div>
+      <div id="player" class="w-full aspect-video bg-black rounded-xl overflow-hidden mb-4"></div>
+      <div id="sources" class="flex flex-wrap gap-3"></div>
     </section>
 
     <!-- Episodes Section (for series/anime) -->
@@ -42,7 +51,23 @@
       <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
         <i class="fa fa-tv text-[--accent]"></i> Episodes
       </h2>
-      <div id="episode-list" class="flex flex-wrap gap-3"></div>
+      <div class="flex flex-wrap gap-3">
+        <select id="seasonSelect" class="bg-[#1a1a1a] border border-gray-700 rounded-xl px-3 py-2 text-sm">
+          <option value="">Select Season</option>
+        </select>
+        <select id="episodeSelect" class="bg-[#1a1a1a] border border-gray-700 rounded-xl px-3 py-2 text-sm" disabled>
+          <option value="">Select Episode</option>
+        </select>
+        <button id="playBtn" disabled class="bg-[--accent] px-4 py-2 rounded-xl">Play</button>
+      </div>
+    </section>
+
+    <!-- Similar Section -->
+    <section id="similar" class="mt-12">
+      <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+        <i class="fa fa-clone text-[--accent]"></i> Similar Titles
+      </h2>
+      <div id="similar-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4"></div>
     </section>
 
   </main>
@@ -75,10 +100,17 @@
         const res = await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${API_KEY}&language=en-US`);
         const data = await res.json();
         renderMovie(data);
+        loadCast("movie");
+        loadSimilar("movie");
+        loadExtraSources();
       } else if (type === "series") {
         const res = await fetch(`https://api.themoviedb.org/3/tv/${id}?api_key=${API_KEY}&language=en-US`);
         const data = await res.json();
         renderSeries(data);
+        loadCast("tv");
+        loadSimilar("tv");
+        loadExtraSources();
+        initSeriesControls(data);
       }
     }
 
@@ -87,7 +119,7 @@
         <img src="${IMG+data.poster_path}" alt="${data.title}" 
              class="w-full max-w-xs md:w-64 rounded-xl shadow-lg mx-auto md:mx-0">
         <div>
-          <h1 class="text-2xl sm:text-3xl font-bold mb-2 text-white">${data.title}</h1>
+          <h1 class="text-2xl sm:text-3xl font-bold mb-2">${data.title}</h1>
           <p class="text-sm text-gray-400 mb-4">
             Movie | ${data.release_date.split("-")[0]} | 
             <i class="fa fa-star star"></i> ${data.vote_average.toFixed(1)}
@@ -100,10 +132,10 @@
       `;
       document.getElementById("info").innerHTML = html;
 
-      // Player
-      document.getElementById("player").innerHTML =
-        `<iframe src="https://player.embed-api.stream/?id=${data.id}&type=movie" 
-                 class="w-full h-full rounded-xl" frameborder="0" allowfullscreen></iframe>`;
+      // Default player
+      loadPlayer(`https://player.embed-api.stream/?id=${data.id}&type=movie`);
+      document.getElementById("sources").innerHTML =
+        `<button class="bg-[--accent] px-4 py-2 rounded-xl" onclick="loadPlayer('https://player.embed-api.stream/?id=${data.id}&type=movie')">Source 1</button>`;
     }
 
     function renderSeries(data) {
@@ -111,10 +143,9 @@
         <img src="${IMG+data.poster_path}" alt="${data.name}" 
              class="w-full max-w-xs md:w-64 rounded-xl shadow-lg mx-auto md:mx-0">
         <div>
-          <h1 class="text-2xl sm:text-3xl font-bold mb-2 text-white">${data.name}</h1>
+          <h1 class="text-2xl sm:text-3xl font-bold mb-2">${data.name}</h1>
           <p class="text-sm text-gray-400 mb-4">
-            Series | ${data.first_air_date.split("-")[0]} | 
-            ${data.number_of_seasons} Seasons | 
+            Series | ${data.first_air_date.split("-")[0]} | ${data.number_of_seasons} Seasons | 
             <i class="fa fa-star star"></i> ${data.vote_average.toFixed(1)}
           </p>
           <p class="text-[--muted] mb-6">${data.overview}</p>
@@ -126,27 +157,100 @@
       document.getElementById("info").innerHTML = html;
 
       // Default player first episode
-      document.getElementById("player").innerHTML =
-        `<iframe src="https://player.embed-api.stream/?id=${data.id}&s=1&e=1" 
-                 class="w-full h-full rounded-xl" frameborder="0" allowfullscreen></iframe>`;
-
-      // Episodes list
-      if (data.seasons && data.seasons.length > 0) {
-        document.getElementById("episodes").classList.remove("hidden");
-        const epList = data.seasons.map(s => `
-          <button onclick="loadEpisode(${data.id}, ${s.season_number}, 1)" 
-                  class="bg-[--accent] text-white text-sm px-3 py-2 rounded-xl hover:opacity-90">
-            Season ${s.season_number}
-          </button>
-        `).join("");
-        document.getElementById("episode-list").innerHTML = epList;
-      }
+      loadPlayer(`https://player.embed-api.stream/?id=${data.id}&s=1&e=1`);
+      document.getElementById("episodes").classList.remove("hidden");
     }
 
-    window.loadEpisode = function(id, s, e) {
+    function loadPlayer(url) {
       document.getElementById("player").innerHTML =
-        `<iframe src="https://player.embed-api.stream/?id=${id}&s=${s}&e=${e}" 
-                 class="w-full h-full rounded-xl" frameborder="0" allowfullscreen></iframe>`;
+        `<iframe src="${url}" class="w-full h-full rounded-xl" frameborder="0" allowfullscreen></iframe>`;
+    }
+
+    async function loadCast(mediaType) {
+      const res = await fetch(`https://api.themoviedb.org/3/${mediaType}/${id}/credits?api_key=${API_KEY}`);
+      const data = await res.json();
+      const cast = data.cast.slice(0,12).map(person => `
+        <a href="people.html?id=${person.id}" class="block text-center hover:text-[--accent]">
+          <img src="${person.profile_path ? IMG+person.profile_path : 'https://via.placeholder.com/300x450?text=No+Image'}" 
+               class="w-full h-40 object-cover rounded-xl mb-2">
+          <p class="text-sm font-medium">${person.name}</p>
+          <p class="text-xs text-gray-400">${person.character || ""}</p>
+        </a>
+      `).join("");
+      document.getElementById("cast-grid").innerHTML = cast;
+    }
+
+    async function loadSimilar(mediaType) {
+      const res = await fetch(`https://api.themoviedb.org/3/${mediaType}/${id}/similar?api_key=${API_KEY}&language=en-US&page=1`);
+      const data = await res.json();
+      const cards = data.results.slice(0,10).map(item => `
+        <a href="info.html?id=${item.id}&type=${mediaType === 'movie' ? 'movie' : 'series'}"
+           class="rounded-xl overflow-hidden block hover:scale-105 transition bg-[#1a1a1a]">
+          <img src="${item.poster_path ? IMG+item.poster_path : 'https://via.placeholder.com/500x750?text=No+Image'}" 
+               class="w-full h-60 object-cover">
+          <div class="p-2">
+            <p class="text-sm line-clamp-2">${item.title || item.name}</p>
+          </div>
+        </a>
+      `).join("");
+      document.getElementById("similar-grid").innerHTML = cards;
+    }
+
+    async function loadExtraSources() {
+      try {
+        const res = await fetch("https://raw.githubusercontent.com/animeneek/MovieNeek/main/MovieNeek.json");
+        const data = await res.json();
+        const match = data.find(entry => entry.TMDBID == id);
+        if (!match) return;
+
+        match.SRC.forEach((src, idx) => {
+          let url = "";
+          if (src === "streamtape") url = `https://streamtape.to/e/${match.VIDEOID[idx]}`;
+          else if (src === "streamwish") url = `https://streamwish.to/e/${match.VIDEOID[idx]}`;
+          else if (src === "mp4upload") url = `https://mp4upload.com/v/${match.VIDEOID[idx]}`;
+          else if (src === "other") url = `https://otherone.com/e/${match.VIDEOID[idx]}`;
+          else if (src === "other2") url = `https://othertwo.com/e/${match.VIDEOID[idx]}`;
+          document.getElementById("sources").innerHTML +=
+            `<button class="bg-[--accent] px-4 py-2 rounded-xl" onclick="loadPlayer('${url}')">${match.Source[idx]}</button>`;
+        });
+      } catch(e) { console.error("Extra sources load failed", e); }
+    }
+
+    function initSeriesControls(data) {
+      const seasonSelect = document.getElementById("seasonSelect");
+      const episodeSelect = document.getElementById("episodeSelect");
+      const playBtn = document.getElementById("playBtn");
+
+      data.seasons.forEach(s => {
+        if (s.season_number > 0) {
+          seasonSelect.innerHTML += `<option value="${s.season_number}">Season ${s.season_number}</option>`;
+        }
+      });
+
+      seasonSelect.addEventListener("change", async () => {
+        episodeSelect.innerHTML = `<option value="">Select Episode</option>`;
+        episodeSelect.disabled = true;
+        playBtn.disabled = true;
+        const season = seasonSelect.value;
+        if (!season) return;
+
+        const res = await fetch(`https://api.themoviedb.org/3/tv/${id}/season/${season}?api_key=${API_KEY}`);
+        const seasonData = await res.json();
+        seasonData.episodes.forEach(ep => {
+          episodeSelect.innerHTML += `<option value="${ep.episode_number}">Episode ${ep.episode_number}</option>`;
+        });
+        episodeSelect.disabled = false;
+      });
+
+      episodeSelect.addEventListener("change", () => {
+        playBtn.disabled = !episodeSelect.value;
+      });
+
+      playBtn.addEventListener("click", () => {
+        const s = seasonSelect.value;
+        const e = episodeSelect.value;
+        if (s && e) loadPlayer(`https://player.embed-api.stream/?id=${id}&s=${s}&e=${e}`);
+      });
     }
 
     loadInfo();
