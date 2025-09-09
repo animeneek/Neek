@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Neek — Info</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    :root { --accent:#ff4444; --bg:#0b0b0b; --muted:#9b9b9b; }
+    html,body { background:var(--bg); color:#fff; }
+    .star { color: var(--accent); }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <div id="header"></div>
+
+  <!-- Main -->
+  <main class="flex-1 max-w-6xl mx-auto px-6 py-10">
+
+    <!-- Info Section -->
+    <section id="info" class="flex flex-col md:flex-row gap-8"></section>
+
+    <!-- Watch Section -->
+    <section id="watch" class="mt-12">
+      <h2 class="text-2xl font-bold mb-4">🎥 Watch Now</h2>
+      <div id="player" class="w-full aspect-video bg-black rounded-xl overflow-hidden"></div>
+    </section>
+
+    <!-- Episodes Section (for series/anime) -->
+    <section id="episodes" class="mt-12 hidden">
+      <h2 class="text-2xl font-bold mb-4">📺 Episodes</h2>
+      <div id="episode-list" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4"></div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <div id="footer"></div>
+
+  <script>
+    // Load header/footer
+    Promise.all([
+      fetch("header.html").then(r => r.text()),
+      fetch("footer.html").then(r => r.text())
+    ]).then(([header, footer]) => {
+      document.getElementById("header").innerHTML = header;
+      document.getElementById("footer").innerHTML = footer;
+    });
+
+    // Parse URL params
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+    const type = params.get("type"); // movie | series
+
+    const API_KEY = "e3afd4c89e3351edad9e875ff7a01f0c";
+    const IMG = "https://image.tmdb.org/t/p/w500";
+
+    async function loadInfo() {
+      if (!id || !type) return;
+
+      if (type === "movie") {
+        const res = await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${API_KEY}&language=en-US`);
+        const data = await res.json();
+        renderMovie(data);
+      } else if (type === "series") {
+        const res = await fetch(`https://api.themoviedb.org/3/tv/${id}?api_key=${API_KEY}&language=en-US`);
+        const data = await res.json();
+        renderSeries(data);
+      }
+    }
+
+    function renderMovie(data) {
+      const html = `
+        <img src="${IMG+data.poster_path}" alt="${data.title}" class="w-64 rounded-xl shadow-lg">
+        <div>
+          <h1 class="text-3xl font-bold mb-2">${data.title}</h1>
+          <p class="text-sm text-gray-400 mb-4">Movie | ${data.release_date.split("-")[0]} | <i class="fa fa-star star"></i> ${data.vote_average.toFixed(1)}</p>
+          <p class="text-[--muted] mb-6">${data.overview}</p>
+          <p class="text-sm">⏱️ ${data.runtime} min | 🎭 ${data.genres.map(g=>g.name).join(", ")}</p>
+        </div>
+      `;
+      document.getElementById("info").innerHTML = html;
+
+      // Player
+      document.getElementById("player").innerHTML =
+        `<iframe src="https://player.embed-api.stream/?id=${data.id}&type=movie" class="w-full h-full" frameborder="0" allowfullscreen></iframe>`;
+    }
+
+    function renderSeries(data) {
+      const html = `
+        <img src="${IMG+data.poster_path}" alt="${data.name}" class="w-64 rounded-xl shadow-lg">
+        <div>
+          <h1 class="text-3xl font-bold mb-2">${data.name}</h1>
+          <p class="text-sm text-gray-400 mb-4">Series | ${data.first_air_date.split("-")[0]} | ${data.number_of_seasons} Seasons | <i class="fa fa-star star"></i> ${data.vote_average.toFixed(1)}</p>
+          <p class="text-[--muted] mb-6">${data.overview}</p>
+          <p class="text-sm">📺 ${data.number_of_episodes} Episodes | 🎭 ${data.genres.map(g=>g.name).join(", ")}</p>
+        </div>
+      `;
+      document.getElementById("info").innerHTML = html;
+
+      // Default player first episode
+      document.getElementById("player").innerHTML =
+        `<iframe src="https://player.embed-api.stream/?id=${data.id}&s=1&e=1" class="w-full h-full" frameborder="0" allowfullscreen></iframe>`;
+
+      // Episodes list
+      if (data.seasons && data.seasons.length > 0) {
+        document.getElementById("episodes").classList.remove("hidden");
+        const epList = data.seasons.map(s => `
+          <button onclick="loadEpisode(${data.id}, ${s.season_number}, 1)" class="bg-[--accent] text-white text-sm py-2 rounded-xl hover:opacity-90">
+            Season ${s.season_number}
+          </button>
+        `).join("");
+        document.getElementById("episode-list").innerHTML = epList;
+      }
+    }
+
+    window.loadEpisode = function(id, s, e) {
+      document.getElementById("player").innerHTML =
+        `<iframe src="https://player.embed-api.stream/?id=${id}&s=${s}&e=${e}" class="w-full h-full" frameborder="0" allowfullscreen></iframe>`;
+    }
+
+    loadInfo();
+  </script>
+</body>
+</html>
