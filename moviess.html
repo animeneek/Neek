@@ -19,6 +19,8 @@
     }
     html,body { background:var(--bg); color:#fff; }
     .card { background:#1a1a1a; }
+    .card h3 { color:#fff; }
+    .star { color: var(--accent); }
   </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -31,14 +33,14 @@
 
     <!-- Hero Section -->
     <section class="text-center">
-      <h1 class="text-3xl md:text-5xl font-extrabold mb-4">Movies & Series</h1>
-      <p class="text-[--muted]">Discover trending, latest, upcoming and ongoing shows.</p>
+      <h1 class="text-3xl md:text-5xl font-extrabold mb-4">🎬 Lights. Camera. Action.</h1>
+      <p class="text-[--muted] italic">Your gateway to the world of movies and series.</p>
     </section>
 
     <!-- Trending -->
     <section id="trending">
       <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
-        <i class="fa-solid fa-fire text-[--accent]"></i> Trending
+        <i class="fa-solid fa-fire text-[--accent]"></i> Trending Now
       </h2>
       <div id="trending-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6"></div>
     </section>
@@ -46,7 +48,7 @@
     <!-- Latest -->
     <section id="latest">
       <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
-        <i class="fa-solid fa-clock text-[--accent]"></i> Latest
+        <i class="fa-solid fa-clock text-[--accent]"></i> Latest Releases
       </h2>
       <div id="latest-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6"></div>
     </section>
@@ -54,7 +56,7 @@
     <!-- Upcoming -->
     <section id="upcoming">
       <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
-        <i class="fa-solid fa-calendar text-[--accent]"></i> Upcoming
+        <i class="fa-solid fa-calendar text-[--accent]"></i> Coming Soon
       </h2>
       <div id="upcoming-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6"></div>
     </section>
@@ -62,7 +64,7 @@
     <!-- Ongoing -->
     <section id="ongoing">
       <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
-        <i class="fa-solid fa-tv text-[--accent]"></i> Ongoing
+        <i class="fa-solid fa-tv text-[--accent]"></i> Ongoing Shows
       </h2>
       <div id="ongoing-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6"></div>
     </section>
@@ -87,19 +89,31 @@
     const API_KEY = "e3afd4c89e3351edad9e875ff7a01f0c";
     const IMG = "https://image.tmdb.org/t/p/w500";
 
-    function createCard(item, type) {
+    function createCard(item, type, extra={}) {
       const id = item.id;
       const title = item.title || item.name;
       const rating = item.vote_average ? item.vote_average.toFixed(1) : "N/A";
       const mediaType = item.media_type || type;
       const poster = item.poster_path ? IMG + item.poster_path : "https://via.placeholder.com/500x750?text=No+Image";
 
+      // year extraction
+      const year = item.release_date ? item.release_date.split("-")[0] : 
+                   item.first_air_date ? item.first_air_date.split("-")[0] : "—";
+
+      let infoLine = "";
+      if (mediaType === "movie") {
+        infoLine = `Movie | ${year} | <i class="fa fa-star star"></i> ${rating}`;
+      } else {
+        const seasons = extra.seasons ? extra.seasons + " Seasons" : "";
+        infoLine = `Series | ${year} ${seasons ? "| " + seasons : ""} | <i class="fa fa-star star"></i> ${rating}`;
+      }
+
       return `
         <a href="info.html?id=${id}&type=${mediaType}" class="card rounded-xl overflow-hidden hover:scale-105 transition block">
           <img src="${poster}" alt="${title}" class="w-full h-72 object-cover">
           <div class="p-3">
             <h3 class="text-sm font-medium line-clamp-2">${title}</h3>
-            <p class="text-xs text-gray-400">⭐ ${rating} | ${mediaType}</p>
+            <p class="text-xs text-gray-400 mt-1">${infoLine}</p>
           </div>
         </a>
       `;
@@ -109,7 +123,20 @@
       const res = await fetch(url);
       const data = await res.json();
       const container = document.getElementById(containerId);
-      container.innerHTML = data.results.slice(0,10).map(item => createCard(item, type)).join("");
+
+      const promises = data.results.slice(0, 10).map(async item => {
+        if ((item.media_type === "tv" || type === "series")) {
+          // fetch seasons info
+          const tvRes = await fetch(`https://api.themoviedb.org/3/tv/${item.id}?api_key=${API_KEY}`);
+          const tvData = await tvRes.json();
+          return createCard(item, "series", { seasons: tvData.number_of_seasons });
+        } else {
+          return createCard(item, "movie");
+        }
+      });
+
+      const cards = await Promise.all(promises);
+      container.innerHTML = cards.join("");
     }
 
     // Fetch data for sections
