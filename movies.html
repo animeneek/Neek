@@ -109,10 +109,11 @@
       }
 
       return `
-        <a href="info.html?id=${id}&type=${mediaType}" class="card rounded-xl overflow-hidden hover:scale-105 transition block">
+        <a href="info.html?id=${id}&type=${mediaType}" 
+           class="card rounded-xl overflow-hidden hover:scale-105 transition block no-underline">
           <img src="${poster}" alt="${title}" class="w-full h-72 object-cover">
           <div class="p-3">
-            <h3 class="text-sm font-medium line-clamp-2">${title}</h3>
+            <h3 class="text-sm font-medium line-clamp-2 hover:text-[--accent] transition">${title}</h3>
             <p class="text-xs text-gray-400 mt-1">${infoLine}</p>
           </div>
         </a>
