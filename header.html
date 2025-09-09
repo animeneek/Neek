@@ -8,14 +8,14 @@
     </a>
 
     <!-- Desktop Navigation -->
-    <nav class="hidden md:flex gap-8 text-sm font-medium text-white">
+    <nav class="hidden md:flex gap-8 text-sm font-medium">
       <!-- Switch Button (Movies <-> Anime) -->
-      <a id="switch-link" href="#" class="hover:text-[#ff4444] transition"></a>
+      <a id="switch-link" href="#" class="text-white hover:text-[#ff4444] transition"></a>
 
-      <a href="trendingmovies.html" class="hover:text-[#ff4444] transition">Trending</a>
-      <a href="latestmovies.html" class="hover:text-[#ff4444] transition">Latest</a>
-      <a href="ongoingmovies.html" class="hover:text-[#ff4444] transition">Ongoing</a>
-      <a href="comingmovies.html" class="hover:text-[#ff4444] transition">Coming Soon</a>
+      <a href="trendingmovies.html" class="text-white hover:text-[#ff4444] transition">Trending</a>
+      <a href="latestmovies.html" class="text-white hover:text-[#ff4444] transition">Latest</a>
+      <a href="ongoingmovies.html" class="text-white hover:text-[#ff4444] transition">Ongoing</a>
+      <a href="comingmovies.html" class="text-white hover:text-[#ff4444] transition">Coming Soon</a>
     </nav>
 
     <!-- Search -->
@@ -30,24 +30,24 @@
   </div>
 
   <!-- Mobile Bottom Navigation -->
-  <nav class="fixed bottom-0 left-0 right-0 md:hidden bg-black/70 backdrop-blur-lg border-t border-gray-800 flex justify-around text-xs text-white py-3 z-50">
-    <a id="switch-link-mobile" href="#" class="flex flex-col items-center hover:text-[#ff4444] transition">
+  <nav class="fixed bottom-0 left-0 right-0 md:hidden bg-black/70 backdrop-blur-lg border-t border-gray-800 flex justify-around text-xs py-3 z-50 overflow-x-hidden">
+    <a id="switch-link-mobile" href="#" class="flex flex-col items-center text-white hover:text-[#ff4444] transition">
       <i class="fa-solid fa-exchange-alt"></i>
       <span>Switch</span>
     </a>
-    <a href="trendingmovies.html" class="flex flex-col items-center hover:text-[#ff4444] transition">
+    <a href="trendingmovies.html" class="flex flex-col items-center text-white hover:text-[#ff4444] transition">
       <i class="fa-solid fa-fire"></i>
       <span>Trending</span>
     </a>
-    <a href="latestmovies.html" class="flex flex-col items-center hover:text-[#ff4444] transition">
+    <a href="latestmovies.html" class="flex flex-col items-center text-white hover:text-[#ff4444] transition">
       <i class="fa-solid fa-clock"></i>
       <span>Latest</span>
     </a>
-    <a href="ongoingmovies.html" class="flex flex-col items-center hover:text-[#ff4444] transition">
+    <a href="ongoingmovies.html" class="flex flex-col items-center text-white hover:text-[#ff4444] transition">
       <i class="fa-solid fa-play-circle"></i>
       <span>Ongoing</span>
     </a>
-    <a href="comingmovies.html" class="flex flex-col items-center hover:text-[#ff4444] transition">
+    <a href="comingmovies.html" class="flex flex-col items-center text-white hover:text-[#ff4444] transition">
       <i class="fa-solid fa-calendar"></i>
       <span>Coming</span>
     </a>
@@ -72,3 +72,10 @@
     switchLinkMobile.href = "movies.html";
   }
 </script>
+
+<style>
+  /* Prevent horizontal scroll on mobile */
+  body {
+    overflow-x: hidden;
+  }
+</style>
