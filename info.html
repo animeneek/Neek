@@ -11,432 +11,286 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
   <style>
-    :root {
-      --accent: #ff4444;
-      --bg: #0b0b0b;
-      --muted: #9b9b9b;
-    }
-
-    html, body {
-      background: var(--bg);
-      color: #fff;
-      overflow-x: hidden; /* prevent sideways scroll */
-    }
-
-    /* Remove default blue link flash before JS/Tailwind loads */
-    a { color: #fff; text-decoration: none !important; }
-    a:hover { color: var(--accent); text-decoration: none !important; }
-
+    :root { --accent:#ff4444; --bg:#0b0b0b; --muted:#9b9b9b; }
+    html,body { background:var(--bg); color:#fff; overflow-x:hidden; }
+    a { color:#fff; text-decoration:none !important; }
+    a:hover { color:var(--accent); }
     .star { color: var(--accent); }
-
-    /* small visual helpers */
-    .poster-img { max-width: 100%; height: auto; }
+    .btn {
+      background:var(--accent); color:white; padding:0.5rem 1rem; border-radius:0.75rem;
+      font-size:0.875rem; font-weight:600; transition:all .2s;
+    }
+    .btn:disabled {
+      opacity:0.5; cursor:not-allowed;
+    }
+    .cast-img {
+      width:80px; height:80px; object-fit:cover;
+      border-radius:50%; border:3px solid var(--accent);
+      margin:0 auto;
+    }
   </style>
 </head>
-<body class="min-h-screen flex flex-col bg-[--bg] text-white">
+<body class="min-h-screen flex flex-col">
 
-  <!-- Header (will be injected) -->
+  <!-- Header -->
   <div id="header"></div>
 
-  <main class="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-6 py-6 md:pt-28 pb-24">
+  <!-- Main -->
+  <main class="flex-1 max-w-6xl mx-auto px-3 sm:px-6 py-28 space-y-16">
 
-    <!-- Info row: poster left, details right -->
-    <section id="info" class="flex flex-col md:flex-row gap-6 items-start"></section>
+    <!-- Info Section -->
+    <section id="info" class="flex flex-col md:flex-row gap-8"></section>
 
-    <!-- Cast -->
-    <section id="cast" class="mt-8">
-      <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
-        <i class="fa fa-users text-[--accent]"></i> Cast
-      </h2>
-      <div id="cast-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4"></div>
+    <!-- Cast Section -->
+    <section id="cast" class="mt-12">
+      <h2 class="text-2xl font-bold mb-6">👥 Cast</h2>
+      <div id="cast-list" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6"></div>
     </section>
 
-    <!-- Watch / player -->
-    <section id="watch" class="mt-8">
-      <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
-        <i class="fa fa-play-circle text-[--accent]"></i> Watch Now
-      </h2>
-
-      <div id="player" class="w-full aspect-video bg-black rounded-xl overflow-hidden flex items-center justify-center text-center text-gray-400">
-        <!-- default placeholder message -->
-        <div id="player-placeholder" class="px-6">
-          <p class="text-lg font-semibold">Select a source or pick a season & episode to begin</p>
-          <p class="text-sm text-[--muted] mt-2">Choose a source to stream, or use the dropdowns for series episodes.</p>
-        </div>
+    <!-- Watch Section -->
+    <section id="watch" class="mt-12 text-center">
+      <h2 class="text-2xl font-bold mb-4">🎥 Watch Now</h2>
+      <div id="player" class="w-full aspect-video bg-black rounded-xl flex items-center justify-center text-gray-500">
+        Select an episode or source below 👇
       </div>
 
-      <!-- movie source buttons (centered) -->
-      <div id="sources" class="mt-4 flex flex-wrap justify-center gap-3"></div>
-    </section>
+      <!-- Movies: Sources -->
+      <div id="movie-sources" class="mt-6 flex flex-wrap gap-3 justify-center hidden"></div>
 
-    <!-- Episodes controls for series -->
-    <section id="episodes" class="mt-8 hidden">
-      <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
-        <i class="fa fa-tv text-[--accent]"></i> Episodes
-      </h2>
-
-      <div class="flex flex-col items-center gap-3">
-        <div class="flex gap-3 items-center justify-center w-full">
-          <select id="seasonSelect" class="bg-[#1a1a1a] border border-gray-700 rounded-xl px-3 py-2 text-sm w-48">
+      <!-- Series: Season/Episode selection -->
+      <div id="series-controls" class="mt-6 flex flex-col items-center gap-4 hidden">
+        <div class="flex gap-3 flex-wrap justify-center">
+          <select id="season-select" class="bg-[#1a1a1a] text-white px-3 py-2 rounded-xl">
             <option value="">Select Season</option>
           </select>
-
-          <select id="episodeSelect" class="bg-[#1a1a1a] border border-gray-700 rounded-xl px-3 py-2 text-sm w-48" disabled>
+          <select id="episode-select" class="bg-[#1a1a1a] text-white px-3 py-2 rounded-xl" disabled>
             <option value="">Select Episode</option>
           </select>
-
-          <button id="playBtn" disabled
-                  class="bg-[--accent] text-black px-4 py-2 rounded-xl opacity-60 cursor-not-allowed transition">
-            Play
-          </button>
+          <button id="play-btn" class="btn" disabled>▶ Play</button>
         </div>
-
-        <!-- additional episode-based sources (centered) -->
-        <div id="series-sources" class="flex flex-wrap justify-center gap-3"></div>
+        <div id="series-sources" class="flex flex-wrap gap-3 justify-center"></div>
       </div>
     </section>
 
-    <!-- Similar / Recommended -->
-    <section id="similar" class="mt-8">
-      <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
-        <i class="fa fa-clone text-[--accent]"></i> Recommended
-      </h2>
-      <div id="similar-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4"></div>
+    <!-- Recommended -->
+    <section id="recommended" class="mt-12">
+      <h2 class="text-2xl font-bold mb-6">⭐ Recommended</h2>
+      <div id="recommended-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4"></div>
     </section>
   </main>
 
-  <!-- Footer (injected) -->
+  <!-- Footer -->
   <div id="footer"></div>
 
-  <!-- SCRIPT: load header/footer, set padding to avoid header overlap -->
   <script>
-    (async function insertHeaderFooterAndInit() {
-      try {
-        const [hHtml, fHtml] = await Promise.all([
-          fetch('header.html').then(r => r.ok ? r.text() : ''),
-          fetch('footer.html').then(r => r.ok ? r.text() : '')
-        ]);
-        if (hHtml) document.getElementById('header').innerHTML = hHtml;
-        if (fHtml) document.getElementById('footer').innerHTML = fHtml;
-      } catch (e) {
-        console.warn('header/footer load failed', e);
-      }
+    // Load header/footer
+    Promise.all([
+      fetch("header.html").then(r => r.text()),
+      fetch("footer.html").then(r => r.text())
+    ]).then(([header, footer]) => {
+      document.getElementById("header").innerHTML = header;
+      document.getElementById("footer").innerHTML = footer;
+    });
 
-      // apply top padding equal to header height on desktop
-      const tryApplyPadding = () => {
-        const headerEl = document.querySelector('.neek-header');
-        if (!headerEl) return;
-        if (window.matchMedia('(min-width: 768px)').matches) {
-          const h = headerEl.getBoundingClientRect().height || 64;
-          document.body.style.paddingTop = h + 'px';
-        } else {
-          document.body.style.paddingTop = '';
-        }
-      };
-      tryApplyPadding();
-      window.addEventListener('resize', tryApplyPadding);
-    })();
-  </script>
-
-  <!-- Main logic: TMDB + JSON sources, UI wiring -->
-  <script>
+    // Parse URL params
     const params = new URLSearchParams(window.location.search);
-    const id = params.get('id');
-    const type = params.get('type'); // 'movie' or 'series'
+    const id = params.get("id");
+    const type = params.get("type"); // movie | series
+
     const API_KEY = "e3afd4c89e3351edad9e875ff7a01f0c";
     const IMG = "https://image.tmdb.org/t/p/w500";
+    const JSON_URL = "https://raw.githubusercontent.com/animeneek/MovieNeek/main/MovieNeek.json";
 
-    // helper to safely get property
-    const safe = (v, fallback = '—') => (v === null || v === undefined || v === '') ? fallback : v;
+    async function loadInfo() {
+      if (!id || !type) return;
 
-    // initial load
-    (async function init() {
-      if (!id) return;
-      if (type === 'movie') {
+      if (type === "movie") {
         const res = await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${API_KEY}&language=en-US`);
         const data = await res.json();
         renderMovie(data);
-        loadCast('movie');
-        loadSimilar('movie');
-        loadExtraSources();
-      } else if (type === 'series') {
+        loadCast(id, "movie");
+        loadRecommended(id, "movie");
+      } else if (type === "series") {
         const res = await fetch(`https://api.themoviedb.org/3/tv/${id}?api_key=${API_KEY}&language=en-US`);
         const data = await res.json();
         renderSeries(data);
-        loadCast('tv');
-        loadSimilar('tv');
-        loadExtraSources();
-        initSeriesControls(data);
+        loadCast(id, "tv");
+        loadRecommended(id, "tv");
       }
-    })();
+      loadExtraSources(id, type);
+    }
 
-    // Render helpers
     function renderMovie(data) {
-      // ensure poster and detail don't overlap: poster first then detail; on md row layout they sit side-by-side
-      const posterURL = data.poster_path ? IMG + data.poster_path : 'https://via.placeholder.com/500x750?text=No+Image';
       const html = `
-        <div class="flex-shrink-0 w-full md:w-64">
-          <img src="${posterURL}" alt="${escapeHtml(safe(data.title))}" class="rounded-xl shadow-lg poster-img w-full h-auto object-cover" />
-        </div>
+        <img src="${IMG+data.poster_path}" alt="${data.title}" class="w-64 rounded-xl shadow-lg">
         <div class="flex-1">
-          <h1 class="text-2xl sm:text-3xl font-bold mb-2 break-words">${escapeHtml(safe(data.title))}</h1>
-
-          <p class="text-sm text-gray-300 mb-3">
-            Movie | ${safe(getYear(data.release_date))}
-            <span class="mx-2">|</span>
-            <i class="fa fa-clock-o mr-1"></i> <span class="text-white">${safe(data.runtime, '—')} min</span>
-            <span class="mx-2">|</span>
-            <i class="fa fa-film mr-1"></i> <span class="text-white">${escapeHtml((data.genres||[]).map(g=>g.name).join(', ') || '—')}</span>
-            <span class="mx-2">|</span>
-            <i class="fa fa-star star"></i> <span class="text-white">${(data.vote_average||0).toFixed(1)}</span>
+          <h1 class="text-3xl font-bold mb-2 text-white">${data.title}</h1>
+          <p class="text-sm text-gray-400 mb-4">Movie | ${data.release_date.split("-")[0]} | <i class="fa fa-star star"></i> ${data.vote_average.toFixed(1)}</p>
+          <p class="text-[--muted] mb-6">${data.overview}</p>
+          <p class="text-sm text-white">
+            <i class="fa-regular fa-clock mr-1"></i> ${data.runtime} min | 
+            <i class="fa fa-film mr-1"></i> ${data.genres.map(g=>g.name).join(", ")}
           </p>
-
-          <p class="text-[--muted] mb-6">${escapeHtml(safe(data.overview, 'No description available'))}</p>
         </div>
       `;
-      document.getElementById('info').innerHTML = html;
+      document.getElementById("info").innerHTML = html;
 
-      // default player placeholder replaced by Source 1 (TMDB embed)
-      // set Sources area with centered "Source 1" (TMDB stream player)
-      const playerURL = `https://player.embed-api.stream/?id=${data.id}&type=movie`;
-      document.getElementById('player-placeholder')?.remove();
-      document.getElementById('player').innerHTML = `<div class="w-full h-full flex items-center justify-center text-gray-400">Select a source to play</div>`;
-      // create default Source 1 button (centered)
-      document.getElementById('sources').innerHTML = `
-        <button class="src-btn bg-[--accent] text-black px-4 py-2 rounded-xl" data-url="${playerURL}">Source 1</button>
-      `;
-      // wire click events (delegation)
-      wireSourceButtons();
+      document.getElementById("movie-sources").classList.remove("hidden");
+      document.getElementById("player").innerHTML = `<div class="p-6 text-gray-500">Choose a source below to start watching 🎬</div>`;
+
+      // Default Source 1
+      addSourceButton("Source 1", `https://player.embed-api.stream/?id=${data.id}&type=movie`, "movie-sources");
     }
 
     function renderSeries(data) {
-      const posterURL = data.poster_path ? IMG + data.poster_path : 'https://via.placeholder.com/500x750?text=No+Image';
       const html = `
-        <div class="flex-shrink-0 w-full md:w-64">
-          <img src="${posterURL}" alt="${escapeHtml(safe(data.name))}" class="rounded-xl shadow-lg poster-img w-full h-auto object-cover" />
-        </div>
+        <img src="${IMG+data.poster_path}" alt="${data.name}" class="w-64 rounded-xl shadow-lg">
         <div class="flex-1">
-          <h1 class="text-2xl sm:text-3xl font-bold mb-2 break-words">${escapeHtml(safe(data.name))}</h1>
-
-          <p class="text-sm text-gray-300 mb-3">
-            Series | ${safe(getYear(data.first_air_date))}
-            <span class="mx-2">|</span>
-            <span class="text-white">${safe(data.number_of_seasons, '—')} Seasons</span>
-            <span class="mx-2">|</span>
-            <i class="fa fa-star star"></i> <span class="text-white">${(data.vote_average||0).toFixed(1)}</span>
+          <h1 class="text-3xl font-bold mb-2 text-white">${data.name}</h1>
+          <p class="text-sm text-gray-400 mb-4">Series | ${data.first_air_date.split("-")[0]} | ${data.number_of_seasons} Seasons | <i class="fa fa-star star"></i> ${data.vote_average.toFixed(1)}</p>
+          <p class="text-[--muted] mb-6">${data.overview}</p>
+          <p class="text-sm text-white">
+            <i class="fa fa-film mr-1"></i> ${data.genres.map(g=>g.name).join(", ")}
           </p>
-
-          <p class="text-[--muted] mb-6">${escapeHtml(safe(data.overview, 'No description available'))}</p>
         </div>
       `;
-      document.getElementById('info').innerHTML = html;
+      document.getElementById("info").innerHTML = html;
 
-      // set placeholder in player until user plays
-      document.getElementById('player-placeholder')?.remove();
-      document.getElementById('player').innerHTML = `<div class="w-full h-full flex items-center justify-center text-gray-400">Select a season & episode or choose a source below to play.</div>`;
+      document.getElementById("series-controls").classList.remove("hidden");
 
-      // show episodes controls
-      document.getElementById('episodes').classList.remove('hidden');
-    }
-
-    // Cast loader: show circular small images with red ring, name and role
-    async function loadCast(mediaType) {
-      try {
-        const res = await fetch(`https://api.themoviedb.org/3/${mediaType}/${id}/credits?api_key=${API_KEY}`);
-        const data = await res.json();
-        const cast = (data.cast || []).slice(0, 12);
-        const html = cast.map(person => {
-          const img = person.profile_path ? IMG + person.profile_path : 'https://via.placeholder.com/300x300?text=No+Image';
-          // circular image with red ring
-          return `
-            <a href="people.html?id=${person.id}" class="flex flex-col items-center text-center hover:text-[--accent]">
-              <div class="w-16 h-16 rounded-full overflow-hidden ring-2 ring-[--accent]">
-                <img src="${img}" alt="${escapeHtml(person.name)}" class="w-full h-full object-cover">
-              </div>
-              <div class="mt-2 text-sm font-medium">${escapeHtml(person.name)}</div>
-              <div class="text-xs text-gray-400">${escapeHtml(person.character || '')}</div>
-            </a>
-          `;
-        }).join('');
-        document.getElementById('cast-grid').innerHTML = html;
-      } catch (e) {
-        console.error('Failed loading cast', e);
-      }
-    }
-
-    // Similar/recommended loader
-    async function loadSimilar(mediaType) {
-      try {
-        const res = await fetch(`https://api.themoviedb.org/3/${mediaType}/${id}/similar?api_key=${API_KEY}&language=en-US&page=1`);
-        const data = await res.json();
-        const items = (data.results || []).slice(0, 10);
-        const html = items.map(it => {
-          const poster = it.poster_path ? IMG + it.poster_path : 'https://via.placeholder.com/500x750?text=No+Image';
-          const title = escapeHtml(it.title || it.name || '—');
-          const linkType = (mediaType === 'movie') ? 'movie' : 'series';
-          return `
-            <a href="info.html?id=${it.id}&type=${linkType}" class="block rounded-xl overflow-hidden hover:scale-105 transition bg-[#1a1a1a]">
-              <img src="${poster}" class="w-full h-60 object-cover" alt="${title}">
-              <div class="p-2">
-                <p class="text-sm line-clamp-2">${title}</p>
-              </div>
-            </a>
-          `;
-        }).join('');
-        document.getElementById('similar-grid').innerHTML = html;
-      } catch (e) {
-        console.error('similar load failed', e);
-      }
-    }
-
-    // JSON additional sources
-    async function loadExtraSources() {
-      try {
-        const raw = await fetch('https://raw.githubusercontent.com/animeneek/MovieNeek/main/MovieNeek.json');
-        const arr = await raw.json();
-        const match = arr.find(x => String(x.TMDBID) === String(id));
-        if (!match) return;
-
-        // match.SRC, match.Source, match.VIDEOID arrays expected
-        const sourcesEl = document.getElementById('sources');
-        const seriesSourcesEl = document.getElementById('series-sources');
-
-        // Build buttons for each available video id
-        for (let i = 0; i < (match.SRC || []).length; i++) {
-          const src = match.SRC[i];
-          const label = match.Source?.[i] || `Source ${i+2}`;
-          const videoId = match.VIDEOID?.[i];
-          if (!videoId) continue;
-
-          const url = src === 'streamtape' ? `https://streamtape.to/e/${videoId}` :
-                      src === 'streamwish' ? `https://streamwish.to/e/${videoId}` :
-                      src === 'mp4upload' ? `https://mp4upload.com/v/${videoId}` :
-                      src === 'other' ? `https://otherone.com/e/${videoId}` :
-                      src === 'other2' ? `https://othertwo.com/e/${videoId}` :
-                      `https://example.com/e/${videoId}`;
-
-          // If this is a movie page: show in 'sources' area; for series we show below episode controls (seriesSourcesEl)
-          const btn = document.createElement('button');
-          btn.className = 'bg-[--accent] text-black px-4 py-2 rounded-xl';
-          btn.textContent = label;
-          btn.dataset.url = url;
-          btn.addEventListener('click', () => {
-            loadPlayer(url);
-          });
-
-          if (type === 'movie') {
-            sourcesEl.appendChild(btn);
-          } else {
-            // series: these are "all episodes in 1" style sources - place in series-sources
-            seriesSourcesEl.appendChild(btn);
-          }
+      // populate seasons
+      const seasonSelect = document.getElementById("season-select");
+      data.seasons.forEach(s => {
+        if (s.season_number > 0) {
+          const opt = document.createElement("option");
+          opt.value = s.season_number;
+          opt.textContent = `Season ${s.season_number}`;
+          seasonSelect.appendChild(opt);
         }
+      });
 
-        // center-align (just in case)
-        sourcesEl.classList.add('justify-center');
-      } catch (e) {
-        console.warn('extra sources load failed', e);
-      }
-    }
+      const episodeSelect = document.getElementById("episode-select");
+      const playBtn = document.getElementById("play-btn");
 
-    // wire click handling for default + dynamic source buttons
-    function wireSourceButtons() {
-      // delegate: any button inside #sources with data-url
-      document.getElementById('sources').addEventListener('click', (ev) => {
-        const target = ev.target.closest('button');
-        if (!target) return;
-        const url = target.dataset.url;
-        if (!url) return;
-        loadPlayer(url);
+      seasonSelect.addEventListener("change", async e => {
+        const seasonNum = e.target.value;
+        episodeSelect.innerHTML = "<option value=''>Select Episode</option>";
+        episodeSelect.disabled = !seasonNum;
+        playBtn.disabled = true;
+
+        if (seasonNum) {
+          const res = await fetch(`https://api.themoviedb.org/3/tv/${data.id}/season/${seasonNum}?api_key=${API_KEY}&language=en-US`);
+          const seasonData = await res.json();
+          seasonData.episodes.forEach(ep => {
+            const opt = document.createElement("option");
+            opt.value = ep.episode_number;
+            opt.textContent = `Episode ${ep.episode_number}`;
+            episodeSelect.appendChild(opt);
+          });
+        }
+      });
+
+      episodeSelect.addEventListener("change", () => {
+        playBtn.disabled = !(seasonSelect.value && episodeSelect.value);
+      });
+
+      playBtn.addEventListener("click", () => {
+        const s = seasonSelect.value;
+        const e = episodeSelect.value;
+        if (s && e) {
+          document.getElementById("player").innerHTML =
+            `<iframe src="https://player.embed-api.stream/?id=${data.id}&s=${s}&e=${e}" class="w-full h-full" frameborder="0" allowfullscreen></iframe>`;
+        }
       });
     }
 
-    // load player - replace iframe and stop previous
-    function loadPlayer(url) {
-      if (!url) return;
-      const player = document.getElementById('player');
-      player.innerHTML = `<iframe src="${url}" class="w-full h-full rounded-xl" frameborder="0" allowfullscreen></iframe>`;
-      // scroll into view on small screens
-      player.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    async function loadCast(id, type) {
+      const res = await fetch(`https://api.themoviedb.org/3/${type}/${id}/credits?api_key=${API_KEY}`);
+      const data = await res.json();
+      const container = document.getElementById("cast-list");
+      container.innerHTML = data.cast.slice(0, 10).map(c => `
+        <a href="people.html?id=${c.id}" class="text-center">
+          <img src="${c.profile_path ? IMG+c.profile_path : 'https://via.placeholder.com/80'}" class="cast-img">
+          <p class="mt-2 text-sm font-semibold">${c.name}</p>
+          <p class="text-xs text-gray-400">${c.character || ""}</p>
+        </a>
+      `).join("");
     }
 
-    // series controls
-    function initSeriesControls(seriesData) {
+    function addSourceButton(label, url, containerId) {
+      const btn = document.createElement("button");
+      btn.className = "btn";
+      btn.textContent = label;
+      btn.onclick = () => {
+        document.getElementById("player").innerHTML =
+          `<iframe src="${url}" class="w-full h-full" frameborder="0" allowfullscreen></iframe>`;
+      };
+      document.getElementById(containerId).appendChild(btn);
+    }
+
+    async function loadExtraSources(id, type) {
       try {
-        const seasonSelect = document.getElementById('seasonSelect');
-        const episodeSelect = document.getElementById('episodeSelect');
-        const playBtn = document.getElementById('playBtn');
+        const res = await fetch(JSON_URL);
+        const json = await res.json();
+        const entry = json.find(e => e.TMDBID == id && e.Class === type);
+        if (!entry) return;
 
-        // populate seasons (exclude season 0 if exists)
-        (seriesData.seasons || []).forEach(s => {
-          if (s.season_number && s.season_number > 0) {
-            const opt = document.createElement('option');
-            opt.value = s.season_number;
-            opt.textContent = `Season ${s.season_number}`;
-            seasonSelect.appendChild(opt);
-          }
-        });
+        entry.SRC.forEach((src, i) => {
+          let base = "";
+          if (src === "streamtape") base = "https://streamtape.to/e/";
+          else if (src === "streamwish") base = "https://streamwish.to/e/";
+          else if (src === "mp4upload") base = "https://mp4upload.com/v/";
+          else if (src === "other") base = "https://otherone.com/e/";
+          else if (src === "other2") base = "https://othertwo.com/e/";
 
-        seasonSelect.addEventListener('change', async () => {
-          episodeSelect.innerHTML = '<option value="">Select Episode</option>';
-          episodeSelect.disabled = true;
-          playBtn.disabled = true;
-          playBtn.classList.add('opacity-60', 'cursor-not-allowed');
-          // if no season selected, stop
-          const sn = seasonSelect.value;
-          if (!sn) return;
-          // fetch season details
-          try {
-            const res = await fetch(`https://api.themoviedb.org/3/tv/${id}/season/${sn}?api_key=${API_KEY}&language=en-US`);
-            const sd = await res.json();
-            (sd.episodes || []).forEach(ep => {
-              const o = document.createElement('option');
-              o.value = ep.episode_number;
-              o.textContent = `Episode ${ep.episode_number} — ${ep.name || ''}`;
-              episodeSelect.appendChild(o);
-            });
-            episodeSelect.disabled = false;
-          } catch (e) {
-            console.error('Failed season fetch', e);
-          }
-        });
+          const videoId = entry.VIDEOID[i];
+          const label = entry.Source[i] || `Source ${i+2}`;
+          const url = base + videoId;
 
-        episodeSelect.addEventListener('change', () => {
-          if (episodeSelect.value && seasonSelect.value) {
-            playBtn.disabled = false;
-            playBtn.classList.remove('opacity-60', 'cursor-not-allowed');
-          } else {
-            playBtn.disabled = true;
-            playBtn.classList.add('opacity-60', 'cursor-not-allowed');
-          }
+          if (type === "movie") addSourceButton(label, url, "movie-sources");
+          else addSourceButton(label, url, "series-sources");
         });
-
-        playBtn.addEventListener('click', () => {
-          const s = seasonSelect.value;
-          const e = episodeSelect.value;
-          if (s && e) {
-            // default series player embed (you provided the pattern earlier)
-            const url = `https://player.embed-api.stream/?id=${id}&s=${s}&e=${e}`;
-            loadPlayer(url);
-          }
-        });
-      } catch (err) {
-        console.error('initSeriesControls error', err);
+      } catch (e) {
+        console.error("Extra sources load error", e);
       }
     }
 
-    // small helpers
-    function getYear(dateStr) {
-      if (!dateStr) return '—';
-      return (dateStr.split && dateStr.split('-')[0]) || dateStr;
+    async function loadRecommended(id, type) {
+      const res = await fetch(`https://api.themoviedb.org/3/${type}/${id}/recommendations?api_key=${API_KEY}&language=en-US&page=1`);
+      const data = await res.json();
+      const container = document.getElementById("recommended-grid");
+
+      const cards = await Promise.all(data.results.slice(0, 10).map(async item => {
+        const poster = item.poster_path ? IMG+item.poster_path : "https://via.placeholder.com/500x750?text=No+Image";
+        const year = item.release_date ? item.release_date.split("-")[0] :
+                     item.first_air_date ? item.first_air_date.split("-")[0] : "—";
+        const rating = item.vote_average ? item.vote_average.toFixed(1) : "N/A";
+        const mediaType = item.media_type || (item.first_air_date ? "series" : "movie");
+
+        let infoLine = "";
+        if (mediaType === "movie") {
+          infoLine = `Movie | ${year} | <i class="fa fa-star star"></i> ${rating}`;
+        } else {
+          const tvRes = await fetch(`https://api.themoviedb.org/3/tv/${item.id}?api_key=${API_KEY}`);
+          const tvData = await tvRes.json();
+          infoLine = `Series | ${year} | ${tvData.number_of_seasons} Seasons | <i class="fa fa-star star"></i> ${rating}`;
+        }
+
+        return `
+          <a href="info.html?id=${item.id}&type=${mediaType}" class="card rounded-xl overflow-hidden hover:scale-105 transition block max-w-full">
+            <img src="${poster}" alt="${item.title || item.name}" class="w-full h-72 object-cover">
+            <div class="p-3">
+              <h3 class="text-sm font-medium line-clamp-2 hover:text-[--accent] transition">${item.title || item.name}</h3>
+              <p class="text-xs text-gray-400 mt-1">${infoLine}</p>
+            </div>
+          </a>
+        `;
+      }));
+
+      container.innerHTML = cards.join("");
     }
-    function escapeHtml(s) {
-      if (s === null || s === undefined) return '';
-      return String(s)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;');
-    }
+
+    loadInfo();
   </script>
 </body>
 </html>
