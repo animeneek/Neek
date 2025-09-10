@@ -23,13 +23,10 @@
       overflow-x: hidden; /* prevent sideways scroll */
     }
 
-    /* Remove default blue link flash before JS/Tailwind loads */
     a { color: #fff; text-decoration: none !important; }
     a:hover { color: var(--accent); text-decoration: none !important; }
 
     .star { color: var(--accent); }
-
-    /* small visual helpers */
     .poster-img { max-width: 100%; height: auto; }
   </style>
 </head>
@@ -40,7 +37,7 @@
 
   <main class="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-6 py-6 md:pt-28 pb-24">
 
-    <!-- Info row: poster left, details right -->
+    <!-- Info row -->
     <section id="info" class="flex flex-col md:flex-row gap-6 items-start"></section>
 
     <!-- Cast -->
@@ -51,25 +48,23 @@
       <div id="cast-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4"></div>
     </section>
 
-    <!-- Watch / player -->
+    <!-- Watch -->
     <section id="watch" class="mt-8">
       <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
         <i class="fa fa-play-circle text-[--accent]"></i> Watch Now
       </h2>
 
       <div id="player" class="w-full aspect-video bg-black rounded-xl overflow-hidden flex items-center justify-center text-center text-gray-400">
-        <!-- default placeholder message -->
         <div id="player-placeholder" class="px-6">
           <p class="text-lg font-semibold">Select a source or pick a season & episode to begin</p>
           <p class="text-sm text-[--muted] mt-2">Choose a source to stream, or use the dropdowns for series episodes.</p>
         </div>
       </div>
 
-      <!-- movie source buttons (centered) -->
       <div id="sources" class="mt-4 flex flex-wrap justify-center gap-3"></div>
     </section>
 
-    <!-- Episodes controls for series -->
+    <!-- Episodes -->
     <section id="episodes" class="mt-8 hidden">
       <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
         <i class="fa fa-tv text-[--accent]"></i> Episodes
@@ -86,17 +81,16 @@
           </select>
 
           <button id="playBtn" disabled
-                  class="bg-[--accent] text-black px-4 py-2 rounded-xl opacity-60 cursor-not-allowed transition">
+                  class="bg-[--accent] text-white px-4 py-2 rounded-xl opacity-60 cursor-not-allowed transition">
             Play
           </button>
         </div>
 
-        <!-- additional episode-based sources (centered) -->
         <div id="series-sources" class="flex flex-wrap justify-center gap-3"></div>
       </div>
     </section>
 
-    <!-- Similar / Recommended -->
+    <!-- Recommended -->
     <section id="similar" class="mt-8">
       <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
         <i class="fa fa-clone text-[--accent]"></i> Recommended
@@ -105,10 +99,10 @@
     </section>
   </main>
 
-  <!-- Footer (injected) -->
+  <!-- Footer -->
   <div id="footer"></div>
 
-  <!-- SCRIPT: load header/footer, set padding to avoid header overlap -->
+  <!-- Header/footer script -->
   <script>
     (async function insertHeaderFooterAndInit() {
       try {
@@ -122,7 +116,6 @@
         console.warn('header/footer load failed', e);
       }
 
-      // apply top padding equal to header height on desktop
       const tryApplyPadding = () => {
         const headerEl = document.querySelector('.neek-header');
         if (!headerEl) return;
@@ -138,18 +131,16 @@
     })();
   </script>
 
-  <!-- Main logic: TMDB + JSON sources, UI wiring -->
+  <!-- Main logic -->
   <script>
     const params = new URLSearchParams(window.location.search);
     const id = params.get('id');
-    const type = params.get('type'); // 'movie' or 'series'
+    const type = params.get('type');
     const API_KEY = "e3afd4c89e3351edad9e875ff7a01f0c";
     const IMG = "https://image.tmdb.org/t/p/w500";
 
-    // helper to safely get property
-    const safe = (v, fallback = '—') => (v === null || v === undefined || v === '') ? fallback : v;
+    const safe = (v, f='—') => (v===null||v===undefined||v==='')?f:v;
 
-    // initial load
     (async function init() {
       if (!id) return;
       if (type === 'movie') {
@@ -170,198 +161,144 @@
       }
     })();
 
-    // Render helpers
     function renderMovie(data) {
-      // ensure poster and detail don't overlap: poster first then detail; on md row layout they sit side-by-side
-      const posterURL = data.poster_path ? IMG + data.poster_path : 'https://via.placeholder.com/500x750?text=No+Image';
+      const posterURL = data.poster_path ? IMG+data.poster_path : 'https://via.placeholder.com/500x750?text=No+Image';
       const html = `
         <div class="flex-shrink-0 w-full md:w-64">
           <img src="${posterURL}" alt="${escapeHtml(safe(data.title))}" class="rounded-xl shadow-lg poster-img w-full h-auto object-cover" />
         </div>
         <div class="flex-1">
           <h1 class="text-2xl sm:text-3xl font-bold mb-2 break-words">${escapeHtml(safe(data.title))}</h1>
-
           <p class="text-sm text-gray-300 mb-3">
             Movie | ${safe(getYear(data.release_date))}
             <span class="mx-2">|</span>
-            <i class="fa fa-clock-o mr-1"></i> <span class="text-white">${safe(data.runtime, '—')} min</span>
+            <i class="fa-regular fa-clock mr-1"></i> <span class="text-white">${safe(data.runtime)} min</span>
             <span class="mx-2">|</span>
-            <i class="fa fa-film mr-1"></i> <span class="text-white">${escapeHtml((data.genres||[]).map(g=>g.name).join(', ') || '—')}</span>
+            <i class="fa fa-film mr-1"></i> <span class="text-white">${escapeHtml((data.genres||[]).map(g=>g.name).join(', ')||'—')}</span>
             <span class="mx-2">|</span>
             <i class="fa fa-star star"></i> <span class="text-white">${(data.vote_average||0).toFixed(1)}</span>
           </p>
-
-          <p class="text-[--muted] mb-6">${escapeHtml(safe(data.overview, 'No description available'))}</p>
-        </div>
-      `;
+          <p class="text-[--muted] mb-6">${escapeHtml(safe(data.overview,'No description available'))}</p>
+        </div>`;
       document.getElementById('info').innerHTML = html;
 
-      // default player placeholder replaced by Source 1 (TMDB embed)
-      // set Sources area with centered "Source 1" (TMDB stream player)
       const playerURL = `https://player.embed-api.stream/?id=${data.id}&type=movie`;
       document.getElementById('player-placeholder')?.remove();
       document.getElementById('player').innerHTML = `<div class="w-full h-full flex items-center justify-center text-gray-400">Select a source to play</div>`;
-      // create default Source 1 button (centered)
       document.getElementById('sources').innerHTML = `
-        <button class="src-btn bg-[--accent] text-black px-4 py-2 rounded-xl" data-url="${playerURL}">Source 1</button>
+        <button class="src-btn bg-[--accent] text-white px-4 py-2 rounded-xl" data-url="${playerURL}">Source 1</button>
       `;
-      // wire click events (delegation)
       wireSourceButtons();
     }
 
     function renderSeries(data) {
-      const posterURL = data.poster_path ? IMG + data.poster_path : 'https://via.placeholder.com/500x750?text=No+Image';
+      const posterURL = data.poster_path ? IMG+data.poster_path : 'https://via.placeholder.com/500x750?text=No+Image';
       const html = `
         <div class="flex-shrink-0 w-full md:w-64">
           <img src="${posterURL}" alt="${escapeHtml(safe(data.name))}" class="rounded-xl shadow-lg poster-img w-full h-auto object-cover" />
         </div>
         <div class="flex-1">
           <h1 class="text-2xl sm:text-3xl font-bold mb-2 break-words">${escapeHtml(safe(data.name))}</h1>
-
           <p class="text-sm text-gray-300 mb-3">
             Series | ${safe(getYear(data.first_air_date))}
             <span class="mx-2">|</span>
-            <span class="text-white">${safe(data.number_of_seasons, '—')} Seasons</span>
+            <span class="text-white">${safe(data.number_of_seasons)} Seasons</span>
             <span class="mx-2">|</span>
             <i class="fa fa-star star"></i> <span class="text-white">${(data.vote_average||0).toFixed(1)}</span>
           </p>
-
-          <p class="text-[--muted] mb-6">${escapeHtml(safe(data.overview, 'No description available'))}</p>
-        </div>
-      `;
+          <p class="text-[--muted] mb-6">${escapeHtml(safe(data.overview,'No description available'))}</p>
+        </div>`;
       document.getElementById('info').innerHTML = html;
-
-      // set placeholder in player until user plays
       document.getElementById('player-placeholder')?.remove();
       document.getElementById('player').innerHTML = `<div class="w-full h-full flex items-center justify-center text-gray-400">Select a season & episode or choose a source below to play.</div>`;
-
-      // show episodes controls
       document.getElementById('episodes').classList.remove('hidden');
     }
 
-    // Cast loader: show circular small images with red ring, name and role
     async function loadCast(mediaType) {
       try {
         const res = await fetch(`https://api.themoviedb.org/3/${mediaType}/${id}/credits?api_key=${API_KEY}`);
         const data = await res.json();
-        const cast = (data.cast || []).slice(0, 12);
-        const html = cast.map(person => {
-          const img = person.profile_path ? IMG + person.profile_path : 'https://via.placeholder.com/300x300?text=No+Image';
-          // circular image with red ring
+        const cast = (data.cast||[]).slice(0,12);
+        const html = cast.map(p=>{
+          const img = p.profile_path?IMG+p.profile_path:'https://via.placeholder.com/300x300?text=No+Image';
           return `
-            <a href="people.html?id=${person.id}" class="flex flex-col items-center text-center hover:text-[--accent]">
+            <a href="people.html?id=${p.id}" class="flex flex-col items-center text-center hover:text-[--accent]">
               <div class="w-16 h-16 rounded-full overflow-hidden ring-2 ring-[--accent]">
-                <img src="${img}" alt="${escapeHtml(person.name)}" class="w-full h-full object-cover">
+                <img src="${img}" alt="${escapeHtml(p.name)}" class="w-full h-full object-cover">
               </div>
-              <div class="mt-2 text-sm font-medium">${escapeHtml(person.name)}</div>
-              <div class="text-xs text-gray-400">${escapeHtml(person.character || '')}</div>
-            </a>
-          `;
+              <div class="mt-2 text-sm font-medium">${escapeHtml(p.name)}</div>
+              <div class="text-xs text-gray-400">${escapeHtml(p.character||'')}</div>
+            </a>`;
         }).join('');
         document.getElementById('cast-grid').innerHTML = html;
-      } catch (e) {
-        console.error('Failed loading cast', e);
-      }
+      } catch(e){console.error(e);}
     }
 
-    // Similar/recommended loader
     async function loadSimilar(mediaType) {
       try {
         const res = await fetch(`https://api.themoviedb.org/3/${mediaType}/${id}/similar?api_key=${API_KEY}&language=en-US&page=1`);
         const data = await res.json();
-        const items = (data.results || []).slice(0, 10);
-        const html = items.map(it => {
-          const poster = it.poster_path ? IMG + it.poster_path : 'https://via.placeholder.com/500x750?text=No+Image';
-          const title = escapeHtml(it.title || it.name || '—');
-          const linkType = (mediaType === 'movie') ? 'movie' : 'series';
+        const items = (data.results||[]).slice(0,10);
+        const html = items.map(it=>{
+          const poster = it.poster_path?IMG+it.poster_path:'https://via.placeholder.com/500x750?text=No+Image';
+          const title = escapeHtml(it.title||it.name||'—');
+          const linkType = (mediaType==='movie')?'movie':'series';
+          const meta = (mediaType==='movie')
+            ? `Movie | ${getYear(it.release_date)} | <i class="fa fa-star star"></i> ${(it.vote_average||0).toFixed(1)}`
+            : `Series | ${getYear(it.first_air_date)} | ${it.number_of_seasons||'?'} Seasons | <i class="fa fa-star star"></i> ${(it.vote_average||0).toFixed(1)}`;
           return `
             <a href="info.html?id=${it.id}&type=${linkType}" class="block rounded-xl overflow-hidden hover:scale-105 transition bg-[#1a1a1a]">
-              <img src="${poster}" class="w-full h-60 object-cover" alt="${title}">
+              <img src="${poster}" class="w-full h-72 object-cover" alt="${title}">
               <div class="p-2">
-                <p class="text-sm line-clamp-2">${title}</p>
+                <p class="text-sm font-bold line-clamp-1">${title}</p>
+                <p class="text-xs text-gray-400">${meta}</p>
               </div>
-            </a>
-          `;
+            </a>`;
         }).join('');
         document.getElementById('similar-grid').innerHTML = html;
-      } catch (e) {
-        console.error('similar load failed', e);
-      }
+      } catch(e){console.error(e);}
     }
 
-    // JSON additional sources
     async function loadExtraSources() {
       try {
         const raw = await fetch('https://raw.githubusercontent.com/animeneek/MovieNeek/main/MovieNeek.json');
         const arr = await raw.json();
-        const match = arr.find(x => String(x.TMDBID) === String(id));
+        const match = arr.find(x=>String(x.TMDBID)===String(id));
         if (!match) return;
-
-        // match.SRC, match.Source, match.VIDEOID arrays expected
-        const sourcesEl = document.getElementById('sources');
-        const seriesSourcesEl = document.getElementById('series-sources');
-
-        // Build buttons for each available video id
-        for (let i = 0; i < (match.SRC || []).length; i++) {
-          const src = match.SRC[i];
-          const label = match.Source?.[i] || `Source ${i+2}`;
-          const videoId = match.VIDEOID?.[i];
-          if (!videoId) continue;
-
-          const url = src === 'streamtape' ? `https://streamtape.to/e/${videoId}` :
-                      src === 'streamwish' ? `https://streamwish.to/e/${videoId}` :
-                      src === 'mp4upload' ? `https://mp4upload.com/v/${videoId}` :
-                      src === 'other' ? `https://otherone.com/e/${videoId}` :
-                      src === 'other2' ? `https://othertwo.com/e/${videoId}` :
-                      `https://example.com/e/${videoId}`;
-
-          // If this is a movie page: show in 'sources' area; for series we show below episode controls (seriesSourcesEl)
-          const btn = document.createElement('button');
-          btn.className = 'bg-[--accent] text-black px-4 py-2 rounded-xl';
-          btn.textContent = label;
-          btn.dataset.url = url;
-          btn.addEventListener('click', () => {
-            loadPlayer(url);
-          });
-
-          if (type === 'movie') {
-            sourcesEl.appendChild(btn);
-          } else {
-            // series: these are "all episodes in 1" style sources - place in series-sources
-            seriesSourcesEl.appendChild(btn);
-          }
+        const sourcesEl=document.getElementById('sources');
+        const seriesSourcesEl=document.getElementById('series-sources');
+        for(let i=0;i<(match.SRC||[]).length;i++){
+          const src=match.SRC[i];const label=match.Source?.[i]||`Source ${i+2}`;const vid=match.VIDEOID?.[i];
+          if(!vid)continue;
+          const url=src==='streamtape'?`https://streamtape.to/e/${vid}`:
+                    src==='streamwish'?`https://streamwish.to/e/${vid}`:
+                    src==='mp4upload'?`https://mp4upload.com/v/${vid}`:
+                    src==='other'?`https://otherone.com/e/${vid}`:
+                    src==='other2'?`https://othertwo.com/e/${vid}`:`https://example.com/e/${vid}`;
+          const btn=document.createElement('button');
+          btn.className='bg-[--accent] text-white px-4 py-2 rounded-xl';
+          btn.textContent=label;btn.dataset.url=url;
+          btn.addEventListener('click',()=>{loadPlayer(url);});
+          if(type==='movie'){sourcesEl.appendChild(btn);}else{seriesSourcesEl.appendChild(btn);}
         }
-
-        // center-align (just in case)
         sourcesEl.classList.add('justify-center');
-      } catch (e) {
-        console.warn('extra sources load failed', e);
-      }
+      } catch(e){console.warn(e);}
     }
 
-    // wire click handling for default + dynamic source buttons
     function wireSourceButtons() {
-      // delegate: any button inside #sources with data-url
-      document.getElementById('sources').addEventListener('click', (ev) => {
-        const target = ev.target.closest('button');
-        if (!target) return;
-        const url = target.dataset.url;
-        if (!url) return;
-        loadPlayer(url);
+      document.getElementById('sources').addEventListener('click',ev=>{
+        const t=ev.target.closest('button');if(!t)return;const url=t.dataset.url;if(!url)return;loadPlayer(url);
       });
     }
 
-    // load player - replace iframe and stop previous
-    function loadPlayer(url) {
-      if (!url) return;
-      const player = document.getElementById('player');
-      player.innerHTML = `<iframe src="${url}" class="w-full h-full rounded-xl" frameborder="0" allowfullscreen></iframe>`;
-      // scroll into view on small screens
-      player.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    function loadPlayer(url){
+      if(!url)return;
+      const player=document.getElementById('player');
+      player.innerHTML=`<iframe src="${url}" class="w-full h-full rounded-xl" frameborder="0" allowfullscreen></iframe>`;
+      player.scrollIntoView({behavior:'smooth',block:'center'});
     }
 
-    // series controls
-    function initSeriesControls(seriesData) {
+        function initSeriesControls(seriesData) {
       try {
         const seasonSelect = document.getElementById('seasonSelect');
         const episodeSelect = document.getElementById('episodeSelect');
@@ -382,10 +319,8 @@
           episodeSelect.disabled = true;
           playBtn.disabled = true;
           playBtn.classList.add('opacity-60', 'cursor-not-allowed');
-          // if no season selected, stop
           const sn = seasonSelect.value;
           if (!sn) return;
-          // fetch season details
           try {
             const res = await fetch(`https://api.themoviedb.org/3/tv/${id}/season/${sn}?api_key=${API_KEY}&language=en-US`);
             const sd = await res.json();
@@ -415,7 +350,6 @@
           const s = seasonSelect.value;
           const e = episodeSelect.value;
           if (s && e) {
-            // default series player embed (you provided the pattern earlier)
             const url = `https://player.embed-api.stream/?id=${id}&s=${s}&e=${e}`;
             loadPlayer(url);
           }
