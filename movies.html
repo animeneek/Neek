@@ -114,36 +114,41 @@
     const API_KEY = "e3afd4c89e3351edad9e875ff7a01f0c";
     const IMG = "https://image.tmdb.org/t/p/w500";
 
-    function createCard(item, type, extra={}) {
-      const id = item.id;
-      const title = item.title || item.name;
-      const rating = item.vote_average ? item.vote_average.toFixed(1) : "N/A";
-      const mediaType = item.media_type || type;
-      const poster = item.poster_path ? IMG + item.poster_path : "https://via.placeholder.com/500x750?text=No+Image";
+function createCard(item, type, extra={}) {
+  const id = item.id;
+  const title = item.title || item.name;
+  const rating = item.vote_average ? item.vote_average.toFixed(1) : "N/A";
 
-      // year extraction
-      const year = item.release_date ? item.release_date.split("-")[0] : 
-                   item.first_air_date ? item.first_air_date.split("-")[0] : "—";
+  // normalize type: tv → series
+  let mediaType = item.media_type || type;
+  if (mediaType === "tv") mediaType = "series";
 
-      let infoLine = "";
-      if (mediaType === "movie") {
-        infoLine = `Movie | ${year} | <i class="fa fa-star star"></i> ${rating}`;
-      } else {
-        const seasons = extra.seasons ? extra.seasons + " Seasons" : "";
-        infoLine = `Series | ${year} ${seasons ? "| " + seasons : ""} | <i class="fa fa-star star"></i> ${rating}`;
-      }
+  const poster = item.poster_path ? IMG + item.poster_path : "https://via.placeholder.com/500x750?text=No+Image";
 
-      return `
-        <a href="info.html?id=${id}&type=${mediaType}" 
-           class="card rounded-xl overflow-hidden hover:scale-105 transition block max-w-full">
-          <img src="${poster}" alt="${title}" class="w-full h-72 object-cover">
-          <div class="p-3">
-            <h3 class="text-sm font-medium line-clamp-2 hover:text-[--accent] transition">${title}</h3>
-            <p class="text-xs text-gray-400 mt-1">${infoLine}</p>
-          </div>
-        </a>
-      `;
-    }
+  // year extraction
+  const year = item.release_date ? item.release_date.split("-")[0] : 
+               item.first_air_date ? item.first_air_date.split("-")[0] : "—";
+
+  let infoLine = "";
+  if (mediaType === "movie") {
+    infoLine = `Movie | ${year} | <i class="fa fa-star star"></i> ${rating}`;
+  } else {
+    const seasons = extra.seasons ? extra.seasons + " Seasons" : "";
+    infoLine = `Series | ${year} ${seasons ? "| " + seasons : ""} | <i class="fa fa-star star"></i> ${rating}`;
+  }
+
+  return `
+    <a href="info.html?id=${id}&type=${mediaType}" 
+       class="card rounded-xl overflow-hidden hover:scale-105 transition block max-w-full">
+      <img src="${poster}" alt="${title}" class="w-full h-72 object-cover">
+      <div class="p-3">
+        <h3 class="text-sm font-medium line-clamp-2 hover:text-[--accent] transition">${title}</h3>
+        <p class="text-xs text-gray-400 mt-1">${infoLine}</p>
+      </div>
+    </a>
+  `;
+}
+
 
     async function fetchAndRender(url, containerId, type) {
       const res = await fetch(url);
