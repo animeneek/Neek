@@ -77,6 +77,7 @@
     // TMDB
     const API_KEY = "e3afd4c89e3351edad9e875ff7a01f0c";
     const IMG = "https://image.tmdb.org/t/p/w500";
+    const FALLBACK_POSTER = "https://github.com/animeneek/Neek/blob/main/assets/images/Poster%20404%20Error.png?raw=true";
 
     const params = new URLSearchParams(window.location.search);
     const id = params.get("id");
@@ -92,7 +93,7 @@
       const res = await fetch(`https://api.themoviedb.org/3/person/${personId}?api_key=${API_KEY}&language=en-US`);
       const data = await res.json();
 
-      const profile = data.profile_path ? IMG + data.profile_path : "https://via.placeholder.com/500x750?text=No+Image";
+      const profile = data.profile_path ? IMG + data.profile_path : FALLBACK_POSTER;
 
       const html = `
         <div class="w-full md:w-64 flex-shrink-0">
@@ -172,7 +173,7 @@
         let mediaType = item.media_type;
         if (mediaType === "tv") mediaType = "series";
 
-        const poster = item.poster_path ? IMG + item.poster_path : "https://via.placeholder.com/500x750?text=No+Image";
+        const poster = item.poster_path ? IMG + item.poster_path : FALLBACK_POSTER;
         const year = item.release_date ? item.release_date.split("-")[0] :
                      item.first_air_date ? item.first_air_date.split("-")[0] : "—";
 
