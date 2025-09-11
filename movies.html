@@ -120,13 +120,11 @@
     const title = item.title || item.name;
     const rating = item.vote_average ? item.vote_average.toFixed(1) : "N/A";
 
-    // normalize type: tv → series
+    // normalize type
     let mediaType = item.media_type || type;
     if (mediaType === "tv") mediaType = "series";
 
     const poster = item.poster_path ? IMG + item.poster_path : FALLBACK_POSTER;
-
-    // year extraction
     const year = item.release_date ? item.release_date.split("-")[0] : 
                  item.first_air_date ? item.first_air_date.split("-")[0] : "—";
 
@@ -150,14 +148,20 @@
     `;
   }
 
-  async function fetchAndRender(url, containerId, type) {
+  async function fetchAndRender(url, containerId) {
     const res = await fetch(url);
     const data = await res.json();
     const container = document.getElementById(containerId);
 
     const promises = data.results.slice(0, 10).map(async item => {
-      if ((item.media_type === "tv" || type === "series")) {
-        const tvRes = await fetch(`https://api.themoviedb.org/3/tv/${item.id}?api_key=${API_KEY}`);
+      let mediaType = item.media_type;
+      if (!mediaType) {
+        // fallback: tv endpoints won't have media_type
+        mediaType = url.includes("/tv/") ? "tv" : "movie";
+      }
+
+      if (mediaType === "tv") {
+        const tvRes = await fetch(`https://api.themoviedb.org/3/tv/${item.id}?api_key=${API_KEY}&language=en-US`);
         const tvData = await tvRes.json();
         return createCard(item, "series", { seasons: tvData.number_of_seasons });
       } else {
@@ -169,11 +173,12 @@
     container.innerHTML = cards.join("");
   }
 
-  // Fetch data for sections
-  fetchAndRender(`https://api.themoviedb.org/3/trending/all/week?api_key=${API_KEY}`, "trending-grid", "movie");
-  fetchAndRender(`https://api.themoviedb.org/3/movie/now_playing?api_key=${API_KEY}&language=en-US&page=1`, "latest-grid", "movie");
-  fetchAndRender(`https://api.themoviedb.org/3/movie/upcoming?api_key=${API_KEY}&language=en-US&page=1`, "upcoming-grid", "movie");
-  fetchAndRender(`https://api.themoviedb.org/3/tv/on_the_air?api_key=${API_KEY}&language=en-US&page=1`, "ongoing-grid", "series");
+  // Fetch sections
+  fetchAndRender(`https://api.themoviedb.org/3/trending/all/week?api_key=${API_KEY}&language=en-US`, "trending-grid");
+  fetchAndRender(`https://api.themoviedb.org/3/movie/now_playing?api_key=${API_KEY}&language=en-US&page=1`, "latest-grid");
+  fetchAndRender(`https://api.themoviedb.org/3/movie/upcoming?api_key=${API_KEY}&language=en-US&page=1`, "upcoming-grid");
+  fetchAndRender(`https://api.themoviedb.org/3/tv/on_the_air?api_key=${API_KEY}&language=en-US&page=1`, "ongoing-grid");
 </script>
+
 </body>
 </html>
