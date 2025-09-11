@@ -34,6 +34,7 @@
       padding: 0.5rem 1rem;
       font-weight: 600;
       border-bottom: 2px solid transparent;
+      white-space: nowrap;
     }
     .tab-active {
       color: var(--accent);
@@ -43,7 +44,7 @@
 </head>
 <body class="min-h-screen flex flex-col bg-[--bg] text-white">
 
-  <!-- Header (injected) -->
+  <!-- Header -->
   <div id="header"></div>
 
   <main class="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-6 py-6 md:pt-28 pb-24">
@@ -64,6 +65,37 @@
   <!-- Footer -->
   <div id="footer"></div>
 
+  <!-- Header/footer script -->
+  <script>
+    (async function insertHeaderFooterAndInit() {
+      try {
+        const [hHtml, fHtml] = await Promise.all([
+          fetch('header.html').then(r => r.ok ? r.text() : ''),
+          fetch('footer.html').then(r => r.ok ? r.text() : '')
+        ]);
+        if (hHtml) document.getElementById('header').innerHTML = hHtml;
+        if (fHtml) document.getElementById('footer').innerHTML = fHtml;
+      } catch (e) {
+        console.warn('header/footer load failed', e);
+      }
+
+      // adjust padding-top so content doesn’t overlap header
+      const tryApplyPadding = () => {
+        const headerEl = document.querySelector('.neek-header');
+        if (!headerEl) return;
+        if (window.matchMedia('(min-width: 768px)').matches) {
+          const h = headerEl.getBoundingClientRect().height || 64;
+          document.body.style.paddingTop = h + 'px';
+        } else {
+          document.body.style.paddingTop = '';
+        }
+      };
+      tryApplyPadding();
+      window.addEventListener('resize', tryApplyPadding);
+    })();
+  </script>
+
+  <!-- Main logic -->
   <script>
     const params = new URLSearchParams(window.location.search);
     const id = params.get("id");
@@ -113,7 +145,7 @@
       // group by department
       const grouped = {};
       all.forEach(item => {
-        const dept = item.department || (item.media_type==="movie"?"Acting":"Acting");
+        const dept = item.department || "Acting";
         if (!grouped[dept]) grouped[dept] = [];
         grouped[dept].push(item);
       });
