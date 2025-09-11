@@ -7,7 +7,6 @@
 
   <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
-
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
@@ -15,559 +14,232 @@
     :root {
       --accent:#ff4444;
       --bg:#0b0b0b;
-      --muted:#9b9b9b;
     }
-
-    html,body {
-      background:var(--bg);
-      color:#fff;
-      overflow-x:hidden;
-    }
-
-    /* remove blue link color & underline */
-    a, a:visited, a:active { color:inherit; text-decoration:none !important; }
+    body { background:var(--bg); color:#fff; }
+    a { color:#fff; text-decoration:none; }
     a:hover { color:var(--accent); }
-
-    /* small visuals */
-    .card { background:#121212; }
-    .chip { background: #0f0f0f; border: 1px solid rgba(255,255,255,0.04); }
-    .chip-selected { background: var(--accent); color: #fff; border-color: var(--accent); }
-    .skeleton { background: linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.06), rgba(255,255,255,0.03)); }
-    .no-select { -webkit-user-select:none; -ms-user-select:none; user-select:none; }
+    .chip {
+      border:1px solid #333;
+      border-radius:9999px;
+      padding:4px 10px;
+      font-size:0.875rem;
+      cursor:pointer;
+      transition:all 0.2s;
+      white-space:nowrap;
+    }
+    .chip.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+    .star { color:var(--accent); }
   </style>
 </head>
 <body class="min-h-screen flex flex-col bg-[--bg] text-white">
 
-  <!-- Header include -->
+  <!-- Header -->
   <div id="header"></div>
 
-  <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-6 md:pt-28 pb-24">
-    <div class="flex flex-col lg:flex-row gap-6">
+  <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-6 md:pt-28 pb-24 flex gap-6">
 
-      <!-- FILTERS / SIDEBAR -->
-      <aside id="filtersSidebar" class="lg:w-64 w-full flex-shrink-0">
-        <div class="bg-[#0f0f0f] rounded-xl p-4 space-y-4 shadow-sm">
-          <div class="flex items-center justify-between">
-            <h2 class="text-lg font-bold">Filters</h2>
-            <button id="clearFilters" class="text-sm text-[--muted] hover:text-white">Clear</button>
-          </div>
+    <!-- Sidebar filters -->
+    <aside class="w-64 shrink-0 hidden md:block bg-[#111] p-4 rounded-xl h-fit">
+      <!-- Search -->
+      <div class="mb-6">
+        <input id="searchInput" type="text" placeholder="Search..." 
+          class="w-full bg-[#1a1a1a] border border-gray-700 rounded-xl px-4 py-2 focus:outline-none focus:border-[--accent]">
+        <button id="searchBtn" class="mt-2 w-full bg-[--accent] py-2 rounded-xl font-semibold hover:opacity-90 transition">
+          <i class="fa fa-search"></i> Search
+        </button>
+      </div>
 
-          <!-- Type -->
-          <div>
-            <label class="block text-sm font-semibold mb-2">Type</label>
-            <select id="typeFilter" class="w-full bg-[#0b0b0b] border border-gray-700 rounded-lg px-3 py-2 text-sm">
-              <option value="">All</option>
-              <option value="movie">Movies</option>
-              <option value="tv">Series</option>
-            </select>
-          </div>
-
-          <!-- Genres -->
-          <div>
-            <div class="flex items-center justify-between">
-              <label class="block text-sm font-semibold mb-2">Genres</label>
-              <button id="collapseGenres" class="text-xs text-[--muted] hidden">Hide</button>
-            </div>
-            <div id="genre-list" class="flex flex-wrap gap-2 max-h-48 overflow-auto pr-1"></div>
-          </div>
-
-          <!-- Year -->
-          <div>
-            <label class="block text-sm font-semibold mb-2">Year</label>
-            <input id="yearFilter" type="number" min="1900" max="2100" placeholder="e.g. 2024"
-                   class="w-full bg-[#0b0b0b] border border-gray-700 rounded-lg px-3 py-2 text-sm" />
-          </div>
-
-          <!-- Sort -->
-          <div>
-            <label class="block text-sm font-semibold mb-2">Sort</label>
-            <select id="sortFilter" class="w-full bg-[#0b0b0b] border border-gray-700 rounded-lg px-3 py-2 text-sm">
-              <option value="popularity.desc">Popularity ↓</option>
-              <option value="popularity.asc">Popularity ↑</option>
-              <option value="vote_average.desc">Rating ↓</option>
-              <option value="vote_average.asc">Rating ↑</option>
-              <option value="release_date.desc">Release Date ↓</option>
-              <option value="release_date.asc">Release Date ↑</option>
-            </select>
-          </div>
-
-          <div class="pt-2">
-            <button id="applyFilters" class="w-full bg-[--accent] text-black px-4 py-2 rounded-lg font-semibold">Apply</button>
-          </div>
+      <!-- Type filter -->
+      <div class="mb-6">
+        <h3 class="font-semibold mb-2">Type</h3>
+        <div id="typeFilters" class="flex gap-2 flex-wrap">
+          <span class="chip active" data-type="all">All</span>
+          <span class="chip" data-type="movie">Movies</span>
+          <span class="chip" data-type="tv">Series</span>
         </div>
-      </aside>
+      </div>
 
-      <!-- RESULTS -->
-      <section class="flex-1">
+      <!-- Genres -->
+      <div class="mb-6">
+        <h3 class="font-semibold mb-2">Genres</h3>
+        <div id="genreFilters" class="flex gap-2 flex-wrap"></div>
+      </div>
 
-        <!-- Search bar -->
-        <form id="searchForm" class="flex gap-2 mb-4">
-          <input id="searchInput" name="q" type="search" placeholder="Search movies, series..." autocomplete="off"
-                 class="flex-1 bg-[#0f0f0f] border border-gray-800 rounded-xl px-4 py-3 text-sm focus:outline-none" />
-          <button type="submit" id="searchBtn" class="bg-[--accent] px-4 py-3 rounded-xl font-semibold">Search</button>
-        </form>
+      <!-- Year & Sort -->
+      <div class="mb-6">
+        <h3 class="font-semibold mb-2">Year</h3>
+        <input id="yearFilter" type="number" placeholder="e.g. 2022" 
+          class="w-full bg-[#1a1a1a] border border-gray-700 rounded-xl px-3 py-2">
+      </div>
+      <div>
+        <h3 class="font-semibold mb-2">Sort By</h3>
+        <select id="sortFilter" 
+          class="w-full bg-[#1a1a1a] border border-gray-700 rounded-xl px-3 py-2">
+          <option value="date">Release Date (Newest)</option>
+          <option value="rating">Rating (Highest)</option>
+          <option value="title">Title (A–Z)</option>
+        </select>
+      </div>
+    </aside>
 
-        <!-- Meta row -->
-        <div class="flex items-center justify-between mb-4 gap-4">
-          <div class="flex items-center gap-3">
-            <div id="resultsCount" class="text-[--muted] text-sm">Showing results</div>
-            <div id="activeChips" class="flex items-center gap-2"></div>
-          </div>
+    <!-- Results section -->
+    <section class="flex-1">
+      <h2 class="text-2xl font-bold mb-6">Results</h2>
+      <div id="resultsGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4"></div>
 
-          <!-- Pagination controls -->
-          <div class="flex items-center gap-2 text-sm">
-            <button id="prevPage" class="px-3 py-2 rounded-lg bg-[#0f0f0f] disabled:opacity-40" disabled>Prev</button>
-            <div class="px-3 py-2 rounded-lg bg-[#0f0f0f]">Page <span id="currentPage">1</span> / <span id="totalPages">1</span></div>
-            <button id="nextPage" class="px-3 py-2 rounded-lg bg-[#0f0f0f]" disabled>Next</button>
-          </div>
-        </div>
-
-        <!-- Grid -->
-        <div id="resultsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>
-
-        <!-- No results -->
-        <div id="noResults" class="hidden text-center text-[--muted] mt-8">No results found.</div>
-
-        <!-- Bottom pagination / load more -->
-        <div class="mt-6 flex justify-center">
-          <button id="loadMore" class="px-4 py-2 rounded-lg bg-[--accent] text-black hidden">Load more</button>
-        </div>
-      </section>
-    </div>
+      <!-- Pagination -->
+      <div class="flex justify-center items-center gap-4 mt-8" id="pagination" style="display:none;">
+        <button id="prevPage" class="px-4 py-2 bg-[#1a1a1a] rounded-lg hover:bg-[--accent] hover:text-white disabled:opacity-40">Prev</button>
+        <span id="pageInfo" class="text-sm text-gray-400"></span>
+        <button id="nextPage" class="px-4 py-2 bg-[#1a1a1a] rounded-lg hover:bg-[--accent] hover:text-white disabled:opacity-40">Next</button>
+      </div>
+    </section>
   </main>
 
-  <!-- Footer include -->
+  <!-- Footer -->
   <div id="footer"></div>
 
   <script>
-  /***********************
-   * CONFIG / STATE
-   ***********************/
-  const API_KEY = "e3afd4c89e3351edad9e875ff7a01f0c";
-  const IMG = "https://image.tmdb.org/t/p/w500";
-  const FALLBACK_POSTER = "https://github.com/animeneek/Neek/blob/main/assets/images/Poster%20404%20Error.png?raw=true";
+    const API_KEY = "e3afd4c89e3351edad9e875ff7a01f0c";
+    const IMG = "https://image.tmdb.org/t/p/w500";
+    const FALLBACK_POSTER = "https://github.com/animeneek/Neek/blob/main/assets/images/Poster%20404%20Error.png?raw=true";
 
-  let state = {
-    q: "",
-    type: "",        // "" | "movie" | "tv"
-    genres: [],      // array of genre ids (strings)
-    year: "",        // string/number
-    sort: "popularity.desc",
-    page: 1,
-    total_pages: 1,
-    mode: "discover" // "search" or "discover"
-  };
+    let allResults = [];
+    let filteredResults = [];
+    let currentPage = 1;
+    const pageSize = 20;
+    let activeGenres = [];
+    let activeType = "all";
+    let currentQuery = "";
 
-  // DOM refs
-  const genreListEl = document.getElementById("genre-list");
-  const resultsGrid = document.getElementById("resultsGrid");
-  const noResultsEl = document.getElementById("noResults");
-  const resultsCountEl = document.getElementById("resultsCount");
-  const activeChipsEl = document.getElementById("activeChips");
-  const currentPageEl = document.getElementById("currentPage");
-  const totalPagesEl = document.getElementById("totalPages");
-  const prevPageBtn = document.getElementById("prevPage");
-  const nextPageBtn = document.getElementById("nextPage");
-  const loadMoreBtn = document.getElementById("loadMore");
+    // Load header/footer
+    Promise.all([
+      fetch("header.html").then(r=>r.text()),
+      fetch("footer.html").then(r=>r.text())
+    ]).then(([h,f])=>{
+      document.getElementById("header").innerHTML=h;
+      document.getElementById("footer").innerHTML=f;
+    });
 
-  // form & filters
-  const searchForm = document.getElementById("searchForm");
-  const searchInput = document.getElementById("searchInput");
-  const typeFilter = document.getElementById("typeFilter");
-  const yearFilter = document.getElementById("yearFilter");
-  const sortFilter = document.getElementById("sortFilter");
-  const applyFiltersBtn = document.getElementById("applyFilters");
-  const clearFiltersBtn = document.getElementById("clearFilters");
-
-  // pagination helpers
-  function updatePaginationUI() {
-    currentPageEl.textContent = state.page;
-    totalPagesEl.textContent = state.total_pages || 1;
-    prevPageBtn.disabled = state.page <= 1;
-    nextPageBtn.disabled = state.page >= state.total_pages;
-    loadMoreBtn.classList.toggle("hidden", state.page >= state.total_pages);
-  }
-
-  /***********************
-   * UTILS
-   ***********************/
-  function qs(selector, root=document) { return root.querySelector(selector); }
-  function qsa(selector, root=document) { return Array.from(root.querySelectorAll(selector)); }
-  function debounce(fn, wait=300) {
-    let t;
-    return (...args) => { clearTimeout(t); t = setTimeout(()=>fn(...args), wait); };
-  }
-
-  function setState(partial, pushUrl=true) {
-    state = {...state, ...partial};
-    // update URL (shallow)
-    if (pushUrl) {
-      const params = new URLSearchParams();
-      if (state.q) params.set("q", state.q);
-      if (state.type) params.set("type", state.type);
-      if (state.genres && state.genres.length) params.set("genres", state.genres.join(","));
-      if (state.year) params.set("year", state.year);
-      if (state.sort) params.set("sort", state.sort);
-      if (state.page && state.page > 1) params.set("page", String(state.page));
-      const newUrl = `${location.pathname}${params.toString() ? "?" + params.toString() : ""}`;
-      history.replaceState(null, "", newUrl);
-    }
-
-    // reflect UI states
-    searchInput.value = state.q || "";
-    typeFilter.value = state.type || "";
-    yearFilter.value = state.year || "";
-    sortFilter.value = state.sort || "popularity.desc";
-    renderActiveChips();
-  }
-
-  function renderActiveChips() {
-    const chips = [];
-    if (state.q) chips.push(`<span class="chip px-2 py-1 rounded text-sm bg-[#191919]">${state.q}</span>`);
-    if (state.type) chips.push(`<span class="chip px-2 py-1 rounded text-sm bg-[#191919]">${state.type}</span>`);
-    if (state.year) chips.push(`<span class="chip px-2 py-1 rounded text-sm bg-[#191919]">${state.year}</span>`);
-    if (state.genres && state.genres.length) {
-      state.genres.forEach(gid => {
-        const btn = document.querySelector(`[data-genre="${gid}"]`);
-        if (btn) chips.push(btn.textContent.trim());
-      });
-    }
-    activeChipsEl.innerHTML = chips.length ? chips.join(" ") : "";
-  }
-
-  /***********************
-   * LOAD GENRES
-   ***********************/
-  let genres = [];
-  async function loadGenres() {
-    try {
-      // combine both movie & tv genres, dedupe by id
-      const [mRes, tRes] = await Promise.all([
+    // Genre setup
+    async function loadGenres() {
+      const [movieRes, tvRes] = await Promise.all([
         fetch(`https://api.themoviedb.org/3/genre/movie/list?api_key=${API_KEY}&language=en-US`).then(r=>r.json()),
         fetch(`https://api.themoviedb.org/3/genre/tv/list?api_key=${API_KEY}&language=en-US`).then(r=>r.json())
       ]);
-      const combined = [...(mRes.genres||[]), ...(tRes.genres||[])];
-      const map = new Map();
-      combined.forEach(g => map.set(String(g.id), g));
-      genres = Array.from(map.values()).sort((a,b) => a.name.localeCompare(b.name));
-      renderGenreList();
-    } catch (err) {
-      console.warn("Failed loading genres", err);
+      const allGenres = [...movieRes.genres, ...tvRes.genres];
+      const unique = Array.from(new Map(allGenres.map(g=>[g.id,g])).values());
+      document.getElementById("genreFilters").innerHTML = unique.map(g=>
+        `<span class="chip" data-id="${g.id}">${g.name}</span>`).join("");
+      document.querySelectorAll("#genreFilters .chip").forEach(chip=>{
+        chip.addEventListener("click",()=>{
+          chip.classList.toggle("active");
+          activeGenres = Array.from(document.querySelectorAll("#genreFilters .chip.active")).map(c=>c.dataset.id);
+          applyFilters(1);
+        });
+      });
     }
-  }
+    loadGenres();
 
-  function renderGenreList() {
-    genreListEl.innerHTML = genres.map(g => {
-      const id = String(g.id);
-      const checked = state.genres.includes(id);
-      return `
-        <label data-genre="${id}" class="chip ${checked ? 'chip-selected' : ''} px-2 py-1 rounded-full cursor-pointer text-sm no-select">
-          <input type="checkbox" value="${id}" class="hidden genre-checkbox" ${checked ? 'checked' : ''} />
-          ${g.name}
-        </label>
-      `;
-    }).join("");
-    // attach click listeners to chips (delegation)
-    genreListEl.querySelectorAll(".chip").forEach(el => {
-      el.addEventListener("click", (ev)=>{
-        const checkbox = el.querySelector(".genre-checkbox");
-        if (!checkbox) return;
-        checkbox.checked = !checkbox.checked;
-        const gid = checkbox.value;
-        if (checkbox.checked) {
-          if (!state.genres.includes(gid)) state.genres.push(gid);
-        } else {
-          state.genres = state.genres.filter(x => x !== gid);
-        }
-        // visual toggle
-        el.classList.toggle("chip-selected", checkbox.checked);
-        // instant apply (debounced)
-        debouncedApplyFilters();
+    // Fetch all pages once
+    async function fetchAllResults(query) {
+      allResults = [];
+      let page = 1;
+      let totalPages = 1;
+      while (page <= totalPages && page <= 10) { // hard cap for API safety
+        const url=`https://api.themoviedb.org/3/search/multi?api_key=${API_KEY}&language=en-US&query=${encodeURIComponent(query)}&page=${page}`;
+        const data = await fetch(url).then(r=>r.json());
+        if(data.results) allResults = allResults.concat(data.results);
+        totalPages = data.total_pages || 1;
+        page++;
+      }
+      applyFilters(1);
+    }
+
+    // Apply filters to allResults
+    function applyFilters(page=1) {
+      const year=document.getElementById("yearFilter").value.trim();
+      const sort=document.getElementById("sortFilter").value;
+
+      filteredResults = allResults.filter(r=>r.media_type==="movie"||r.media_type==="tv");
+      if(activeType!=="all") filteredResults=filteredResults.filter(r=>r.media_type===activeType);
+      if(activeGenres.length) filteredResults=filteredResults.filter(r=>(r.genre_ids||[]).some(id=>activeGenres.includes(String(id))));
+      if(year) filteredResults=filteredResults.filter(r=>{
+        const d=r.release_date||r.first_air_date||"";
+        return d.startsWith(year);
+      });
+
+      if(sort==="date") filteredResults.sort((a,b)=>new Date(b.release_date||b.first_air_date||0)-new Date(a.release_date||a.first_air_date||0));
+      if(sort==="rating") filteredResults.sort((a,b)=>(b.vote_average||0)-(a.vote_average||0));
+      if(sort==="title") filteredResults.sort((a,b)=>(a.title||a.name||"").localeCompare(b.title||b.name||""));
+
+      renderResults(page);
+    }
+
+    function renderResults(page) {
+      currentPage = page;
+      const start=(page-1)*pageSize;
+      const end=start+pageSize;
+      const pageResults=filteredResults.slice(start,end);
+
+      document.getElementById("resultsGrid").innerHTML=pageResults.map(r=>{
+        const id=r.id;
+        const title=r.title||r.name;
+        const mediaType=r.media_type==="tv"?"series":"movie";
+        const poster=r.poster_path?IMG+r.poster_path:FALLBACK_POSTER;
+        const year=(r.release_date||r.first_air_date||"").split("-")[0]||"—";
+        const rating=(r.vote_average||0).toFixed(1);
+        return `
+          <a href="info.html?id=${id}&type=${mediaType}" class="bg-[#1a1a1a] rounded-xl overflow-hidden hover:scale-105 transition block">
+            <img src="${poster}" class="w-full h-72 object-cover" alt="${title}">
+            <div class="p-2">
+              <h3 class="text-sm font-bold line-clamp-1">${title}</h3>
+              <p class="text-xs text-gray-400">${mediaType==="movie"?"Movie":"Series"} | ${year} | <i class="fa fa-star star"></i> ${rating}</p>
+            </div>
+          </a>`;
+      }).join("");
+
+      const totalPages=Math.ceil(filteredResults.length/pageSize);
+      document.getElementById("pagination").style.display=totalPages>1?"flex":"none";
+      document.getElementById("pageInfo").innerText=`Page ${page} of ${totalPages}`;
+      document.getElementById("prevPage").disabled=page<=1;
+      document.getElementById("nextPage").disabled=page>=totalPages;
+    }
+
+    // Pagination buttons
+    document.getElementById("prevPage").addEventListener("click",()=>renderResults(currentPage-1));
+    document.getElementById("nextPage").addEventListener("click",()=>renderResults(currentPage+1));
+
+    // Type filters
+    document.querySelectorAll("#typeFilters .chip").forEach(chip=>{
+      chip.addEventListener("click",()=>{
+        document.querySelectorAll("#typeFilters .chip").forEach(c=>c.classList.remove("active"));
+        chip.classList.add("active");
+        activeType=chip.dataset.type;
+        applyFilters(1);
       });
     });
-  }
 
-  /***********************
-   * FETCH & RENDER RESULTS
-   ***********************/
-  let lastRequestToken = 0;
-  async function fetchResults(replace=true) {
-    const myToken = ++lastRequestToken;
-    resultsGrid.innerHTML = ""; noResultsEl.classList.add("hidden");
-    resultsCountEl.textContent = "Loading...";
-    // show skeletons
-    for (let i=0;i<10;i++){
-      const sk = document.createElement("div");
-      sk.className = "skeleton rounded-xl h-48";
-      resultsGrid.appendChild(sk);
+    // Sort/year filters
+    document.getElementById("yearFilter").addEventListener("input",()=>applyFilters(1));
+    document.getElementById("sortFilter").addEventListener("change",()=>applyFilters(1));
+
+    // Search bar
+    document.getElementById("searchBtn").addEventListener("click",()=>{
+      currentQuery=document.getElementById("searchInput").value.trim();
+      if(currentQuery) fetchAllResults(currentQuery);
+    });
+    document.getElementById("searchInput").addEventListener("keypress",(e)=>{
+      if(e.key==="Enter"){document.getElementById("searchBtn").click();}
+    });
+
+    // Load from URL
+    const params=new URLSearchParams(window.location.search);
+    if(params.get("q")){
+      document.getElementById("searchInput").value=params.get("q");
+      currentQuery=params.get("q");
+      fetchAllResults(currentQuery);
     }
-
-    // decide mode
-    const q = state.q?.trim();
-    state.mode = q ? "search" : "discover";
-
-    // build endpoint
-    let url;
-    let isDiscover = false;
-    if (state.mode === "search") {
-      // pick endpoint depending on type
-      if (state.type === "movie") {
-        url = `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&language=en-US&query=${encodeURIComponent(q)}&page=${state.page}`;
-      } else if (state.type === "tv") {
-        url = `https://api.themoviedb.org/3/search/tv?api_key=${API_KEY}&language=en-US&query=${encodeURIComponent(q)}&page=${state.page}`;
-      } else {
-        url = `https://api.themoviedb.org/3/search/multi?api_key=${API_KEY}&language=en-US&query=${encodeURIComponent(q)}&page=${state.page}`;
-      }
-    } else {
-      // discover mode (server-side filters work here)
-      isDiscover = true;
-      const type = state.type || "movie"; // default discover movies
-      url = new URL(`https://api.themoviedb.org/3/discover/${type}`);
-      url.searchParams.set("api_key", API_KEY);
-      url.searchParams.set("language", "en-US");
-      url.searchParams.set("sort_by", state.sort || "popularity.desc");
-      url.searchParams.set("page", state.page || 1);
-      // genres / year
-      if (state.genres && state.genres.length) url.searchParams.set("with_genres", state.genres.join(","));
-      if (state.year) {
-        // for movies use primary_release_year, for tv use first_air_date_year (fallback to primary_release_year)
-        if (type === "movie") url.searchParams.set("primary_release_year", state.year);
-        else url.searchParams.set("first_air_date_year", state.year);
-      }
-      url = url.toString();
-    }
-
-    try {
-      const res = await fetch(url);
-      const data = await res.json();
-
-      // abort if out of date request
-      if (myToken !== lastRequestToken) return;
-
-      // TMDB returns results in data.results
-      const results = data.results || [];
-
-      // total pages
-      state.total_pages = data.total_pages || 1;
-      state.page = data.page || 1;
-      updatePaginationUI();
-
-      // apply client-side filters and sorts if searching or to ensure accuracy:
-      let filtered = results.slice();
-
-      // client-side genre filter: often movie/tv objects have genre_ids OR genres array
-      if (state.genres && state.genres.length) {
-        filtered = filtered.filter(it => {
-          const gids = (it.genre_ids && it.genre_ids.map(String)) || (it.genres && it.genres.map(g => String(g.id))) || [];
-          // accept if any genre matches all selected (intersection)
-          return state.genres.every(gid => gids.includes(String(gid)));
-        });
-      }
-
-      // client-side year filter
-      if (state.year) {
-        filtered = filtered.filter(it => {
-          const year = (it.release_date || it.first_air_date || "").split("-")[0];
-          return String(year) === String(state.year);
-        });
-      }
-
-      // client-side sorting (when mode=search because server-side sort not offered for search multi)
-      if (state.mode === "search") {
-        const [field, dir] = (state.sort || "popularity.desc").split(".");
-        filtered.sort((a,b) => {
-          const aVal = (field === "vote_average") ? (a.vote_average||0) :
-                       (field === "release_date") ? ((a.release_date||a.first_air_date)||"") : (a.popularity||0);
-          const bVal = (field === "vote_average") ? (b.vote_average||0) :
-                       (field === "release_date") ? ((b.release_date||b.first_air_date)||"") : (b.popularity||0);
-          if (field === "release_date") {
-            // convert to date compare
-            const da = aVal ? new Date(aVal) : new Date(0);
-            const db = bVal ? new Date(bVal) : new Date(0);
-            return dir === "desc" ? db - da : da - db;
-          } else {
-            return dir === "desc" ? (bVal - aVal) : (aVal - bVal);
-          }
-        });
-      }
-
-      renderResults(filtered, data.total_results || filtered.length);
-
-    } catch (err) {
-      console.error("search error", err);
-      resultsGrid.innerHTML = "";
-      resultsCountEl.textContent = "Failed to load results.";
-      noResultsEl.classList.remove("hidden");
-    }
-  }
-
-  function renderResults(results, totalCount=0) {
-    resultsGrid.innerHTML = "";
-
-    if (!results || results.length === 0) {
-      noResultsEl.classList.remove("hidden");
-      resultsCountEl.textContent = `No results`;
-      return;
-    }
-    noResultsEl.classList.add("hidden");
-
-    // show counts (approx; if discover mode total_pages & total_results come from API)
-    resultsCountEl.textContent = `Showing ${results.length} of ${totalCount} results`;
-
-    const html = results.map(item => {
-      const title = item.title || item.name || item.original_title || "Untitled";
-      const id = item.id;
-      // determine type: when searching multi it includes media_type
-      let mediaType = item.media_type || (item.first_air_date ? "tv" : "movie");
-      // normalize to your 'series' naming in info links
-      const linkType = (mediaType === "tv") ? "series" : "movie";
-      const rating = item.vote_average ? item.vote_average.toFixed(1) : "N/A";
-      const poster = item.poster_path ? IMG + item.poster_path : FALLBACK_POSTER;
-      const year = (item.release_date || item.first_air_date || "").split("-")[0] || "—";
-
-      return `
-        <a href="info.html?id=${id}&type=${linkType}" class="card rounded-xl overflow-hidden hover:scale-105 transition block">
-          <img src="${poster}" alt="${escapeHtml(title)}" class="w-full h-64 object-cover">
-          <div class="p-2">
-            <h3 class="text-sm font-medium line-clamp-2 hover:text-[--accent]">${escapeHtml(title)}</h3>
-            <p class="text-xs text-gray-400 mt-1">${linkType === "movie" ? "Movie" : "Series"} | ${year} | <i class="fa fa-star star"></i> ${rating}</p>
-          </div>
-        </a>
-      `;
-    }).join("");
-
-    resultsGrid.innerHTML = html;
-  }
-
-  function escapeHtml(s) {
-    if (s === null || s === undefined) return "";
-    return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-  }
-
-  /***********************
-   * EVENTS & INTERACTIONS
-   ***********************/
-  // parse URL on load to prefill state
-  function restoreFromUrl() {
-    const params = new URLSearchParams(location.search);
-    const q = params.get("q") || "";
-    const type = params.get("type") || "";
-    const genresParam = params.get("genres") || "";
-    const year = params.get("year") || "";
-    const sort = params.get("sort") || "popularity.desc";
-    const page = parseInt(params.get("page") || "1", 10);
-
-    setState({ q, type, genres: genresParam ? genresParam.split(",").map(String) : [], year, sort, page }, false);
-  }
-
-  // submit search (enter or search button)
-  searchForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const q = (searchInput.value || "").trim();
-    setState({ q, page: 1 });
-    fetchResults(true);
-  });
-
-  // instant search while typing (debounced)
-  const debouncedSearch = debounce(() => {
-    const q = (searchInput.value || "").trim();
-    // only trigger if user typed something (avoid firing discover repeatedly)
-    if (q !== state.q) {
-      setState({ q, page: 1 });
-      fetchResults(true);
-    }
-  }, 600);
-  searchInput.addEventListener("input", debouncedSearch);
-
-  // filters: apply/clear/instant on change
-  applyFiltersBtn.addEventListener("click", (e) => {
-    e.preventDefault();
-    // collect filters
-    const type = typeFilter.value || "";
-    const year = yearFilter.value || "";
-    const sort = sortFilter.value || "popularity.desc";
-    setState({ type, year, sort, page: 1 });
-    fetchResults(true);
-  });
-
-  // Clear filters
-  clearFiltersBtn.addEventListener("click", (e) => {
-    e.preventDefault();
-    setState({ type: "", genres: [], year: "", sort: "popularity.desc", page: 1 });
-    // refresh genre UI checkboxes
-    renderGenreList();
-    fetchResults(true);
-  });
-
-  // Watch changes to select controls for instant apply (use debounce)
-  typeFilter.addEventListener("change", debounce(() => {
-    setState({ type: typeFilter.value || "", page: 1 });
-    fetchResults(true);
-  }, 300));
-  sortFilter.addEventListener("change", debounce(() => {
-    setState({ sort: sortFilter.value || "", page: 1 });
-    fetchResults(true);
-  }, 300));
-  yearFilter.addEventListener("change", debounce(() => {
-    setState({ year: yearFilter.value || "", page: 1 });
-    fetchResults(true);
-  }, 300));
-
-  // pagination
-  prevPageBtn.addEventListener("click", () => {
-    if (state.page > 1) {
-      setState({ page: state.page - 1 });
-      fetchResults(true);
-    }
-  });
-  nextPageBtn.addEventListener("click", () => {
-    if (state.page < state.total_pages) {
-      setState({ page: state.page + 1 });
-      fetchResults(true);
-    }
-  });
-  loadMoreBtn.addEventListener("click", () => {
-    if (state.page < state.total_pages) {
-      setState({ page: state.page + 1 });
-      // for load more we will append results — but to keep logic simple we re-fetch and replace (TMDB pages are fast)
-      fetchResults(true);
-    }
-  });
-
-  /***********************
-   * INIT
-   ***********************/
-  // header/footer injection (same pattern as your other pages)
-  (async function loadHeaderFooter() {
-    try {
-      const [hHtml, fHtml] = await Promise.all([
-        fetch("header.html").then(r => r.ok ? r.text() : ""),
-        fetch("footer.html").then(r => r.ok ? r.text() : "")
-      ]);
-      if (hHtml) document.getElementById("header").innerHTML = hHtml;
-      if (fHtml) document.getElementById("footer").innerHTML = fHtml;
-    } catch (e) {
-      // fail silently
-      console.warn("Header/footer load failed", e);
-    }
-  })();
-
-  // restore URL state, load genres then run initial search/discover
-  (async function boot() {
-    restoreFromUrl();
-    await loadGenres();
-    // refresh genre UI (set ticked chips)
-    renderGenreList();
-    // initial fetch
-    fetchResults(true);
-  })();
-
-  // small helper: apply filters (debounced) used by genre toggles
-  const debouncedApplyFilters = debounce(() => {
-    setState({ page: 1 });
-    fetchResults(true);
-  }, 400);
-
   </script>
 </body>
 </html>
