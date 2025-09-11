@@ -17,7 +17,7 @@
     }
     body { background:var(--bg); color:#fff; }
     a { color:#fff; text-decoration:none; }
-    a:hover { color:var(--accent); }
+    a:hover { color:var(--accent); text-decoration:none; }
     .chip {
       border:1px solid #333;
       border-radius:9999px;
@@ -29,6 +29,20 @@
     }
     .chip.active { background:var(--accent); border-color:var(--accent); color:#fff; }
     .star { color:var(--accent); }
+    input, select {
+      outline:none;
+    }
+    input:focus, select:focus {
+      border-color:var(--accent) !important;
+      box-shadow:0 0 0 1px var(--accent);
+    }
+    /* Remove arrows from number input */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type=number] { -moz-appearance:textfield; }
   </style>
 </head>
 <body class="min-h-screen flex flex-col bg-[--bg] text-white">
@@ -163,7 +177,15 @@
 
       filteredResults = allResults.filter(r=>r.media_type==="movie"||r.media_type==="tv");
       if(activeType!=="all") filteredResults=filteredResults.filter(r=>r.media_type===activeType);
-      if(activeGenres.length) filteredResults=filteredResults.filter(r=>(r.genre_ids||[]).some(id=>activeGenres.includes(String(id))));
+
+      // Multi-genre AND filtering
+      if(activeGenres.length) {
+        filteredResults = filteredResults.filter(r => {
+          const genres = r.genre_ids || [];
+          return activeGenres.every(id => genres.includes(parseInt(id)));
+        });
+      }
+
       if(year) filteredResults=filteredResults.filter(r=>{
         const d=r.release_date||r.first_air_date||"";
         return d.startsWith(year);
@@ -193,7 +215,7 @@
           <a href="info.html?id=${id}&type=${mediaType}" class="bg-[#1a1a1a] rounded-xl overflow-hidden hover:scale-105 transition block">
             <img src="${poster}" class="w-full h-72 object-cover" alt="${title}">
             <div class="p-2">
-              <h3 class="text-sm font-bold line-clamp-1">${title}</h3>
+              <h3 class="text-sm font-semibold text-white line-clamp-1">${title}</h3>
               <p class="text-xs text-gray-400">${mediaType==="movie"?"Movie":"Series"} | ${year} | <i class="fa fa-star star"></i> ${rating}</p>
             </div>
           </a>`;
@@ -227,7 +249,11 @@
     // Search bar
     document.getElementById("searchBtn").addEventListener("click",()=>{
       currentQuery=document.getElementById("searchInput").value.trim();
-      if(currentQuery) fetchAllResults(currentQuery);
+      if(currentQuery) {
+        fetchAllResults(currentQuery);
+        const params=new URLSearchParams({q:currentQuery});
+        window.history.replaceState({}, "", "search.html?"+params.toString());
+      }
     });
     document.getElementById("searchInput").addEventListener("keypress",(e)=>{
       if(e.key==="Enter"){document.getElementById("searchBtn").click();}
