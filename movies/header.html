@@ -19,9 +19,11 @@
     <!-- Search (desktop only) -->
     <div class="hidden md:flex">
       <div class="relative w-72">
-        <input type="text" placeholder="Search..."
+        <input id="headerSearch" type="text" placeholder="Search..."
                class="w-full rounded-xl bg-[#1a1a1a] border border-gray-700 px-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#ff4444]" />
-        <i class="fa-solid fa-magnifying-glass absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+        <button id="headerSearchBtn" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
       </div>
     </div>
   </div>
@@ -96,4 +98,24 @@
       .neek-mobile-nav { padding-top: 8px; padding-bottom: 10px; }
     }
   </style>
+
+  <script>
+    // Header search redirect
+    document.addEventListener("DOMContentLoaded", () => {
+      const input = document.getElementById("headerSearch");
+      const btn = document.getElementById("headerSearchBtn");
+
+      function goSearch() {
+        const q = input.value.trim();
+        if(q) {
+          window.location.href = "/movies/search.html?q=" + encodeURIComponent(q);
+        }
+      }
+
+      btn.addEventListener("click", goSearch);
+      input.addEventListener("keypress", e => {
+        if(e.key === "Enter") goSearch();
+      });
+    });
+  </script>
 </header>
