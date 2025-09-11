@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Neek — Search</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    :root {
+      --accent:#ff4444;
+      --bg:#0b0b0b;
+      --muted:#9b9b9b;
+    }
+
+    html,body { background:var(--bg); color:#fff; overflow-x:hidden; }
+    a { color:#fff; text-decoration:none !important; }
+    a:hover { color:var(--accent); }
+
+    .star { color:var(--accent); }
+    .card { background:#1a1a1a; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-[--bg] text-white">
+
+  <!-- Header include -->
+  <div id="header"></div>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-6 md:pt-28 pb-24 flex flex-col lg:flex-row gap-6">
+
+    <!-- Sidebar Filters -->
+    <aside class="lg:w-64 w-full bg-[#1a1a1a] rounded-xl p-4 h-fit">
+      <h2 class="text-xl font-bold mb-4">Filters</h2>
+      <form id="filters" class="space-y-4">
+        <!-- Type -->
+        <div>
+          <label class="block text-sm font-semibold mb-1">Type</label>
+          <select name="type" class="w-full bg-[#0b0b0b] border border-gray-700 rounded-lg px-2 py-2">
+            <option value="">All</option>
+            <option value="movie">Movies</option>
+            <option value="tv">Series</option>
+          </select>
+        </div>
+
+        <!-- Genre -->
+        <div>
+          <label class="block text-sm font-semibold mb-1">Genres</label>
+          <div id="genre-list" class="flex flex-wrap gap-2"></div>
+        </div>
+
+        <!-- Year -->
+        <div>
+          <label class="block text-sm font-semibold mb-1">Year</label>
+          <input type="number" name="year" min="1900" max="2100" placeholder="e.g. 2024"
+                 class="w-full bg-[#0b0b0b] border border-gray-700 rounded-lg px-2 py-2" />
+        </div>
+
+        <!-- Sort -->
+        <div>
+          <label class="block text-sm font-semibold mb-1">Sort By</label>
+          <select name="sort" class="w-full bg-[#0b0b0b] border border-gray-700 rounded-lg px-2 py-2">
+            <option value="popularity.desc">Popularity ↓</option>
+            <option value="popularity.asc">Popularity ↑</option>
+            <option value="vote_average.desc">Rating ↓</option>
+            <option value="vote_average.asc">Rating ↑</option>
+            <option value="release_date.desc">Release Date ↓</option>
+            <option value="release_date.asc">Release Date ↑</option>
+          </select>
+        </div>
+
+        <button type="submit"
+          class="w-full bg-[--accent] text-white px-3 py-2 rounded-lg hover:bg-red-600 transition">
+          Apply Filters
+        </button>
+      </form>
+    </aside>
+
+    <!-- Search Results -->
+    <section class="flex-1">
+      <!-- Search bar -->
+      <div class="flex items-center mb-6 gap-2">
+        <input id="searchInput" type="text"
+          placeholder="Search movies, series..."
+          class="flex-1 bg-[#1a1a1a] border border-gray-700 rounded-xl px-4 py-2" />
+        <button id="searchBtn" class="bg-[--accent] px-4 py-2 rounded-xl hover:bg-red-600 transition">
+          <i class="fa fa-search"></i>
+        </button>
+      </div>
+
+      <!-- Results -->
+      <div id="results-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>
+      <div id="no-results" class="hidden text-center text-[--muted] mt-8">No results found.</div>
+    </section>
+  </main>
+
+  <!-- Footer include -->
+  <div id="footer"></div>
+
+  <script>
+    // Load header & footer
+    Promise.all([
+      fetch("header.html").then(r => r.text()),
+      fetch("footer.html").then(r => r.text())
+    ]).then(([header, footer]) => {
+      document.getElementById("header").innerHTML = header;
+      document.getElementById("footer").innerHTML = footer;
+    });
+
+    // TMDB
+    const API_KEY = "e3afd4c89e3351edad9e875ff7a01f0c";
+    const IMG = "https://image.tmdb.org/t/p/w500";
+    const FALLBACK_POSTER = "https://github.com/animeneek/Neek/blob/main/assets/images/Poster%20404%20Error.png?raw=true";
+
+    const genreListEl = document.getElementById("genre-list");
+    const resultsGrid = document.getElementById("results-grid");
+    const noResultsEl = document.getElementById("no-results");
+    let genres = [];
+
+    // Load genres dynamically
+    async function loadGenres() {
+      const [movies, tv] = await Promise.all([
+        fetch(`https://api.themoviedb.org/3/genre/movie/list?api_key=${API_KEY}&language=en-US`).then(r=>r.json()),
+        fetch(`https://api.themoviedb.org/3/genre/tv/list?api_key=${API_KEY}&language=en-US`).then(r=>r.json())
+      ]);
+      genres = [...new Map([...movies.genres, ...tv.genres].map(g => [g.id, g])).values()];
+      renderGenreFilters();
+    }
+
+    function renderGenreFilters() {
+      genreListEl.innerHTML = genres.map(g => `
+        <label class="flex items-center gap-1 bg-[#0b0b0b] px-2 py-1 rounded-lg text-sm cursor-pointer">
+          <input type="checkbox" name="genres" value="${g.id}" class="accent-[--accent]" />
+          ${g.name}
+        </label>
+      `).join("");
+    }
+
+    // Fetch search results
+    async function search(query="", filters={}) {
+      resultsGrid.innerHTML = "";
+      noResultsEl.classList.add("hidden");
+
+      let url = `https://api.themoviedb.org/3/search/multi?api_key=${API_KEY}&language=en-US&query=${encodeURIComponent(query)}`;
+
+      // If no query, fallback to discover endpoint with filters
+      if (!query) {
+        let type = filters.type || "movie";
+        url = `https://api.themoviedb.org/3/discover/${type}?api_key=${API_KEY}&language=en-US&sort_by=${filters.sort||"popularity.desc"}`;
+        if (filters.year) url += `&primary_release_year=${filters.year}`;
+        if (filters.genres?.length) url += `&with_genres=${filters.genres.join(",")}`;
+      }
+
+      const res = await fetch(url);
+      const data = await res.json();
+      renderResults(data.results || []);
+    }
+
+    function renderResults(results) {
+      if (!results.length) {
+        noResultsEl.classList.remove("hidden");
+        return;
+      }
+
+      const html = results.map(item => {
+        const title = item.title || item.name;
+        const id = item.id;
+        const mediaType = item.media_type || (item.first_air_date ? "tv" : "movie");
+        const rating = item.vote_average ? item.vote_average.toFixed(1) : "N/A";
+        const poster = item.poster_path ? IMG + item.poster_path : FALLBACK_POSTER;
+        const year = item.release_date?.split("-")[0] || item.first_air_date?.split("-")[0] || "—";
+
+        return `
+          <a href="info.html?id=${id}&type=${mediaType==="tv"?"series":"movie"}"
+             class="card rounded-xl overflow-hidden hover:scale-105 transition block">
+            <img src="${poster}" alt="${title}" class="w-full h-64 object-cover">
+            <div class="p-2">
+              <h3 class="text-sm font-medium line-clamp-2 hover:text-[--accent]">${title}</h3>
+              <p class="text-xs text-gray-400 mt-1">
+                ${mediaType==="movie"?"Movie":"Series"} | ${year} | <i class="fa fa-star star"></i> ${rating}
+              </p>
+            </div>
+          </a>
+        `;
+      }).join("");
+
+      resultsGrid.innerHTML = html;
+    }
+
+    // Event listeners
+    document.getElementById("searchBtn").addEventListener("click", () => {
+      const q = document.getElementById("searchInput").value.trim();
+      search(q);
+    });
+
+    document.getElementById("filters").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const filters = {
+        type: fd.get("type"),
+        year: fd.get("year"),
+        sort: fd.get("sort"),
+        genres: fd.getAll("genres")
+      };
+      search("", filters);
+    });
+
+    // Init
+    loadGenres();
+    search(); // initial discover popular
+  </script>
+</body>
+</html>
