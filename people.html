@@ -90,28 +90,31 @@
       loadCredits(id);
     }
 
-    async function loadPerson(personId) {
-      const res = await fetch(`https://api.themoviedb.org/3/person/${personId}?api_key=${API_KEY}&language=en-US`);
-      const data = await res.json();
+async function loadPerson(personId) {
+  const res = await fetch(`https://api.themoviedb.org/3/person/${personId}?api_key=${API_KEY}&language=en-US`);
+  const data = await res.json();
 
-      const profile = data.profile_path ? IMG + data.profile_path : FALLBACK_POSTER;
+  const profile = data.profile_path ? IMG + data.profile_path : FALLBACK_POSTER;
 
-      const html = `
-        <div class="w-full md:w-64 flex-shrink-0">
-          <img src="${profile}" alt="${data.name}" class="rounded-xl shadow-lg w-full h-auto object-cover" />
-        </div>
-        <div class="flex-1 min-w-0">
-          <h1 class="text-2xl sm:text-3xl font-bold mb-4 break-words">${data.name}</h1>
-          <p class="text-sm text-gray-300 mb-3 flex flex-wrap gap-4">
-            ${data.birthday ? `<span><i class="fa fa-birthday-cake mr-2 text-[--accent]"></i>${data.birthday}</span>` : ""}
-            ${data.place_of_birth ? `<span><i class="fa fa-map-marker-alt mr-2 text-[--accent]"></i>${data.place_of_birth}</span>` : ""}
-          </p>
-          <p class="text-[--muted] leading-relaxed break-words">${data.biography || "No biography available."}</p>
-        </div>
-      `;
+  const html = `
+    <div class="w-full md:w-64 flex-shrink-0">
+      <img src="${profile}" alt="${data.name}" 
+           class="rounded-xl shadow-lg w-full h-auto object-cover" />
+    </div>
+    <div class="flex-1 min-w-0 md:ml-6 mt-4 md:mt-0">
+      <h1 class="text-2xl sm:text-3xl font-bold mb-4 break-words">${data.name}</h1>
+      <p class="text-sm text-gray-300 mb-3 flex flex-wrap gap-4">
+        ${data.birthday ? `<span><i class="fa fa-birthday-cake mr-2 text-[--accent]"></i>${data.birthday}</span>` : ""}
+        ${data.place_of_birth ? `<span><i class="fa fa-map-marker-alt mr-2 text-[--accent]"></i>${data.place_of_birth}</span>` : ""}
+      </p>
+      <p class="text-[--muted] leading-relaxed break-words whitespace-pre-line">
+        ${data.biography || "No biography available."}
+      </p>
+    </div>
+  `;
 
-      document.getElementById("person-info").innerHTML = html;
-    }
+  document.getElementById("person-info").innerHTML = html;
+}
 
     async function loadCredits(personId) {
       const res = await fetch(`https://api.themoviedb.org/3/person/${personId}/combined_credits?api_key=${API_KEY}&language=en-US`);
