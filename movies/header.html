@@ -2,7 +2,7 @@
 <header class="neek-header w-full bg-[#0b0b0b] border-b border-gray-800 md:fixed md:top-0 md:left-0 md:right-0 z-50">
   <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between min-h-[56px]">
     <!-- Logo -->
-    <a href="../index.html" class="flex items-center gap-3">
+    <a href="../index.html" class="flex items-center gap-3" aria-label="Home">
       <img src="https://github.com/animeneek/Neek/blob/main/assets/images/Neek_haiyku.png?raw=true"
            alt="Neek logo" class="h-10 object-contain max-h-11" />
     </a>
@@ -16,124 +16,122 @@
       <a class="neek-link" href="comingsoon.html">Coming Soon</a>
     </nav>
 
-    <!-- Search (desktop only) -->
+    <!-- Desktop Search (form -> no JS needed) -->
     <div class="hidden md:flex">
-      <div class="relative w-72">
-        <input
-          id="headerSearch"
-          type="text"
-          placeholder="Search..."
-          class="w-full rounded-xl bg-[#1a1a1a] border border-gray-700 px-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#ff4444]"
-        />
-        <button
-          id="headerSearchBtn"
-          type="button"
-          class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
-        >
+      <form action="search.html" method="get" class="relative w-72" role="search" aria-label="Search movies">
+        <input name="q" type="text" placeholder="Search..."
+               class="w-full rounded-xl bg-[#1a1a1a] border border-gray-700 px-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#ff4444]" />
+        <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white" aria-label="Search">
           <i class="fa-solid fa-magnifying-glass"></i>
         </button>
-      </div>
+      </form>
     </div>
   </div>
 
-  <!-- Mobile Bottom Navigation -->
-  <nav class="neek-mobile-nav md:hidden fixed bottom-0 left-0 right-0 bg-black/70 backdrop-blur-lg border-t border-gray-800 flex justify-around text-xs py-2 z-50">
-    <a class="neek-link flex flex-col items-center" href="../anime/index.html">
+  <!-- Mobile Bottom Navigation (includes a Search open anchor that targets overlay) -->
+  <nav class="neek-mobile-nav md:hidden fixed bottom-0 left-0 right-0 bg-black/70 backdrop-blur-lg border-t border-gray-800 flex justify-around text-xs py-2 z-50" aria-label="Mobile navigation">
+    <a class="neek-link flex flex-col items-center" href="../anime/index.html" title="Switch to Anime">
       <i class="fa-solid fa-exchange-alt"></i>
       <span class="mt-1 text-[10px]">Switch</span>
     </a>
-    <a class="neek-link flex flex-col items-center" href="trending.html">
+    <a class="neek-link flex flex-col items-center" href="trending.html" title="Trending">
       <i class="fa-solid fa-fire"></i>
       <span class="mt-1 text-[10px]">Trending</span>
     </a>
-    <a class="neek-link flex flex-col items-center" href="latest.html">
+    <a class="neek-link flex flex-col items-center" href="latest.html" title="Latest">
       <i class="fa-solid fa-clock"></i>
       <span class="mt-1 text-[10px]">Latest</span>
     </a>
-    <a class="neek-link flex flex-col items-center" href="ongoing.html">
+    <a class="neek-link flex flex-col items-center" href="ongoing.html" title="Ongoing">
       <i class="fa-solid fa-play-circle"></i>
       <span class="mt-1 text-[10px]">Ongoing</span>
     </a>
-    <a class="neek-link flex flex-col items-center" href="comingsoon.html">
+    <a class="neek-link flex flex-col items-center" href="comingsoon.html" title="Coming Soon">
       <i class="fa-solid fa-calendar"></i>
       <span class="mt-1 text-[10px]">Coming</span>
     </a>
-    <!-- ✅ Proper button for mobile search -->
-    <button id="mobileSearchOpen" type="button" class="neek-link flex flex-col items-center">
+
+    <!-- open overlay via fragment identifier — no JS required -->
+    <a class="neek-link flex flex-col items-center" href="#mobileSearchOverlay" title="Search">
       <i class="fa-solid fa-magnifying-glass"></i>
       <span class="mt-1 text-[10px]">Search</span>
-    </button>
+    </a>
   </nav>
 </header>
 
-<!-- ✅ Mobile Search Overlay (moved outside nav so it's clickable) -->
-<div id="mobileSearchOverlay" class="fixed inset-0 bg-black/95 z-[100] hidden flex-col items-center justify-center p-6">
-  <div class="w-full max-w-md relative">
-    <input
-      id="mobileSearchInput"
-      type="text"
-      placeholder="Search movies..."
-      class="w-full rounded-xl bg-[#1a1a1a] border border-gray-700 px-4 py-3 text-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#ff4444]"
-    />
-    <button id="mobileSearchBtn" type="button" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
-      <i class="fa-solid fa-magnifying-glass"></i>
-    </button>
+<!-- Mobile Search Overlay (CSS :target -> works when header injected via innerHTML) -->
+<div id="mobileSearchOverlay" class="mobile-search-overlay" aria-hidden="true">
+  <div class="mobile-search-panel">
+    <form action="search.html" method="get" class="w-full max-w-md mx-auto" role="search" aria-label="Mobile search">
+      <div class="relative">
+        <input name="q" id="mobileSearchInput" type="text" placeholder="Search movies..."
+               class="w-full rounded-xl bg-[#1a1a1a] border border-gray-700 px-4 py-3 text-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#ff4444]" />
+        <button type="submit" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 hover:text-white" aria-label="Search">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+      </div>
+    </form>
+
+    <!-- close: navigating to "#" will remove the target fragment and hide the overlay -->
+    <div class="text-center mt-5">
+      <a href="#" class="text-sm text-gray-300 hover:text-white">Close <i class="fa-solid fa-times ml-2"></i></a>
+    </div>
   </div>
-  <button id="mobileSearchClose" type="button" class="mt-6 text-gray-400 hover:text-white text-sm">
-    <i class="fa-solid fa-times"></i> Close
-  </button>
 </div>
 
 <style>
   :root { --accent: #ff4444; }
+
+  /* Prevent horizontal overflow */
   html, body { overflow-x: hidden; box-sizing: border-box; }
-  .neek-link { color: #fff; text-decoration: none !important; display: inline-flex; align-items: center; gap: .375rem; }
+
+  /* Link styling */
+  .neek-link {
+    color: #fff;
+    text-decoration: none !important;
+    display: inline-flex;
+    align-items: center;
+    gap: .375rem;
+  }
   .neek-link:hover { color: var(--accent) !important; text-decoration: none !important; }
+
+  /* Mobile nav items: allow buttons/anchors to behave similarly */
   .neek-mobile-nav a, .neek-mobile-nav button {
-    flex: 1 1 0; min-width: 0; padding: 6px 6px; color: #fff;
-    text-decoration: none !important; background: none; border: none; outline: none;
+    flex: 1 1 0; min-width: 0; padding: 6px 6px; color: #fff; text-decoration: none !important; background: none; border: none; outline: none;
   }
   .neek-mobile-nav i { display: block; font-size: 18px; line-height: 1; }
   .neek-mobile-nav span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* Logo clamp */
   .neek-header img { max-height: 44px; max-width: 100%; height: auto; }
-  @media (max-width: 420px) { .neek-mobile-nav { padding-top: 8px; padding-bottom: 10px; } }
+
+  /* Mobile overlay base (hidden) */
+  .mobile-search-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0,0,0,0.95);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  /* Show overlay when targeted by hash (#mobileSearchOverlay) */
+  .mobile-search-overlay:target {
+    display: flex;
+  }
+
+  .mobile-search-panel { width: 100%; max-width: 720px; }
+
+  /* Make overlay input visually centered */
+  .mobile-search-panel form { margin-top: 6px; }
+
+  /* Small responsive tweaks */
+  @media (max-width: 420px) {
+    .neek-mobile-nav { padding-top: 8px; padding-bottom: 10px; }
+    .mobile-search-panel { padding: 0 12px; }
+  }
 </style>
-
-<script>
-  (() => {
-    // Desktop header search
-    const input = document.getElementById("headerSearch");
-    const btn = document.getElementById("headerSearchBtn");
-    if (btn && input) {
-      function goSearch(q) {
-        if (q) window.location.href = "search.html?q=" + encodeURIComponent(q);
-      }
-      btn.addEventListener("click", () => goSearch(input.value.trim()));
-      input.addEventListener("keydown", e => { if (e.key === "Enter") goSearch(input.value.trim()); });
-    }
-
-    // Mobile overlay search
-    const overlay = document.getElementById("mobileSearchOverlay");
-    const openBtn = document.getElementById("mobileSearchOpen");
-    const closeBtn = document.getElementById("mobileSearchClose");
-    const mobileInput = document.getElementById("mobileSearchInput");
-    const mobileBtn = document.getElementById("mobileSearchBtn");
-
-    function goMobileSearch(q) {
-      if (q) window.location.href = "search.html?q=" + encodeURIComponent(q);
-    }
-
-    if (openBtn) openBtn.addEventListener("click", () => {
-      overlay.classList.remove("hidden");
-      setTimeout(() => mobileInput.focus(), 100);
-    });
-    if (closeBtn) closeBtn.addEventListener("click", () => {
-      overlay.classList.add("hidden");
-      mobileInput.value = "";
-    });
-    if (mobileBtn) mobileBtn.addEventListener("click", () => goMobileSearch(mobileInput.value.trim()));
-    if (mobileInput) mobileInput.addEventListener("keydown", e => {
-      if (e.key === "Enter") goMobileSearch(mobileInput.value.trim());
-    });
-  })();
-</script>
