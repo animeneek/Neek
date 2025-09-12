@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Neek — Anime</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    :root {
+      --accent:#ff4444;
+      --bg:#0b0b0b;
+      --muted:#9b9b9b;
+    }
+
+    html,body {
+      background:var(--bg);
+      color:#fff;
+      overflow-x:hidden;
+    }
+
+    a { color:#fff; text-decoration:none !important; }
+    a:hover { color:var(--accent); }
+
+    .card { background:#1a1a1a; }
+    .card h3 { color:#fff; }
+    .star { color:var(--accent); }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-[#0b0b0b] text-white">
+
+  <!-- Header include -->
+  <div id="header"></div>
+
+  <!-- MAIN CONTENT -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-6 py-6 md:pt-28 pb-24 space-y-16">
+
+    <!-- Hero Section -->
+    <section class="text-center">
+      <p class="text-2xl sm:text-3xl md:text-5xl font-extrabold mb-4 text-center text-white">
+        <i class="fa-solid fa-dragon mr-2" aria-hidden="true" style="color:#ff4444;"></i>
+        Dive into the Anime World
+      </p>
+      <p class="text-[--muted] italic">Your ultimate anime gateway.</p>
+    </section>
+
+    <!-- Trending -->
+    <section id="trending">
+      <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+        <i class="fa-solid fa-fire text-[--accent]"></i> Trending Now
+      </h2>
+      <div id="trending-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-6"></div>
+    </section>
+
+    <!-- Latest -->
+    <section id="latest">
+      <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+        <i class="fa-solid fa-clock text-[--accent]"></i> Latest Releases
+      </h2>
+      <div id="latest-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-6"></div>
+    </section>
+
+    <!-- Upcoming -->
+    <section id="upcoming">
+      <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+        <i class="fa-solid fa-calendar text-[--accent]"></i> Coming Soon
+      </h2>
+      <div id="upcoming-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-6"></div>
+    </section>
+
+    <!-- Ongoing -->
+    <section id="ongoing">
+      <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+        <i class="fa-solid fa-tv text-[--accent]"></i> Ongoing Anime
+      </h2>
+      <div id="ongoing-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-6"></div>
+    </section>
+  </main>
+
+  <!-- Footer include -->
+  <div id="footer"></div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    // Load header & footer
+    Promise.all([
+      fetch("header.html").then(r => r.text()),
+      fetch("footer.html").then(r => r.text())
+    ]).then(([header, footer]) => {
+      document.getElementById("header").innerHTML = header;
+      document.getElementById("footer").innerHTML = footer;
+    });
+
+    const API_URL = "https://graphql.anilist.co";
+    const FALLBACK_POSTER = "https://raw.githubusercontent.com/animeneek/Neek/main/assets/images/Poster%20404%20Error.png";
+
+    // GraphQL query template
+    function getQuery(type) {
+      let filter = "";
+      let sort = "";
+      if (type === "trending") {
+        sort = "TRENDING_DESC";
+      } else if (type === "latest") {
+        sort = "START_DATE_DESC";
+      } else if (type === "upcoming") {
+        filter = "status: NOT_YET_RELEASED,";
+        sort = "START_DATE";
+      } else if (type === "ongoing") {
+        filter = "status: RELEASING,";
+        sort = "POPULARITY_DESC";
+      }
+      return `
+        query {
+          Page(perPage: 10) {
+            media(type: ANIME, ${filter} sort: ${sort}) {
+              id
+              title { romaji english }
+              coverImage { large }
+              startDate { year }
+              averageScore
+              episodes
+              nextAiringEpisode { episode }
+            }
+          }
+        }
+      `;
+    }
+
+    function createCard(item) {
+      const id = item.id;
+      const title = item.title.english || item.title.romaji;
+      const rating = item.averageScore ? (item.averageScore) : "N/A";
+      const poster = item.coverImage?.large || FALLBACK_POSTER;
+      const year = item.startDate?.year || "—";
+      let infoLine = `Anime | ${year} | <i class="fa fa-star star"></i> ${rating !== "N/A" ? rating + "/100" : "N/A"}`;
+      if (item.nextAiringEpisode) {
+        infoLine = `Ongoing | Ep ${item.nextAiringEpisode.episode} airing soon | <i class="fa fa-star star"></i> ${rating !== "N/A" ? rating + "/100" : "N/A"}`;
+      } else if (item.episodes) {
+        infoLine = `Anime | ${year} | ${item.episodes} eps | <i class="fa fa-star star"></i> ${rating !== "N/A" ? rating + "/100" : "N/A"}`;
+      }
+
+      return `
+        <a href="info.html?id=${id}&type=anime" 
+           class="card rounded-xl overflow-hidden hover:scale-105 transition block max-w-full">
+          <img src="${poster}" alt="${title}" class="w-full h-72 object-cover">
+          <div class="p-3">
+            <h3 class="text-sm font-medium line-clamp-2 hover:text-[--accent] transition">${title}</h3>
+            <p class="text-xs text-gray-400 mt-1">${infoLine}</p>
+          </div>
+        </a>
+      `;
+    }
+
+    async function fetchAndRender(type, containerId) {
+      const query = getQuery(type);
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Accept": "application/json" },
+          body: JSON.stringify({ query })
+        });
+        const data = await res.json();
+        const media = data.data.Page.media;
+        document.getElementById(containerId).innerHTML = media.map(createCard).join("");
+      } catch (err) {
+        console.error("AniList fetch error:", err);
+      }
+    }
+
+    // Fetch sections
+    fetchAndRender("trending", "trending-grid");
+    fetchAndRender("latest", "latest-grid");
+    fetchAndRender("upcoming", "upcoming-grid");
+    fetchAndRender("ongoing", "ongoing-grid");
+  });
+</script>
+</body>
+</html>
