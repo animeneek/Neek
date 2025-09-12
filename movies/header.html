@@ -24,12 +24,11 @@
           type="text"
           placeholder="Search..."
           class="w-full rounded-xl bg-[#1a1a1a] border border-gray-700 px-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#ff4444]"
-          onkeydown="if(event.key==='Enter'){ event.preventDefault(); const q=this.value.trim(); if(q) { window.location.href='search.html?q='+encodeURIComponent(q); }}"
         />
         <button
+          id="headerSearchBtn"
           type="button"
           class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
-          onclick="(function(){ const el=document.getElementById('headerSearch'); const q=el && el.value ? el.value.trim() : ''; if(q) window.location.href='search.html?q='+encodeURIComponent(q); })()"
         >
           <i class="fa-solid fa-magnifying-glass"></i>
         </button>
@@ -59,71 +58,82 @@
       <i class="fa-solid fa-calendar"></i>
       <span class="mt-1 text-[10px]">Coming</span>
     </a>
-    <!-- 🔍 Mobile Search button -->
-    <button id="mobileSearchOpen" class="neek-link flex flex-col items-center">
+    <!-- ✅ Proper button for mobile search -->
+    <button id="mobileSearchOpen" type="button" class="neek-link flex flex-col items-center">
       <i class="fa-solid fa-magnifying-glass"></i>
       <span class="mt-1 text-[10px]">Search</span>
     </button>
   </nav>
+</header>
 
-  <!-- 🔍 Mobile Search Overlay -->
-  <div id="mobileSearchOverlay" class="fixed inset-0 bg-black/95 z-[60] hidden flex-col items-center justify-center p-6">
-    <div class="w-full max-w-md relative">
-      <input
-        id="mobileSearchInput"
-        type="text"
-        placeholder="Search movies..."
-        class="w-full rounded-xl bg-[#1a1a1a] border border-gray-700 px-4 py-3 text-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#ff4444]"
-      />
-      <button id="mobileSearchBtn" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
-        <i class="fa-solid fa-magnifying-glass"></i>
-      </button>
-    </div>
-    <button id="mobileSearchClose" class="mt-6 text-gray-400 hover:text-white text-sm">
-      <i class="fa-solid fa-times"></i> Close
+<!-- ✅ Mobile Search Overlay (moved outside nav so it's clickable) -->
+<div id="mobileSearchOverlay" class="fixed inset-0 bg-black/95 z-[100] hidden flex-col items-center justify-center p-6">
+  <div class="w-full max-w-md relative">
+    <input
+      id="mobileSearchInput"
+      type="text"
+      placeholder="Search movies..."
+      class="w-full rounded-xl bg-[#1a1a1a] border border-gray-700 px-4 py-3 text-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#ff4444]"
+    />
+    <button id="mobileSearchBtn" type="button" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
+      <i class="fa-solid fa-magnifying-glass"></i>
     </button>
   </div>
+  <button id="mobileSearchClose" type="button" class="mt-6 text-gray-400 hover:text-white text-sm">
+    <i class="fa-solid fa-times"></i> Close
+  </button>
+</div>
 
-  <style>
-    :root { --accent: #ff4444; }
-    html, body { overflow-x: hidden; box-sizing: border-box; }
-    .neek-link { color: #fff; text-decoration: none !important; display: inline-flex; align-items: center; gap: .375rem; }
-    .neek-link:hover { color: var(--accent) !important; text-decoration: none !important; }
-    .neek-mobile-nav a, .neek-mobile-nav button {
-      flex: 1 1 0; min-width: 0; padding: 6px 6px; color: #fff;
-      text-decoration: none !important; background: none; border: none; outline: none;
-    }
-    .neek-mobile-nav i { display: block; font-size: 18px; line-height: 1; }
-    .neek-mobile-nav span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .neek-header img { max-height: 44px; max-width: 100%; height: auto; }
-    @media (max-width: 420px) { .neek-mobile-nav { padding-top: 8px; padding-bottom: 10px; } }
-  </style>
+<style>
+  :root { --accent: #ff4444; }
+  html, body { overflow-x: hidden; box-sizing: border-box; }
+  .neek-link { color: #fff; text-decoration: none !important; display: inline-flex; align-items: center; gap: .375rem; }
+  .neek-link:hover { color: var(--accent) !important; text-decoration: none !important; }
+  .neek-mobile-nav a, .neek-mobile-nav button {
+    flex: 1 1 0; min-width: 0; padding: 6px 6px; color: #fff;
+    text-decoration: none !important; background: none; border: none; outline: none;
+  }
+  .neek-mobile-nav i { display: block; font-size: 18px; line-height: 1; }
+  .neek-mobile-nav span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .neek-header img { max-height: 44px; max-width: 100%; height: auto; }
+  @media (max-width: 420px) { .neek-mobile-nav { padding-top: 8px; padding-bottom: 10px; } }
+</style>
 
-  <script>
-    (() => {
-      // Mobile overlay toggle
-      const overlay = document.getElementById("mobileSearchOverlay");
-      const openBtn = document.getElementById("mobileSearchOpen");
-      const closeBtn = document.getElementById("mobileSearchClose");
-      const input = document.getElementById("mobileSearchInput");
-      const btn = document.getElementById("mobileSearchBtn");
-
+<script>
+  (() => {
+    // Desktop header search
+    const input = document.getElementById("headerSearch");
+    const btn = document.getElementById("headerSearchBtn");
+    if (btn && input) {
       function goSearch(q) {
         if (q) window.location.href = "search.html?q=" + encodeURIComponent(q);
       }
+      btn.addEventListener("click", () => goSearch(input.value.trim()));
+      input.addEventListener("keydown", e => { if (e.key === "Enter") goSearch(input.value.trim()); });
+    }
 
-      if (openBtn) openBtn.addEventListener("click", () => {
-        overlay.classList.remove("hidden");
-        setTimeout(() => input.focus(), 50);
-      });
-      if (closeBtn) closeBtn.addEventListener("click", () => {
-        overlay.classList.add("hidden");
-        input.value = "";
-      });
-      if (btn) btn.addEventListener("click", () => goSearch(input.value.trim()));
-      if (input) input.addEventListener("keydown", e => {
-        if (e.key === "Enter") goSearch(input.value.trim());
-      });
-    })();
-  </script>
-</header>
+    // Mobile overlay search
+    const overlay = document.getElementById("mobileSearchOverlay");
+    const openBtn = document.getElementById("mobileSearchOpen");
+    const closeBtn = document.getElementById("mobileSearchClose");
+    const mobileInput = document.getElementById("mobileSearchInput");
+    const mobileBtn = document.getElementById("mobileSearchBtn");
+
+    function goMobileSearch(q) {
+      if (q) window.location.href = "search.html?q=" + encodeURIComponent(q);
+    }
+
+    if (openBtn) openBtn.addEventListener("click", () => {
+      overlay.classList.remove("hidden");
+      setTimeout(() => mobileInput.focus(), 100);
+    });
+    if (closeBtn) closeBtn.addEventListener("click", () => {
+      overlay.classList.add("hidden");
+      mobileInput.value = "";
+    });
+    if (mobileBtn) mobileBtn.addEventListener("click", () => goMobileSearch(mobileInput.value.trim()));
+    if (mobileInput) mobileInput.addEventListener("keydown", e => {
+      if (e.key === "Enter") goMobileSearch(mobileInput.value.trim());
+    });
+  })();
+</script>
