@@ -100,22 +100,31 @@
   </style>
 
   <script>
-    // Header search redirect
-    document.addEventListener("DOMContentLoaded", () => {
-      const input = document.getElementById("headerSearch");
-      const btn = document.getElementById("headerSearchBtn");
+    (() => {
+      function attachSearch() {
+        const input = document.getElementById("headerSearch");
+        const btn = document.getElementById("headerSearchBtn");
+        if (!input || !btn) return;
 
-      function goSearch() {
-        const q = input.value.trim();
-        if(q) {
-          window.location.href = "/movies/search.html?q=" + encodeURIComponent(q);
+        function goSearch() {
+          const q = input.value.trim();
+          if (q) {
+            window.location.href = "/movies/search.html?q=" + encodeURIComponent(q);
+          }
         }
+
+        btn.addEventListener("click", goSearch);
+        input.addEventListener("keypress", e => {
+          if (e.key === "Enter") goSearch();
+        });
       }
 
-      btn.addEventListener("click", goSearch);
-      input.addEventListener("keypress", e => {
-        if(e.key === "Enter") goSearch();
-      });
-    });
+      // Run immediately after DOM ready
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", attachSearch);
+      } else {
+        attachSearch();
+      }
+    })();
   </script>
 </header>
