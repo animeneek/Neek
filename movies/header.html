@@ -109,9 +109,11 @@
         function goSearch() {
           const q = input.value.trim();
           if (q) {
+            console.log("Redirecting to search with query:", q);
             window.location.href = "/movies/search.html?q=" + encodeURIComponent(q);
           }
         }
+
 
         btn.addEventListener("click", goSearch);
         input.addEventListener("keypress", e => {
