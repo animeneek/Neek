@@ -19,9 +19,26 @@
     <!-- Search (desktop only) -->
     <div class="hidden md:flex">
       <div class="relative w-72">
-        <input id="headerSearch" type="text" placeholder="Search..."
-               class="w-full rounded-xl bg-[#1a1a1a] border border-gray-700 px-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#ff4444]" />
-        <button id="headerSearchBtn" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
+        <!--
+          Inline handlers so the search works even when this header is injected with innerHTML.
+          - Enter key: onkeydown on the input
+          - Click: onclick on the button (type="button" to avoid accidental form submits)
+        -->
+        <input
+          id="headerSearch"
+          type="text"
+          placeholder="Search..."
+          class="w-full rounded-xl bg-[#1a1a1a] border border-gray-700 px-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#ff4444]"
+          onkeydown="if(event.key==='Enter'){ event.preventDefault(); const q=this.value.trim(); if(q) { window.location.href='/movies/search.html?q='+encodeURIComponent(q); }}"
+          aria-label="Search movies"
+        />
+        <button
+          id="headerSearchBtn"
+          type="button"
+          class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+          onclick="(function(){ const el=document.getElementById('headerSearch'); const q = el && el.value ? el.value.trim() : ''; if(q) window.location.href='/movies/search.html?q=' + encodeURIComponent(q); })()"
+          aria-label="Search"
+        >
           <i class="fa-solid fa-magnifying-glass"></i>
         </button>
       </div>
@@ -98,39 +115,4 @@
       .neek-mobile-nav { padding-top: 8px; padding-bottom: 10px; }
     }
   </style>
-
-  <script>
-    (() => {
-      function attachSearch() {
-        const input = document.getElementById("headerSearch");
-        const btn = document.getElementById("headerSearchBtn");
-        if (!input || !btn) return;
-
-        function goSearch() {
-          const q = input.value.trim();
-          if (q) {
-            console.log("Redirecting to search with query:", q);
-            window.location.href = "/movies/search.html?q=" + encodeURIComponent(q);
-          }
-        }
-
-        // Button click
-        btn.addEventListener("click", goSearch);
-
-        // Enter key
-        input.addEventListener("keydown", e => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            goSearch();
-          }
-        });
-      }
-
-      if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", attachSearch);
-      } else {
-        attachSearch();
-      }
-    })();
-  </script>
 </header>
