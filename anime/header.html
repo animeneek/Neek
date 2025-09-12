@@ -1,0 +1,129 @@
+<!-- /anime/header.html -->
+<header class="neek-header w-full bg-[#0b0b0b] border-b border-gray-800 md:fixed md:top-0 md:left-0 md:right-0 z-50">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between min-h-[56px]">
+    <!-- Logo -->
+    <a href="../index.html" class="flex items-center gap-3" aria-label="Home">
+      <img src="https://github.com/animeneek/Neek/blob/main/assets/images/Neek_haiyku.png?raw=true"
+           alt="Neek logo" class="h-10 object-contain max-h-11" />
+    </a>
+
+    <!-- Desktop Navigation -->
+    <nav class="hidden md:flex gap-6 text-sm font-medium" aria-label="Main navigation">
+      <a class="neek-link" href="../movies/index.html">Switch to Movies</a>
+      <a class="neek-link" href="trending.html">Trending</a>
+      <a class="neek-link" href="latest.html">Latest</a>
+      <a class="neek-link" href="ongoing.html">Ongoing</a>
+      <a class="neek-link" href="comingsoon.html">Coming Soon</a>
+    </nav>
+
+    <!-- Desktop Search -->
+    <div class="hidden md:flex">
+      <form action="search.html" method="get" class="relative w-72" role="search" aria-label="Search anime">
+        <input name="q" type="text" placeholder="Search anime..."
+               class="w-full rounded-xl bg-[#1a1a1a] border border-gray-700 px-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#ff4444]" />
+        <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white" aria-label="Search">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Mobile Bottom Navigation -->
+  <nav class="neek-mobile-nav md:hidden fixed bottom-0 left-0 right-0 bg-black/70 backdrop-blur-lg border-t border-gray-800 flex justify-around text-xs py-2 z-50" aria-label="Mobile navigation">
+    <a class="neek-link flex flex-col items-center" href="../movies/index.html" title="Switch to Movies">
+      <i class="fa-solid fa-exchange-alt"></i>
+      <span class="mt-1 text-[10px]">Switch</span>
+    </a>
+    <a class="neek-link flex flex-col items-center" href="trending.html" title="Trending">
+      <i class="fa-solid fa-fire"></i>
+      <span class="mt-1 text-[10px]">Trending</span>
+    </a>
+    <a class="neek-link flex flex-col items-center" href="latest.html" title="Latest">
+      <i class="fa-solid fa-clock"></i>
+      <span class="mt-1 text-[10px]">Latest</span>
+    </a>
+    <a class="neek-link flex flex-col items-center" href="ongoing.html" title="Ongoing">
+      <i class="fa-solid fa-play-circle"></i>
+      <span class="mt-1 text-[10px]">Ongoing</span>
+    </a>
+    <a class="neek-link flex flex-col items-center" href="comingsoon.html" title="Coming Soon">
+      <i class="fa-solid fa-calendar"></i>
+      <span class="mt-1 text-[10px]">Coming</span>
+    </a>
+
+    <!-- Search trigger -->
+    <a class="neek-link flex flex-col items-center" href="#mobileSearchOverlay" title="Search">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <span class="mt-1 text-[10px]">Search</span>
+    </a>
+  </nav>
+</header>
+
+<!-- Mobile Search Overlay -->
+<div id="mobileSearchOverlay" class="mobile-search-overlay" aria-hidden="true">
+  <div class="mobile-search-panel">
+    <form action="search.html" method="get" class="w-full max-w-md mx-auto" role="search" aria-label="Mobile search">
+      <div class="relative">
+        <input name="q" id="mobileSearchInput" type="text" placeholder="Search anime..."
+               class="w-full rounded-xl bg-[#1a1a1a] border border-gray-700 px-4 py-3 text-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#ff4444]" />
+        <button type="submit" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 hover:text-white" aria-label="Search">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+      </div>
+    </form>
+
+    <div class="text-center mt-5">
+      <a href="#" class="text-sm text-gray-300 hover:text-white">Close <i class="fa-solid fa-times ml-2"></i></a>
+    </div>
+  </div>
+</div>
+
+<style>
+  :root { --accent: #ff4444; }
+  html, body { overflow-x: hidden; box-sizing: border-box; }
+
+  .neek-link {
+    color: #fff;
+    text-decoration: none !important;
+    display: inline-flex;
+    align-items: center;
+    gap: .375rem;
+  }
+  .neek-link:hover { color: var(--accent) !important; text-decoration: none !important; }
+
+  .neek-mobile-nav a {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 6px 6px;
+    color: #fff;
+    background: none;
+    border: none;
+    outline: none;
+    text-decoration: none !important;
+  }
+  .neek-mobile-nav i { display: block; font-size: 18px; line-height: 1; }
+  .neek-mobile-nav span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .neek-header img { max-height: 44px; max-width: 100%; height: auto; }
+
+  .mobile-search-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0,0,0,0.95);
+    backdrop-filter: blur(8px);
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .mobile-search-overlay:target { display: flex; }
+
+  .mobile-search-panel { width: 100%; max-width: 720px; }
+  .mobile-search-panel form { margin-top: 6px; }
+
+  @media (max-width: 420px) {
+    .neek-mobile-nav { padding-top: 8px; padding-bottom: 10px; }
+    .mobile-search-panel { padding: 0 12px; }
+  }
+</style>
