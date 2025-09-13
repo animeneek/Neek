@@ -32,6 +32,19 @@
     <!-- Info -->
     <section id="info" class="flex flex-col md:flex-row gap-6 items-start"></section>
 
+    <!-- Watch -->
+    <section id="watch" class="mt-8">
+      <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+        <i class="fa fa-play-circle text-[--accent]"></i> Watch Now
+      </h2>
+      <div id="player" class="w-full aspect-video bg-black rounded-xl overflow-hidden flex items-center justify-center text-center text-gray-400">
+        <div id="player-placeholder" class="px-6">
+          <p class="text-lg font-semibold">Select a source to begin watching</p>
+        </div>
+      </div>
+      <div id="sources" class="mt-4 flex flex-wrap justify-center gap-3"></div>
+    </section>
+
     <!-- Characters & VA -->
     <section id="characters" class="mt-10">
       <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
@@ -45,7 +58,7 @@
       <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
         <i class="fa fa-user-tie text-[--accent]"></i> Staff
       </h2>
-      <div id="staff-grid" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>
+      <div id="staff-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4"></div>
     </section>
 
     <!-- Recommended -->
@@ -60,12 +73,38 @@
   <!-- Footer -->
   <div id="footer"></div>
 
+  <!-- Header/footer script -->
+  <script>
+    (async function insertHeaderFooterAndInit() {
+      try {
+        const [hHtml, fHtml] = await Promise.all([
+          fetch('../header.html').then(r => r.ok ? r.text() : ''),
+          fetch('../footer.html').then(r => r.ok ? r.text() : '')
+        ]);
+        if (hHtml) document.getElementById('header').innerHTML = hHtml;
+        if (fHtml) document.getElementById('footer').innerHTML = fHtml;
+      } catch (e) { console.warn('header/footer load failed', e); }
+
+      const tryApplyPadding = () => {
+        const headerEl = document.querySelector('.neek-header');
+        if (!headerEl) return;
+        if (window.matchMedia('(min-width: 768px)').matches) {
+          const h = headerEl.getBoundingClientRect().height || 64;
+          document.body.style.paddingTop = h + 'px';
+        } else {
+          document.body.style.paddingTop = '';
+        }
+      };
+      tryApplyPadding();
+      window.addEventListener('resize', tryApplyPadding);
+    })();
+  </script>
+
+  <!-- Main logic -->
   <script>
     const params = new URLSearchParams(window.location.search);
     const id = params.get("id");
-    const type = params.get("type");
     const ANILIST_API = "https://graphql.anilist.co";
-
     const FALLBACK_IMG = "https://github.com/animeneek/Neek/blob/main/assets/images/Poster%20404%20Error.png?raw=true";
 
     const query = `
@@ -78,6 +117,7 @@
           bannerImage
           startDate { year }
           episodes
+          status
           averageScore
           characters(sort: ROLE, perPage: 12) {
             edges {
@@ -87,8 +127,9 @@
                 name { full }
                 image { large }
               }
-              voiceActors(language: JAPANESE, sort: RELEVANCE) {
+              voiceActors(sort: RELEVANCE) {
                 id
+                languageV2
                 name { full }
                 image { large }
               }
@@ -112,6 +153,8 @@
                   title { romaji }
                   coverImage { large }
                   averageScore
+                  status
+                  episodes
                 }
               }
             }
@@ -155,38 +198,38 @@
         const char = edge.node;
         const va = edge.voiceActors?.[0];
         return `
-          <div class="bg-[#1a1a1a] rounded-xl p-3 flex justify-between items-start gap-3">
-            <a href="character.html?id=${char.id}" class="flex items-center gap-3">
-              <img src="${char.image?.large || FALLBACK_IMG}" class="w-16 h-20 rounded-lg object-cover"/>
+          <div class="relative bg-[#1a1a1a] rounded-xl p-3 flex gap-3 items-start">
+            <a href="character.html?id=${char.id}" class="flex gap-3">
+              <img src="${char.image?.large || FALLBACK_IMG}" class="w-20 h-24 rounded-lg object-cover"/>
               <div>
                 <p class="font-bold">${char.name.full}</p>
                 <p class="text-xs text-gray-400">${edge.role}</p>
               </div>
             </a>
             ${va ? `
-              <a href="staff.html?id=${va.id}" class="flex items-center gap-2">
+              <a href="staff.html?id=${va.id}" class="absolute bottom-2 right-2 flex items-center gap-2">
                 <div class="text-right">
                   <p class="font-medium">${va.name.full}</p>
-                  <p class="text-xs text-gray-400">VA</p>
+                  <p class="text-xs text-gray-400">${va.languageV2}</p>
                 </div>
-                <img src="${va.image?.large || FALLBACK_IMG}" class="w-12 h-16 rounded-lg object-cover"/>
+                <img src="${va.image?.large || FALLBACK_IMG}" class="w-12 h-12 rounded-full object-cover ring-2 ring-[--accent]"/>
               </a>
             ` : ""}
           </div>
         `;
       }).join("");
 
-      // Staff
+      // Staff (round avatars)
       const staff = media.staff?.edges || [];
       document.getElementById("staff-grid").innerHTML = staff.map(edge => {
         const st = edge.node;
         return `
-          <a href="staff.html?id=${st.id}" class="bg-[#1a1a1a] rounded-xl p-3 flex items-center gap-3">
-            <img src="${st.image?.large || FALLBACK_IMG}" class="w-16 h-20 rounded-lg object-cover"/>
-            <div>
-              <p class="font-bold">${st.name.full}</p>
-              <p class="text-xs text-gray-400">${edge.role}</p>
+          <a href="staff.html?id=${st.id}" class="flex flex-col items-center text-center hover:text-[--accent]">
+            <div class="w-16 h-16 rounded-full overflow-hidden ring-2 ring-[--accent]">
+              <img src="${st.image?.large || FALLBACK_IMG}" class="w-full h-full object-cover">
             </div>
+            <div class="mt-2 text-sm font-medium">${st.name.full}</div>
+            <div class="text-xs text-gray-400">${edge.role}</div>
           </a>
         `;
       }).join("");
@@ -200,7 +243,10 @@
             <img src="${rec.coverImage?.large || FALLBACK_IMG}" class="w-full h-72 object-cover" />
             <div class="p-2">
               <p class="text-sm font-bold line-clamp-1">${rec.title.romaji}</p>
-              <p class="text-xs text-gray-400"><i class="fa fa-star star"></i> ${rec.averageScore || "—"}</p>
+              <p class="text-xs text-gray-400">
+                ${rec.status || "—"} | ${rec.episodes || "?"} eps |
+                <i class="fa fa-star star"></i> ${rec.averageScore || "—"}
+              </p>
             </div>
           </a>
         `;
