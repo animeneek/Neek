@@ -22,7 +22,6 @@
     .star { color: var(--accent); }
     .ep-btn.active { background: var(--accent); color: #fff; box-shadow: 0 0 10px rgba(255,68,68,0.7); }
     .source-btn.active { background: var(--accent); color: #fff; }
-    /* Scrollbar hidden for carousel */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
@@ -73,7 +72,7 @@
       </div>
     </section>
 
-    <!-- Characters & Voice Actors -->
+    <!-- Characters -->
     <section id="characters" class="mt-10">
       <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
         <i class="fa fa-users text-[--accent]"></i> Characters & Voice Actors
@@ -89,7 +88,7 @@
       <div id="staff-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4"></div>
     </section>
 
-    <!-- Recommended -->
+    <!-- Recommendations -->
     <section id="recommendations" class="mt-10">
       <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
         <i class="fa fa-clone text-[--accent]"></i> Recommended
@@ -248,19 +247,16 @@
       srcContainer.innerHTML = "";
       if (!currentEpisode) return;
 
-      availableSources = [];
+      // Source mapping by entry.type
+      const sourceMap = {
+        "anime": ["sub", "dub"],
+        "anime-raw": ["raw"],
+        "hanime": ["raw"],
+        "hanime-sub": ["sub"],
+        "hanime-dub": ["dub"]
+      };
 
-      if (entry.type === "anime") {
-        availableSources = ["sub", "dub"];
-      } else if (entry.type === "anime-raw") {
-        availableSources = ["raw"];
-      } else if (entry.type === "hanime") {
-        availableSources = ["raw"];
-      } else if (entry.type === "hanime-sub") {
-        availableSources = ["sub"];
-      } else if (entry.type === "hanime-dub") {
-        availableSources = ["dub"];
-      }
+      availableSources = sourceMap[entry.type] || ["sub"];
 
       availableSources.forEach(src => {
         const btn = document.createElement("button");
@@ -277,16 +273,12 @@
       btn.classList.add("active");
 
       let url = "";
-      if (entry.type === "anime") {
-        url = `https://megaplay.buzz/stream/s-2/${currentEpisode.id}/${source}`;
-      } else if (entry.type === "anime-raw") {
-        url = `https://exampleanimeraw.com/e/${currentEpisode.id}`;
-      } else if (entry.type === "hanime") {
-        url = `https://examplehanimeraw.com/e/${currentEpisode.id}`;
-      } else if (entry.type === "hanime-sub") {
-        url = `https://examplehanimesub.com/e/${currentEpisode.id}`;
-      } else if (entry.type === "hanime-dub") {
-        url = `https://examplehanimedub.com/e/${currentEpisode.id}`;
+      switch (entry.type) {
+        case "anime":       url = `https://megaplay.buzz/stream/s-2/${currentEpisode.id}/${source}`; break;
+        case "anime-raw":   url = `https://exampleanimeraw.com/e/${currentEpisode.id}`; break;
+        case "hanime":      url = `https://examplehanimeraw.com/e/${currentEpisode.id}`; break;
+        case "hanime-sub":  url = `https://examplehanimesub.com/e/${currentEpisode.id}`; break;
+        case "hanime-dub":  url = `https://examplehanimedub.com/e/${currentEpisode.id}`; break;
       }
 
       document.getElementById("player").innerHTML = `<iframe src="${url}" allowfullscreen class="w-full h-full"></iframe>`;
@@ -307,7 +299,7 @@
             <span class="mx-2">|</span>
             <i class="fa fa-star star"></i> ${(media.averageScore ? (media.averageScore/10).toFixed(1) : "—")}
           </p>
-          <p class="text-[--muted] mb-6">${media.description || "No description available."}</p>
+          <p class="text-[--muted] mb-6 line-clamp-6">${media.description || "No description available."}</p>
         </div>
       `;
 
