@@ -20,7 +20,11 @@
     a { color: #fff; text-decoration: none !important; }
     a:hover { color: var(--accent); }
     .star { color: var(--accent); }
-    .ep-btn.active, .source-btn.active { background: var(--accent); color: #fff; }
+    .ep-btn.active { background: var(--accent); color: #fff; box-shadow: 0 0 10px rgba(255,68,68,0.7); }
+    .source-btn.active { background: var(--accent); color: #fff; }
+    /* Scrollbar hidden for carousel */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
 <body class="min-h-screen flex flex-col bg-[--bg] text-white">
@@ -45,19 +49,27 @@
       </div>
 
       <!-- Episodes & Sources -->
-      <div class="mt-6 bg-[#1a1a1a] rounded-xl p-4 shadow-lg">
-        <!-- Episodes Row -->
+      <div class="mt-6 bg-gradient-to-br from-[#1a1a1a] to-[#111] rounded-2xl p-6 shadow-lg">
+        <!-- Episodes Header -->
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
-          <h3 class="text-lg font-semibold mb-2 sm:mb-0">Episodes</h3>
-          <select id="episodeDropdown" class="bg-[#0b0b0b] border border-gray-700 rounded-md px-3 py-1 text-sm">
+          <h3 class="text-xl font-bold flex items-center gap-2">
+            <i class="fa fa-list-ol text-[--accent]"></i> Episodes
+          </h3>
+          <select id="episodeDropdown" class="bg-[#0b0b0b] border border-gray-700 rounded-md px-3 py-2 text-sm">
             <option value="">Select episode</option>
           </select>
         </div>
-        <div id="episodes" class="flex flex-wrap gap-2 mb-6"></div>
 
-        <!-- Sources Row -->
-        <h3 class="text-lg font-semibold mb-2">Source</h3>
-        <div id="sources" class="flex gap-2 flex-wrap"></div>
+        <!-- Episode Buttons Carousel -->
+        <div id="episodes" class="flex gap-2 overflow-x-auto no-scrollbar pb-2"></div>
+
+        <!-- Sources -->
+        <div class="mt-6">
+          <h3 class="text-xl font-bold mb-3 flex items-center gap-2">
+            <i class="fa fa-database text-[--accent]"></i> Source
+          </h3>
+          <div id="sources" class="flex gap-3 flex-wrap"></div>
+        </div>
       </div>
     </section>
 
@@ -206,7 +218,7 @@
 
       entry.episodes.forEach(ep => {
         const btn = document.createElement("button");
-        btn.className = "ep-btn px-3 py-1 bg-[#0b0b0b] border border-gray-700 rounded-md text-sm hover:bg-[--accent] hover:text-white transition";
+        btn.className = "ep-btn px-4 py-2 rounded-full bg-[#0b0b0b] border border-gray-700 text-sm hover:bg-[--accent] hover:text-white transition whitespace-nowrap";
         btn.textContent = `Ep ${ep.episode}`;
         btn.onclick = () => selectEpisode(entry, ep.episode);
         epContainer.appendChild(btn);
@@ -252,7 +264,7 @@
 
       availableSources.forEach(src => {
         const btn = document.createElement("button");
-        btn.className = "source-btn px-3 py-1 bg-[#0b0b0b] border border-gray-700 rounded-md text-sm hover:bg-[--accent] hover:text-white transition";
+        btn.className = "source-btn px-4 py-2 rounded-md bg-[#0b0b0b] border border-gray-700 text-sm hover:bg-[--accent] hover:text-white transition";
         btn.textContent = src.toUpperCase();
         btn.onclick = () => selectSource(entry, src, btn);
         srcContainer.appendChild(btn);
