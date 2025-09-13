@@ -16,18 +16,10 @@
       --bg: #0b0b0b;
       --muted: #9b9b9b;
     }
-
-    html, body {
-      background: var(--bg);
-      color: #fff;
-      overflow-x: hidden;
-    }
-
+    html, body { background: var(--bg); color: #fff; overflow-x: hidden; }
     a { color: #fff; text-decoration: none !important; }
-    a:hover { color: var(--accent); text-decoration: none !important; }
-
+    a:hover { color: var(--accent); }
     .star { color: var(--accent); }
-    .poster-img { max-width: 100%; height: auto; }
   </style>
 </head>
 <body class="min-h-screen flex flex-col bg-[--bg] text-white">
@@ -36,190 +28,186 @@
   <div id="header"></div>
 
   <main class="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-6 py-6 md:pt-28 pb-24">
-
+    
     <!-- Info -->
     <section id="info" class="flex flex-col md:flex-row gap-6 items-start"></section>
 
-    <!-- Cast -->
-    <section id="cast" class="mt-8">
+    <!-- Characters & VA -->
+    <section id="characters" class="mt-10">
       <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
-        <i class="fa fa-users text-[--accent]"></i> Characters
+        <i class="fa fa-users text-[--accent]"></i> Characters & Voice Actors
       </h2>
-      <div id="cast-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4"></div>
+      <div id="characters-grid" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>
     </section>
 
-    <!-- Watch -->
-    <section id="watch" class="mt-8">
+    <!-- Staff -->
+    <section id="staff" class="mt-10">
       <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
-        <i class="fa fa-play-circle text-[--accent]"></i> Watch
+        <i class="fa fa-user-tie text-[--accent]"></i> Staff
       </h2>
-      <div id="player" class="w-full aspect-video bg-black rounded-xl flex items-center justify-center text-center text-gray-400">
-        <p class="px-6">No streaming sources available. Check official platforms.</p>
-      </div>
+      <div id="staff-grid" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>
     </section>
 
     <!-- Recommended -->
-    <section id="similar" class="mt-8">
+    <section id="recommendations" class="mt-10">
       <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
         <i class="fa fa-clone text-[--accent]"></i> Recommended
       </h2>
-      <div id="similar-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4"></div>
+      <div id="recommendations-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4"></div>
     </section>
   </main>
 
   <!-- Footer -->
   <div id="footer"></div>
 
-  <!-- Header/Footer injection -->
-  <script>
-    (async function insertHeaderFooter() {
-      try {
-        const [hHtml, fHtml] = await Promise.all([
-          fetch('header.html').then(r => r.ok ? r.text() : ''),
-          fetch('footer.html').then(r => r.ok ? r.text() : '')
-        ]);
-        if (hHtml) document.getElementById('header').innerHTML = hHtml;
-        if (fHtml) document.getElementById('footer').innerHTML = fHtml;
-      } catch (e) { console.warn('header/footer load failed', e); }
-
-      const adjust = () => {
-        const headerEl = document.querySelector('.neek-header');
-        if (!headerEl) return;
-        if (window.matchMedia('(min-width: 768px)').matches) {
-          document.body.style.paddingTop = headerEl.getBoundingClientRect().height + 'px';
-        } else {
-          document.body.style.paddingTop = '';
-        }
-      };
-      adjust();
-      window.addEventListener('resize', adjust);
-    })();
-  </script>
-
-  <!-- AniList Info Logic -->
   <script>
     const params = new URLSearchParams(window.location.search);
-    const id = params.get('id');
-    const type = params.get('type'); // expecting "anime"
+    const id = params.get("id");
+    const type = params.get("type");
+    const ANILIST_API = "https://graphql.anilist.co";
 
-    if (id && type === "anime") {
-      fetch("https://graphql.anilist.co", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Accept": "application/json" },
-        body: JSON.stringify({
-          query: `
-            query ($id: Int) {
-              Media(id: $id, type: ANIME) {
+    const FALLBACK_IMG = "https://github.com/animeneek/Neek/blob/main/assets/images/Poster%20404%20Error.png?raw=true";
+
+    const query = `
+      query($id: Int) {
+        Media(id: $id, type: ANIME) {
+          id
+          title { romaji english native }
+          description(asHtml: false)
+          coverImage { large }
+          bannerImage
+          startDate { year }
+          episodes
+          averageScore
+          characters(sort: ROLE, perPage: 12) {
+            edges {
+              role
+              node {
                 id
-                title { romaji english native }
-                description(asHtml: false)
-                coverImage { large }
-                bannerImage
-                episodes
-                duration
-                genres
-                averageScore
-                status
-                startDate { year }
-                characters(role: MAIN, perPage: 12) {
-                  edges {
-                    role
-                    node { id name { full } image { large } }
-                  }
-                }
-                recommendations(perPage: 10) {
-                  edges {
-                    node {
-                      mediaRecommendation {
-                        id
-                        title { romaji english }
-                        coverImage { large }
-                        averageScore
-                        type
-                      }
-                    }
-                  }
+                name { full }
+                image { large }
+              }
+              voiceActors(language: JAPANESE, sort: RELEVANCE) {
+                id
+                name { full }
+                image { large }
+              }
+            }
+          }
+          staff(perPage: 12) {
+            edges {
+              role
+              node {
+                id
+                name { full }
+                image { large }
+              }
+            }
+          }
+          recommendations(perPage: 10) {
+            edges {
+              node {
+                mediaRecommendation {
+                  id
+                  title { romaji }
+                  coverImage { large }
+                  averageScore
                 }
               }
             }
-          `,
-          variables: { id: parseInt(id) }
-        })
-      })
-      .then(res => res.json())
-      .then(res => {
-        const anime = res.data.Media;
-        renderInfo(anime);
-        renderCast(anime.characters.edges);
-        renderRecommendations(anime.recommendations.edges);
-      })
-      .catch(err => console.error("AniList error", err));
+          }
+        }
+      }
+    `;
+
+    async function fetchAnime() {
+      const res = await fetch(ANILIST_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query, variables: { id: Number(id) } })
+      });
+      const json = await res.json();
+      renderAnime(json.data.Media);
     }
 
-    function renderInfo(data) {
-      const title = data.title.english || data.title.romaji || "—";
-      const html = `
+    function renderAnime(media) {
+      // Info
+      document.getElementById("info").innerHTML = `
         <div class="flex-shrink-0 w-full md:w-64">
-          <img src="${data.coverImage.large}" alt="${escapeHtml(title)}"
-               class="rounded-xl shadow-lg poster-img w-full h-auto object-cover" />
+          <img src="${media.coverImage?.large || FALLBACK_IMG}" class="rounded-xl shadow-lg w-full object-cover" />
         </div>
         <div class="flex-1">
-          <h1 class="text-2xl sm:text-3xl font-bold mb-2 break-words">${escapeHtml(title)}</h1>
+          <h1 class="text-2xl sm:text-3xl font-bold mb-2">${media.title.romaji || media.title.english}</h1>
           <p class="text-sm text-gray-300 mb-3">
-            Anime | ${data.startDate.year || "—"}
+            Anime | ${media.startDate?.year || "—"}
             <span class="mx-2">|</span>
-            ${data.episodes ? data.episodes + " eps" : "?"}
+            Episodes: ${media.episodes || "?"}
             <span class="mx-2">|</span>
-            ${data.duration ? data.duration + " min/ep" : ""}
-            <span class="mx-2">|</span>
-            ${(data.genres || []).join(", ")}
-            <span class="mx-2">|</span>
-            <i class="fa fa-star star"></i> ${data.averageScore ? (data.averageScore/10).toFixed(1) : "—"}
+            <i class="fa fa-star star"></i> ${media.averageScore || "—"}
           </p>
-          <p class="text-[--muted] mb-6">${escapeHtml(data.description || "No description available")}</p>
-        </div>`;
-      document.getElementById("info").innerHTML = html;
-    }
-
-    function renderCast(cast) {
-      if (!cast || !cast.length) return;
-      const html = cast.map(c => `
-        <div class="flex flex-col items-center text-center">
-          <div class="w-16 h-16 rounded-full overflow-hidden ring-2 ring-[--accent]">
-            <img src="${c.node.image.large}" alt="${escapeHtml(c.node.name.full)}"
-                 class="w-full h-full object-cover">
-          </div>
-          <div class="mt-2 text-sm font-medium">${escapeHtml(c.node.name.full)}</div>
-          <div class="text-xs text-gray-400">${escapeHtml(c.role || "")}</div>
+          <p class="text-[--muted] mb-6">${media.description || "No description available."}</p>
         </div>
-      `).join("");
-      document.getElementById("cast-grid").innerHTML = html;
-    }
+      `;
 
-    function renderRecommendations(recs) {
-      if (!recs || !recs.length) return;
-      const html = recs.map(r => {
-        const m = r.node.mediaRecommendation;
+      // Characters & Voice Actors
+      const chars = media.characters?.edges || [];
+      document.getElementById("characters-grid").innerHTML = chars.map(edge => {
+        const char = edge.node;
+        const va = edge.voiceActors?.[0];
         return `
-          <a href="info.html?id=${m.id}&type=anime"
-             class="block rounded-xl overflow-hidden hover:scale-105 transition bg-[#1a1a1a]">
-            <img src="${m.coverImage.large}" class="w-full h-72 object-cover" alt="${escapeHtml(m.title.english || m.title.romaji)}">
-            <div class="p-2">
-              <p class="text-sm font-bold line-clamp-1">${escapeHtml(m.title.english || m.title.romaji)}</p>
-              <p class="text-xs text-gray-400">Score: ${(m.averageScore || "—")}</p>
-            </div>
-          </a>`;
+          <div class="bg-[#1a1a1a] rounded-xl p-3 flex justify-between items-start gap-3">
+            <a href="character.html?id=${char.id}" class="flex items-center gap-3">
+              <img src="${char.image?.large || FALLBACK_IMG}" class="w-16 h-20 rounded-lg object-cover"/>
+              <div>
+                <p class="font-bold">${char.name.full}</p>
+                <p class="text-xs text-gray-400">${edge.role}</p>
+              </div>
+            </a>
+            ${va ? `
+              <a href="staff.html?id=${va.id}" class="flex items-center gap-2">
+                <div class="text-right">
+                  <p class="font-medium">${va.name.full}</p>
+                  <p class="text-xs text-gray-400">VA</p>
+                </div>
+                <img src="${va.image?.large || FALLBACK_IMG}" class="w-12 h-16 rounded-lg object-cover"/>
+              </a>
+            ` : ""}
+          </div>
+        `;
       }).join("");
-      document.getElementById("similar-grid").innerHTML = html;
+
+      // Staff
+      const staff = media.staff?.edges || [];
+      document.getElementById("staff-grid").innerHTML = staff.map(edge => {
+        const st = edge.node;
+        return `
+          <a href="staff.html?id=${st.id}" class="bg-[#1a1a1a] rounded-xl p-3 flex items-center gap-3">
+            <img src="${st.image?.large || FALLBACK_IMG}" class="w-16 h-20 rounded-lg object-cover"/>
+            <div>
+              <p class="font-bold">${st.name.full}</p>
+              <p class="text-xs text-gray-400">${edge.role}</p>
+            </div>
+          </a>
+        `;
+      }).join("");
+
+      // Recommendations
+      const recs = media.recommendations?.edges || [];
+      document.getElementById("recommendations-grid").innerHTML = recs.map(r => {
+        const rec = r.node.mediaRecommendation;
+        return `
+          <a href="info.html?id=${rec.id}&type=anime" class="block rounded-xl overflow-hidden hover:scale-105 transition bg-[#1a1a1a]">
+            <img src="${rec.coverImage?.large || FALLBACK_IMG}" class="w-full h-72 object-cover" />
+            <div class="p-2">
+              <p class="text-sm font-bold line-clamp-1">${rec.title.romaji}</p>
+              <p class="text-xs text-gray-400"><i class="fa fa-star star"></i> ${rec.averageScore || "—"}</p>
+            </div>
+          </a>
+        `;
+      }).join("");
     }
 
-    function escapeHtml(s) {
-      if (s === null || s === undefined) return "";
-      return String(s)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
-    }
+    fetchAnime();
   </script>
 </body>
 </html>
