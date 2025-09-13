@@ -17,7 +17,7 @@
     }
     body { background:var(--bg); color:#fff; }
     a { color:#fff; text-decoration:none; }
-    a:hover { color:var(--accent); text-decoration:none; }
+    a:hover { color:#fff; } /* no underline, no color shift */
     .chip {
       border:1px solid #333;
       border-radius:9999px;
@@ -127,24 +127,18 @@
     const FALLBACK_POSTER = "https://github.com/animeneek/Neek/blob/main/assets/images/Poster%20404%20Error.png?raw=true";
 
     let currentPage = 1;
-    let currentQuery = "";
 
-    // Load header/footer
-    Promise.all([
-      fetch("../header.html").then(r=>r.text()),
-      fetch("../footer.html").then(r=>r.text())
-    ]).then(([h,f])=>{
-      document.getElementById("header").innerHTML=h;
-      document.getElementById("footer").innerHTML=f;
+    // Header/footer injection (same as movies/search.html)
+    document.addEventListener("DOMContentLoaded", async ()=>{
+      const headerHTML = await fetch("../header.html").then(r=>r.text());
+      document.getElementById("header").innerHTML = headerHTML;
+      const footerHTML = await fetch("../footer.html").then(r=>r.text());
+      document.getElementById("footer").innerHTML = footerHTML;
     });
 
     // Fetch genres from AniList
     async function loadGenres() {
-      const query = `
-        query {
-          GenreCollection
-        }
-      `;
+      const query = `query { GenreCollection }`;
       const res = await fetch(API,{
         method:"POST",
         headers:{ "Content-Type":"application/json" },
@@ -177,14 +171,14 @@
             media(search:$search,type:ANIME,genre_in:$genre_in,seasonYear:$seasonYear,format:$format,isAdult:$isAdult,sort:$sort) {
               id
               title { romaji english native }
-              type
               format
-              genres
+              status
+              episodes
               seasonYear
               averageScore
               coverImage { large }
             }
-            pageInfo { total perPage currentPage lastPage hasNextPage }
+            pageInfo { currentPage lastPage hasNextPage hasPreviousPage }
           }
         }
       `;
@@ -192,11 +186,11 @@
       let variables={
         page:page,
         perPage:20,
-        search:queryText || null,
+        search:queryText||null,
         genre_in:activeGenres.length?activeGenres:null,
         seasonYear:year?parseInt(year):null,
         format:activeType!=="all"?activeType:null,
-        isAdult:includeAdult,
+        isAdult: includeAdult ? null : false,  // ✅ allow both when checked
         sort:[sort]
       };
 
@@ -217,19 +211,22 @@
         const year=r.seasonYear||"—";
         const rating=r.averageScore?(r.averageScore/10).toFixed(1):"—";
         const type=r.format||"Anime";
+        const status=r.status? r.status.replace("_"," ").toLowerCase() : "—";
+        const eps=r.episodes||"?";
+
         return `
           <a href="info.html?id=${r.id}" class="bg-[#1a1a1a] rounded-xl overflow-hidden hover:scale-105 transition block">
             <img src="${poster}" class="w-full h-72 object-cover" alt="${title}">
             <div class="p-2">
               <h3 class="text-sm font-semibold text-white line-clamp-1">${title}</h3>
-              <p class="text-xs text-gray-400">${type} | ${year} | <i class="fa fa-star star"></i> ${rating}</p>
+              <p class="text-xs text-gray-400">${type} | ${year} | ${status} | Ep ${eps} | <i class="fa fa-star star"></i> ${rating}</p>
             </div>
           </a>`;
       }).join("");
 
       document.getElementById("pagination").style.display=pageInfo.lastPage>1?"flex":"none";
       document.getElementById("pageInfo").innerText=`Page ${pageInfo.currentPage} of ${pageInfo.lastPage}`;
-      document.getElementById("prevPage").disabled=!pageInfo.hasPreviousPage && pageInfo.currentPage<=1;
+      document.getElementById("prevPage").disabled=!pageInfo.hasPreviousPage;
       document.getElementById("nextPage").disabled=!pageInfo.hasNextPage;
     }
 
