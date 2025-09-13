@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Neek — Anime Search</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    :root {
+      --accent:#ff4444;
+      --bg:#0b0b0b;
+    }
+    body { background:var(--bg); color:#fff; }
+    a { color:#fff; text-decoration:none; }
+    a:hover { color:var(--accent); text-decoration:none; }
+    .chip {
+      border:1px solid #333;
+      border-radius:9999px;
+      padding:4px 10px;
+      font-size:0.875rem;
+      cursor:pointer;
+      transition:all 0.2s;
+      white-space:nowrap;
+    }
+    .chip.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+    .star { color:var(--accent); }
+    /* Inputs */
+    input, select {
+      outline: none !important;
+      box-shadow: none !important;
+      border: 1px solid #333;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input:focus, select:focus {
+      border-color: var(--accent) !important;
+      box-shadow: 0 0 0 2px var(--accent) !important;
+      outline: none !important;
+    }
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type=number] { -moz-appearance:textfield; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-[--bg] text-white">
+
+  <!-- Header -->
+  <div id="header"></div>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-6 md:pt-28 pb-24 flex flex-col md:flex-row gap-6">
+
+    <!-- Sidebar filters -->
+    <aside class="w-full md:w-64 shrink-0 bg-[#111] p-4 rounded-xl h-fit mb-6 md:mb-0">
+      <!-- Search -->
+      <div class="mb-6">
+        <input id="searchInput" type="text" placeholder="Search Anime..." 
+          class="w-full bg-[#1a1a1a] border border-gray-700 rounded-xl px-4 py-2">
+        <button id="searchBtn" class="mt-2 w-full bg-[--accent] py-2 rounded-xl font-semibold hover:opacity-90 transition">
+          <i class="fa fa-search"></i> Search
+        </button>
+      </div>
+
+      <!-- Type filter -->
+      <div class="mb-6">
+        <h3 class="font-semibold mb-2">Type</h3>
+        <div id="typeFilters" class="flex gap-2 flex-wrap">
+          <span class="chip active" data-type="all">All</span>
+          <span class="chip" data-type="tv">TV</span>
+          <span class="chip" data-type="movie">Movie</span>
+          <span class="chip" data-type="ova">OVA</span>
+          <span class="chip" data-type="special">Special</span>
+        </div>
+      </div>
+
+      <!-- Genres -->
+      <div class="mb-6">
+        <h3 class="font-semibold mb-2">Genres</h3>
+        <div id="genreFilters" class="flex gap-2 flex-wrap"></div>
+      </div>
+
+      <!-- Year & Sort -->
+      <div class="mb-6">
+        <h3 class="font-semibold mb-2">Year</h3>
+        <input id="yearFilter" type="number" placeholder="e.g. 2022" 
+          class="w-full bg-[#1a1a1a] border border-gray-700 rounded-xl px-3 py-2">
+      </div>
+      <div>
+        <h3 class="font-semibold mb-2">Sort By</h3>
+        <select id="sortFilter" 
+          class="w-full bg-[#1a1a1a] border border-gray-700 rounded-xl px-3 py-2">
+          <option value="date">Release Date (Newest)</option>
+          <option value="rating">Rating (Highest)</option>
+          <option value="title">Title (A–Z)</option>
+        </select>
+      </div>
+    </aside>
+
+    <!-- Results section -->
+    <section class="flex-1">
+      <h2 class="text-2xl font-bold mb-6">Results</h2>
+      <div id="resultsGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4"></div>
+
+      <!-- Pagination -->
+      <div class="flex justify-center items-center gap-4 mt-8" id="pagination" style="display:none;">
+        <button id="prevPage" class="px-4 py-2 bg-[#1a1a1a] rounded-lg hover:bg-[--accent] hover:text-white disabled:opacity-40">Prev</button>
+        <span id="pageInfo" class="text-sm text-gray-400"></span>
+        <button id="nextPage" class="px-4 py-2 bg-[#1a1a1a] rounded-lg hover:bg-[--accent] hover:text-white disabled:opacity-40">Next</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <div id="footer"></div>
+
+  <script>
+    const API = "https://api.jikan.moe/v4"; // Jikan API
+    const FALLBACK_POSTER = "https://github.com/animeneek/Neek/blob/main/assets/images/Poster%20404%20Error.png?raw=true";
+
+    let allResults = [];
+    let filteredResults = [];
+    let currentPage = 1;
+    const pageSize = 20;
+    let activeGenres = [];
+    let activeType = "all";
+    let currentQuery = "";
+
+    // Load header/footer
+    Promise.all([
+      fetch("../header.html").then(r=>r.text()),
+      fetch("../footer.html").then(r=>r.text())
+    ]).then(([h,f])=>{
+      document.getElementById("header").innerHTML=h;
+      document.getElementById("footer").innerHTML=f;
+    });
+
+    // Load genres
+    async function loadGenres() {
+      const res = await fetch(`${API}/genres/anime`).then(r=>r.json());
+      const genres = res.data || [];
+      document.getElementById("genreFilters").innerHTML = genres.map(g=>
+        `<span class="chip" data-id="${g.mal_id}">${g.name}</span>`).join("");
+      document.querySelectorAll("#genreFilters .chip").forEach(chip=>{
+        chip.addEventListener("click",()=>{
+          chip.classList.toggle("active");
+          activeGenres = Array.from(document.querySelectorAll("#genreFilters .chip.active")).map(c=>c.dataset.id);
+          applyFilters(1);
+        });
+      });
+    }
+    loadGenres();
+
+    async function fetchAllResults(query) {
+      const url=`${API}/anime?q=${encodeURIComponent(query)}&order_by=popularity&sfw=true&limit=100`;
+      const data = await fetch(url).then(r=>r.json());
+      allResults = data.data || [];
+      applyFilters(1);
+    }
+
+    function applyFilters(page=1) {
+      const year=document.getElementById("yearFilter").value.trim();
+      const sort=document.getElementById("sortFilter").value;
+
+      filteredResults = allResults;
+      if(activeType!=="all") filteredResults=filteredResults.filter(r=>r.type && r.type.toLowerCase()===activeType);
+
+      if(activeGenres.length) {
+        filteredResults = filteredResults.filter(r=>{
+          const genres = r.genres.map(g=>String(g.mal_id));
+          return activeGenres.every(id=>genres.includes(id));
+        });
+      }
+
+      if(year) filteredResults=filteredResults.filter(r=>r.year && String(r.year)===year);
+
+      if(sort==="date") filteredResults.sort((a,b)=>(b.year||0)-(a.year||0));
+      if(sort==="rating") filteredResults.sort((a,b)=>(b.score||0)-(a.score||0));
+      if(sort==="title") filteredResults.sort((a,b)=>(a.title||"").localeCompare(b.title||""));
+
+      renderResults(page);
+    }
+
+    function renderResults(page) {
+      currentPage=page;
+      const start=(page-1)*pageSize;
+      const end=start+pageSize;
+      const pageResults=filteredResults.slice(start,end);
+
+      document.getElementById("resultsGrid").innerHTML=pageResults.map(r=>{
+        const id=r.mal_id;
+        const title=r.title;
+        const type=r.type||"Anime";
+        const poster=r.images?.jpg?.large_image_url||FALLBACK_POSTER;
+        const year=r.year||"—";
+        const rating=(r.score||0).toFixed(1);
+        return `
+          <a href="info.html?id=${id}" class="bg-[#1a1a1a] rounded-xl overflow-hidden hover:scale-105 transition block">
+            <img src="${poster}" class="w-full h-72 object-cover" alt="${title}">
+            <div class="p-2">
+              <h3 class="text-sm font-semibold text-white line-clamp-1">${title}</h3>
+              <p class="text-xs text-gray-400">${type} | ${year} | <i class="fa fa-star star"></i> ${rating}</p>
+            </div>
+          </a>`;
+      }).join("");
+
+      const totalPages=Math.ceil(filteredResults.length/pageSize);
+      document.getElementById("pagination").style.display=totalPages>1?"flex":"none";
+      document.getElementById("pageInfo").innerText=`Page ${page} of ${totalPages}`;
+      document.getElementById("prevPage").disabled=page<=1;
+      document.getElementById("nextPage").disabled=page>=totalPages;
+    }
+
+    // Pagination
+    document.getElementById("prevPage").addEventListener("click",()=>renderResults(currentPage-1));
+    document.getElementById("nextPage").addEventListener("click",()=>renderResults(currentPage+1));
+
+    // Type filters
+    document.querySelectorAll("#typeFilters .chip").forEach(chip=>{
+      chip.addEventListener("click",()=>{
+        document.querySelectorAll("#typeFilters .chip").forEach(c=>c.classList.remove("active"));
+        chip.classList.add("active");
+        activeType=chip.dataset.type;
+        applyFilters(1);
+      });
+    });
+
+    // Sort/year filters
+    document.getElementById("yearFilter").addEventListener("input",()=>applyFilters(1));
+    document.getElementById("sortFilter").addEventListener("change",()=>applyFilters(1));
+
+    // Search
+    document.getElementById("searchBtn").addEventListener("click",()=>{
+      currentQuery=document.getElementById("searchInput").value.trim();
+      if(currentQuery) {
+        fetchAllResults(currentQuery);
+        const params=new URLSearchParams({q:currentQuery});
+        window.history.replaceState({}, "", "search.html?"+params.toString());
+      }
+    });
+    document.getElementById("searchInput").addEventListener("keypress",(e)=>{
+      if(e.key==="Enter"){document.getElementById("searchBtn").click();}
+    });
+
+    // Load from URL
+    const params=new URLSearchParams(window.location.search);
+    if(params.get("q")){
+      document.getElementById("searchInput").value=params.get("q");
+      currentQuery=params.get("q");
+      fetchAllResults(currentQuery);
+    }
+  </script>
+</body>
+</html>
