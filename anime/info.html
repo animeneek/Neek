@@ -20,7 +20,7 @@
     a { color: #fff; text-decoration: none !important; }
     a:hover { color: var(--accent); }
     .star { color: var(--accent); }
-    .ep-btn.active { background: var(--accent); color: #fff; }
+    .ep-btn.active, .source-btn.active { background: var(--accent); color: #fff; }
   </style>
 </head>
 <body class="min-h-screen flex flex-col bg-[--bg] text-white">
@@ -43,7 +43,22 @@
           <p class="text-lg font-semibold">Select an episode to start watching</p>
         </div>
       </div>
-      <div id="episodes" class="mt-4 flex flex-wrap gap-2 justify-center sm:justify-start"></div>
+
+      <!-- Episodes & Sources -->
+      <div class="mt-6 bg-[#1a1a1a] rounded-xl p-4 shadow-lg">
+        <!-- Episodes Row -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
+          <h3 class="text-lg font-semibold mb-2 sm:mb-0">Episodes</h3>
+          <select id="episodeDropdown" class="bg-[#0b0b0b] border border-gray-700 rounded-md px-3 py-1 text-sm">
+            <option value="">Select episode</option>
+          </select>
+        </div>
+        <div id="episodes" class="flex flex-wrap gap-2 mb-6"></div>
+
+        <!-- Sources Row -->
+        <h3 class="text-lg font-semibold mb-2">Source</h3>
+        <div id="sources" class="flex gap-2 flex-wrap"></div>
+      </div>
     </section>
 
     <!-- Characters & Voice Actors -->
@@ -108,6 +123,10 @@
     const ANILIST_API = "https://graphql.anilist.co";
     const FALLBACK_IMG = "https://github.com/animeneek/Neek/blob/main/assets/images/Poster%20404%20Error.png?raw=true";
     const EPISODES_JSON = "https://raw.githubusercontent.com/animeneek/AN/main/episodes.json";
+
+    let currentEpisode = null;
+    let currentSource = null;
+    let availableSources = [];
 
     const query = `
       query($id: Int) {
@@ -179,59 +198,86 @@
     }
 
     function renderEpisodes(entry) {
-      if (!entry) {
-        document.getElementById("episodes").innerHTML = `<p class="text-gray-400">No episodes available.</p>`;
-        return;
-      }
-      const container = document.getElementById("episodes");
-      container.innerHTML = "";
+      const epContainer = document.getElementById("episodes");
+      const epDropdown = document.getElementById("episodeDropdown");
+      epContainer.innerHTML = "";
+      epDropdown.innerHTML = `<option value="">Select episode</option>`;
+      if (!entry) return;
 
       entry.episodes.forEach(ep => {
-        if (entry.type === "anime") {
-          // Sub button
-          const subBtn = document.createElement("button");
-          subBtn.className = "ep-btn px-3 py-1 bg-[#1a1a1a] rounded-md text-sm hover:bg-[--accent] hover:text-white transition";
-          subBtn.textContent = `Ep ${ep.episode} (Sub)`;
-          subBtn.onclick = () => loadPlayer(`https://megaplay.buzz/stream/s-2/${ep.id}/sub`, subBtn);
-          container.appendChild(subBtn);
+        const btn = document.createElement("button");
+        btn.className = "ep-btn px-3 py-1 bg-[#0b0b0b] border border-gray-700 rounded-md text-sm hover:bg-[--accent] hover:text-white transition";
+        btn.textContent = `Ep ${ep.episode}`;
+        btn.onclick = () => selectEpisode(entry, ep.episode);
+        epContainer.appendChild(btn);
 
-          // Dub button
-          const dubBtn = document.createElement("button");
-          dubBtn.className = "ep-btn px-3 py-1 bg-[#1a1a1a] rounded-md text-sm hover:bg-[--accent] hover:text-white transition";
-          dubBtn.textContent = `Ep ${ep.episode} (Dub)`;
-          dubBtn.onclick = () => loadPlayer(`https://megaplay.buzz/stream/s-2/${ep.id}/dub`, dubBtn);
-          container.appendChild(dubBtn);
-        }
-        else if (entry.type === "anime-raw") {
-          makeSingleBtn(container, `Ep ${ep.episode}`, `https://exampleanimeraw.com/e/${ep.id}`);
-        }
-        else if (entry.type === "hanime") {
-          makeSingleBtn(container, `Ep ${ep.episode}`, `https://examplehanimeraw.com/e/${ep.id}`);
-        }
-        else if (entry.type === "hanime-sub") {
-          makeSingleBtn(container, `Ep ${ep.episode}`, `https://examplehanimesub.com/e/${ep.id}`);
-        }
-        else if (entry.type === "hanime-dub") {
-          makeSingleBtn(container, `Ep ${ep.episode}`, `https://examplehanimedub.com/e/${ep.id}`);
-        }
+        const opt = document.createElement("option");
+        opt.value = ep.episode;
+        opt.textContent = `Episode ${ep.episode}`;
+        epDropdown.appendChild(opt);
+      });
+
+      epDropdown.onchange = e => {
+        if (e.target.value) selectEpisode(entry, e.target.value);
+      };
+    }
+
+    function selectEpisode(entry, episodeNum) {
+      currentEpisode = entry.episodes.find(e => e.episode === String(episodeNum));
+      document.querySelectorAll(".ep-btn").forEach(b => {
+        b.classList.toggle("active", b.textContent.includes(`Ep ${episodeNum}`));
+      });
+      document.getElementById("episodeDropdown").value = episodeNum;
+      renderSources(entry);
+    }
+
+    function renderSources(entry) {
+      const srcContainer = document.getElementById("sources");
+      srcContainer.innerHTML = "";
+      if (!currentEpisode) return;
+
+      availableSources = [];
+
+      if (entry.type === "anime") {
+        availableSources = ["sub", "dub"];
+      } else if (entry.type === "anime-raw") {
+        availableSources = ["raw"];
+      } else if (entry.type === "hanime") {
+        availableSources = ["raw"];
+      } else if (entry.type === "hanime-sub") {
+        availableSources = ["sub"];
+      } else if (entry.type === "hanime-dub") {
+        availableSources = ["dub"];
+      }
+
+      availableSources.forEach(src => {
+        const btn = document.createElement("button");
+        btn.className = "source-btn px-3 py-1 bg-[#0b0b0b] border border-gray-700 rounded-md text-sm hover:bg-[--accent] hover:text-white transition";
+        btn.textContent = src.toUpperCase();
+        btn.onclick = () => selectSource(entry, src, btn);
+        srcContainer.appendChild(btn);
       });
     }
 
-    function makeSingleBtn(container, label, url) {
-      const btn = document.createElement("button");
-      btn.className = "ep-btn px-3 py-1 bg-[#1a1a1a] rounded-md text-sm hover:bg-[--accent] hover:text-white transition";
-      btn.textContent = label;
-      btn.onclick = () => loadPlayer(url, btn);
-      container.appendChild(btn);
-    }
-
-    function loadPlayer(url, btn) {
-      document.getElementById("player").innerHTML = `
-        <iframe src="${url}" allowfullscreen class="w-full h-full"></iframe>
-      `;
-      // highlight active button
-      document.querySelectorAll(".ep-btn").forEach(b => b.classList.remove("active"));
+    function selectSource(entry, source, btn) {
+      currentSource = source;
+      document.querySelectorAll(".source-btn").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
+
+      let url = "";
+      if (entry.type === "anime") {
+        url = `https://megaplay.buzz/stream/s-2/${currentEpisode.id}/${source}`;
+      } else if (entry.type === "anime-raw") {
+        url = `https://exampleanimeraw.com/e/${currentEpisode.id}`;
+      } else if (entry.type === "hanime") {
+        url = `https://examplehanimeraw.com/e/${currentEpisode.id}`;
+      } else if (entry.type === "hanime-sub") {
+        url = `https://examplehanimesub.com/e/${currentEpisode.id}`;
+      } else if (entry.type === "hanime-dub") {
+        url = `https://examplehanimedub.com/e/${currentEpisode.id}`;
+      }
+
+      document.getElementById("player").innerHTML = `<iframe src="${url}" allowfullscreen class="w-full h-full"></iframe>`;
     }
 
     async function renderAnime(media) {
@@ -247,7 +293,7 @@
             <span class="mx-2">|</span>
             Episodes: ${media.episodes || "?"}
             <span class="mx-2">|</span>
-            <i class="fa fa-star star"></i> ${media.averageScore || "—"}
+            <i class="fa fa-star star"></i> ${(media.averageScore ? (media.averageScore/10).toFixed(1) : "—")}
           </p>
           <p class="text-[--muted] mb-6">${media.description || "No description available."}</p>
         </div>
@@ -310,7 +356,7 @@
               <p class="text-sm font-bold line-clamp-1">${rec.title.romaji}</p>
               <p class="text-xs text-gray-400">
                 ${rec.status || "—"} | ${rec.episodes || "?"} eps |
-                <i class="fa fa-star star"></i> ${rec.averageScore || "—"}
+                <i class="fa fa-star star"></i> ${(rec.averageScore ? (rec.averageScore/10).toFixed(1) : "—")}
               </p>
             </div>
           </a>
