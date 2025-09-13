@@ -20,6 +20,7 @@
     a { color: #fff; text-decoration: none !important; }
     a:hover { color: var(--accent); }
     .star { color: var(--accent); }
+    .ep-btn.active { background: var(--accent); color: #fff; }
   </style>
 </head>
 <body class="min-h-screen flex flex-col bg-[--bg] text-white">
@@ -39,13 +40,13 @@
       </h2>
       <div id="player" class="w-full aspect-video bg-black rounded-xl overflow-hidden flex items-center justify-center text-center text-gray-400">
         <div id="player-placeholder" class="px-6">
-          <p class="text-lg font-semibold">Select a source to begin watching</p>
+          <p class="text-lg font-semibold">Select an episode to start watching</p>
         </div>
       </div>
-      <div id="sources" class="mt-4 flex flex-wrap justify-center gap-3"></div>
+      <div id="episodes" class="mt-4 flex flex-wrap gap-2 justify-center sm:justify-start"></div>
     </section>
 
-    <!-- Characters & VA -->
+    <!-- Characters & Voice Actors -->
     <section id="characters" class="mt-10">
       <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
         <i class="fa fa-users text-[--accent]"></i> Characters & Voice Actors
@@ -106,6 +107,7 @@
     const id = params.get("id");
     const ANILIST_API = "https://graphql.anilist.co";
     const FALLBACK_IMG = "https://github.com/animeneek/Neek/blob/main/assets/images/Poster%20404%20Error.png?raw=true";
+    const EPISODES_JSON = "https://raw.githubusercontent.com/animeneek/AN/main/episodes.json";
 
     const query = `
       query($id: Int) {
@@ -122,11 +124,7 @@
           characters(sort: ROLE, perPage: 12) {
             edges {
               role
-              node {
-                id
-                name { full }
-                image { large }
-              }
+              node { id name { full } image { large } }
               voiceActors(sort: RELEVANCE) {
                 id
                 languageV2
@@ -138,11 +136,7 @@
           staff(perPage: 12) {
             edges {
               role
-              node {
-                id
-                name { full }
-                image { large }
-              }
+              node { id name { full } image { large } }
             }
           }
           recommendations(perPage: 10) {
@@ -173,7 +167,74 @@
       renderAnime(json.data.Media);
     }
 
-    function renderAnime(media) {
+    async function fetchEpisodes(animeId) {
+      try {
+        const res = await fetch(EPISODES_JSON);
+        const all = await res.json();
+        return all.find(x => x.id === String(animeId));
+      } catch (e) {
+        console.warn("Failed to fetch episodes", e);
+        return null;
+      }
+    }
+
+    function renderEpisodes(entry) {
+      if (!entry) {
+        document.getElementById("episodes").innerHTML = `<p class="text-gray-400">No episodes available.</p>`;
+        return;
+      }
+      const container = document.getElementById("episodes");
+      container.innerHTML = "";
+
+      entry.episodes.forEach(ep => {
+        if (entry.type === "anime") {
+          // Sub button
+          const subBtn = document.createElement("button");
+          subBtn.className = "ep-btn px-3 py-1 bg-[#1a1a1a] rounded-md text-sm hover:bg-[--accent] hover:text-white transition";
+          subBtn.textContent = `Ep ${ep.episode} (Sub)`;
+          subBtn.onclick = () => loadPlayer(`https://megaplay.buzz/stream/s-2/${ep.id}/sub`, subBtn);
+          container.appendChild(subBtn);
+
+          // Dub button
+          const dubBtn = document.createElement("button");
+          dubBtn.className = "ep-btn px-3 py-1 bg-[#1a1a1a] rounded-md text-sm hover:bg-[--accent] hover:text-white transition";
+          dubBtn.textContent = `Ep ${ep.episode} (Dub)`;
+          dubBtn.onclick = () => loadPlayer(`https://megaplay.buzz/stream/s-2/${ep.id}/dub`, dubBtn);
+          container.appendChild(dubBtn);
+        }
+        else if (entry.type === "anime-raw") {
+          makeSingleBtn(container, `Ep ${ep.episode}`, `https://exampleanimeraw.com/e/${ep.id}`);
+        }
+        else if (entry.type === "hanime") {
+          makeSingleBtn(container, `Ep ${ep.episode}`, `https://examplehanimeraw.com/e/${ep.id}`);
+        }
+        else if (entry.type === "hanime-sub") {
+          makeSingleBtn(container, `Ep ${ep.episode}`, `https://examplehanimesub.com/e/${ep.id}`);
+        }
+        else if (entry.type === "hanime-dub") {
+          makeSingleBtn(container, `Ep ${ep.episode}`, `https://examplehanimedub.com/e/${ep.id}`);
+        }
+      });
+    }
+
+    function makeSingleBtn(container, label, url) {
+      const btn = document.createElement("button");
+      btn.className = "ep-btn px-3 py-1 bg-[#1a1a1a] rounded-md text-sm hover:bg-[--accent] hover:text-white transition";
+      btn.textContent = label;
+      btn.onclick = () => loadPlayer(url, btn);
+      container.appendChild(btn);
+    }
+
+    function loadPlayer(url, btn) {
+      document.getElementById("player").innerHTML = `
+        <iframe src="${url}" allowfullscreen class="w-full h-full"></iframe>
+      `;
+      // highlight active button
+      document.querySelectorAll(".ep-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+    }
+
+    async function renderAnime(media) {
       // Info
       document.getElementById("info").innerHTML = `
         <div class="flex-shrink-0 w-full md:w-64">
@@ -192,7 +253,11 @@
         </div>
       `;
 
-      // Characters & Voice Actors
+      // Episodes
+      const entry = await fetchEpisodes(media.id);
+      renderEpisodes(entry);
+
+      // Characters
       const chars = media.characters?.edges || [];
       document.getElementById("characters-grid").innerHTML = chars.map(edge => {
         const char = edge.node;
@@ -219,7 +284,7 @@
         `;
       }).join("");
 
-      // Staff (round avatars)
+      // Staff
       const staff = media.staff?.edges || [];
       document.getElementById("staff-grid").innerHTML = staff.map(edge => {
         const st = edge.node;
