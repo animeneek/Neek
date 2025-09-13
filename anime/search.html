@@ -16,8 +16,8 @@
       --bg:#0b0b0b;
     }
     body { background:var(--bg); color:#fff; }
-    a { color:#fff; text-decoration:none; }
-    a:hover { color:var(--accent); text-decoration:none; }
+    a { color:#fff; text-decoration:none !important; }
+    a:hover { color:var(--accent); text-decoration:none !important; }
     .chip {
       border:1px solid #333;
       border-radius:9999px;
@@ -142,8 +142,12 @@
       document.getElementById("footer").innerHTML=f;
     });
 
-    // Genre list
-    const GENRES = ["Action","Adventure","Comedy","Drama","Fantasy","Horror","Mecha","Music","Mystery","Romance","Sci-Fi","Slice of Life","Sports","Supernatural","Thriller"];
+    // Genre list (added Ecchi, Erotica, Hentai)
+    const GENRES = [
+      "Action","Adventure","Comedy","Drama","Fantasy","Horror","Mecha","Music",
+      "Mystery","Romance","Sci-Fi","Slice of Life","Sports","Supernatural","Thriller",
+      "Ecchi","Erotica","Hentai"
+    ];
     document.getElementById("genreFilters").innerHTML = GENRES.map(g=>`<span class="chip" data-genre="${g}">${g}</span>`).join("");
     document.querySelectorAll("#genreFilters .chip").forEach(chip=>{
       chip.addEventListener("click",()=>{
@@ -156,9 +160,22 @@
     // Fetch AniList results
     async function fetchAllResults(query) {
       allResults = [];
+      // fetch normal results
+      const normal = await fetchAniList(query, false);
+      allResults = allResults.concat(normal);
+      // fetch adult results if checked
+      if(includeAdult){
+        const adult = await fetchAniList(query, true);
+        allResults = allResults.concat(adult);
+      }
+      applyFilters(1);
+    }
+
+    async function fetchAniList(search, isAdult){
+      let results = [];
       let page = 1;
       let hasNext = true;
-      while (hasNext && page <= 5) {
+      while (hasNext && page <= 2) { // limit to 2 pages for speed
         const queryStr = `
           query ($search: String, $page: Int, $perPage: Int, $isAdult: Boolean) {
             Page(page: $page, perPage: $perPage) {
@@ -177,7 +194,7 @@
             }
           }
         `;
-        const variables = { search: query, page, perPage: 50, isAdult: includeAdult };
+        const variables = { search, page, perPage: 50, isAdult };
         const res = await fetch("https://graphql.anilist.co", {
           method:"POST",
           headers:{ "Content-Type":"application/json" },
@@ -185,12 +202,12 @@
         });
         const data = await res.json();
         if(data.data?.Page?.media?.length) {
-          allResults = allResults.concat(data.data.Page.media);
+          results = results.concat(data.data.Page.media);
         }
         hasNext = data.data?.Page?.pageInfo?.hasNextPage;
         page++;
       }
-      applyFilters(1);
+      return results;
     }
 
     // Apply filters
