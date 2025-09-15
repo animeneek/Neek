@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Neek — Character</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    :root {
+      --accent:#ff4444;
+      --bg:#0b0b0b;
+      --muted:#9b9b9b;
+    }
+    body { background:var(--bg); color:#fff; }
+    a { color:#fff; text-decoration:none !important; }
+    a:hover { color:var(--accent); }
+    .card { background:#1a1a1a; }
+    .star { color:var(--accent); }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <div id="header"></div>
+
+  <main class="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-6 py-6 md:pt-28 pb-24 space-y-16">
+
+    <!-- Character Info -->
+    <section id="char-info"
+             class="flex flex-col md:flex-row gap-6 items-start md:items-stretch w-full"></section>
+
+    <!-- Roles -->
+    <section id="roles">
+      <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+        <i class="fa fa-film text-[--accent]"></i> Roles
+      </h2>
+
+      <!-- Tabs -->
+      <div id="role-tabs" class="flex flex-wrap gap-6 border-b border-gray-700 mb-6"></div>
+
+      <!-- Grid -->
+      <div id="roles-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-6"></div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <div id="footer"></div>
+
+  <script>
+    // Load header/footer
+    Promise.all([
+      fetch("../header.html").then(r=>r.ok?r.text():""),
+      fetch("../footer.html").then(r=>r.ok?r.text():"")
+    ]).then(([h,f])=>{
+      if(h) document.getElementById("header").innerHTML=h;
+      if(f) document.getElementById("footer").innerHTML=f;
+    });
+
+    const FALLBACK_POSTER = "https://github.com/animeneek/Neek/blob/main/assets/images/Poster%20404%20Error.png?raw=true";
+    const params = new URLSearchParams(window.location.search);
+    const charId = params.get("id");
+
+    let allRoles = {};
+
+    if(charId) loadCharacter(charId);
+
+    async function loadCharacter(id){
+      const query = `
+        query ($id: Int) {
+          Character(id:$id) {
+            id
+            name { full native }
+            image { large }
+            description(asHtml:false)
+            media(perPage:100) {
+              edges {
+                role
+                node {
+                  id
+                  title { romaji english }
+                  coverImage { large }
+                  averageScore
+                  startDate { year }
+                  format
+                  type
+                }
+              }
+            }
+          }
+        }
+      `;
+      const res = await fetch("https://graphql.anilist.co",{
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body:JSON.stringify({ query, variables:{id:parseInt(id)} })
+      });
+      const data = await res.json();
+      const char = data.data.Character;
+
+      renderCharacter(char);
+
+      allRoles = { Anime:[] };
+
+      (char.media.edges || []).forEach(edge=>{
+        if(edge.node.type==="ANIME"){
+          allRoles["Anime"].push(edge);
+        }
+      });
+
+      renderTabs();
+      const firstTab = "Anime";
+      showRoles(firstTab);
+    }
+
+    function renderCharacter(char){
+      const img = char.image?.large || FALLBACK_POSTER;
+      const name = char.name.full || "Unknown";
+      const native = char.name.native ? `(${char.name.native})` : "";
+      const desc = char.description || "No description available.";
+
+      document.getElementById("char-info").innerHTML = `
+        <div class="w-full md:w-64 flex-shrink-0">
+          <img src="${img}" alt="${name}" class="rounded-xl shadow-lg w-full h-auto object-cover" />
+        </div>
+        <div class="flex-1 min-w-0">
+          <h1 class="text-2xl sm:text-3xl font-bold mb-4 break-words">${name} ${native}</h1>
+          <p class="text-[--muted] leading-relaxed whitespace-pre-line break-words">${desc}</p>
+        </div>
+      `;
+    }
+
+    function renderTabs(){
+      const tabs = Object.keys(allRoles).map(dept=>{
+        return `<button class="tab-btn pb-2 text-gray-400 hover:text-[--accent] transition"
+                        data-dept="${dept}">
+                  ${dept} (${allRoles[dept].length})
+                </button>`;
+      }).join("");
+      document.getElementById("role-tabs").innerHTML=tabs;
+      document.querySelectorAll(".tab-btn").forEach(btn=>{
+        btn.addEventListener("click",()=>showRoles(btn.dataset.dept));
+      });
+    }
+
+    function showRoles(dept){
+      const roles = allRoles[dept] || [];
+      roles.sort((a,b)=>(b.node.startDate?.year||0)-(a.node.startDate?.year||0));
+
+      const html = roles.map(edge=>{
+        const media=edge.node;
+        const title=media.title.english || media.title.romaji;
+        const poster=media.coverImage?.large || FALLBACK_POSTER;
+        const year=media.startDate?.year || "—";
+        const rating=media.averageScore ? (media.averageScore/10).toFixed(1) : "—";
+        const role=edge.role || "";
+
+        return `
+          <a href="info.html?id=${media.id}&type=anime"
+             class="card rounded-xl overflow-hidden hover:scale-105 transition block">
+            <img src="${poster}" alt="${title}" class="w-full h-72 object-cover">
+            <div class="p-3">
+              <h3 class="text-sm font-medium line-clamp-2 hover:text-[--accent]">${title}</h3>
+              <p class="text-xs text-gray-400 mt-1">${media.format||""} | ${year} | <i class="fa fa-star star"></i> ${rating}</p>
+              <p class="text-xs text-gray-500">${role}</p>
+            </div>
+          </a>`;
+      }).join("");
+
+      document.getElementById("roles-grid").innerHTML=html;
+
+      // Active tab style
+      document.querySelectorAll(".tab-btn").forEach(b=>{
+        if(b.dataset.dept===dept){
+          b.classList.add("text-[--accent]","border-b-2","border-[--accent]");
+          b.classList.remove("text-gray-400");
+        } else {
+          b.classList.remove("text-[--accent]","border-b-2","border-[--accent]");
+          b.classList.add("text-gray-400");
+        }
+      });
+    }
+  </script>
+</body>
+</html>
