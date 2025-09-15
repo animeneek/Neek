@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Neek — Staff</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    :root {
+      --accent:#ff4444;
+      --bg:#0b0b0b;
+      --muted:#9b9b9b;
+    }
+    html,body { background:var(--bg); color:#fff; overflow-x:hidden; }
+    a { color:#fff; text-decoration:none !important; }
+    a:hover { color:var(--accent); }
+    .card { background:#1a1a1a; }
+    .card h3 { color:#fff; }
+    .star { color:var(--accent); }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-[--bg] text-white">
+
+  <!-- Header include -->
+  <div id="header"></div>
+
+  <main class="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-6 py-6 md:pt-28 pb-24 space-y-16">
+
+    <!-- Staff Info -->
+    <section id="staff-info" class="flex flex-col md:flex-row gap-6 items-start"></section>
+
+    <!-- Works -->
+    <section id="works">
+      <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+        <i class="fa fa-briefcase text-[--accent]"></i> Works
+      </h2>
+      <div id="works-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-6"></div>
+    </section>
+  </main>
+
+  <!-- Footer include -->
+  <div id="footer"></div>
+
+  <script>
+    // Header/Footer injection
+    (async function insertHeaderFooterAndInit() {
+      try {
+        const [hHtml, fHtml] = await Promise.all([
+          fetch("header.html").then(r => r.ok ? r.text() : ""),
+          fetch("footer.html").then(r => r.ok ? r.text() : "")
+        ]);
+        if (hHtml) document.getElementById("header").innerHTML = hHtml;
+        if (fHtml) document.getElementById("footer").innerHTML = fHtml;
+      } catch (e) {
+        console.warn("header/footer load failed", e);
+      }
+    })();
+
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+    const API = "https://graphql.anilist.co";
+    const FALLBACK_IMG = "https://github.com/animeneek/Neek/blob/main/assets/images/Poster%20404%20Error.png?raw=true";
+
+    const query = `
+      query($id: Int) {
+        Staff(id: $id) {
+          id
+          name { full native }
+          image { large }
+          description(asHtml: false)
+          staffMedia(perPage: 20) {
+            edges {
+              role
+              node {
+                id
+                title { romaji english }
+                coverImage { large }
+                averageScore
+                status
+                episodes
+                type
+              }
+            }
+          }
+        }
+      }
+    `;
+
+    if (id) loadStaff(id);
+
+    async function loadStaff(staffId) {
+      const res = await fetch(API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query, variables: { id: Number(staffId) } })
+      });
+      const json = await res.json();
+      renderStaff(json.data.Staff);
+    }
+
+    function safeImg(src) {
+      return src || FALLBACK_IMG;
+    }
+
+    function renderStaff(s) {
+      // Staff info
+      document.getElementById("staff-info").innerHTML = `
+        <div class="w-full md:w-64 flex-shrink-0">
+          <img src="${safeImg(s.image?.large)}" alt="${s.name.full}" class="rounded-xl shadow-lg w-full h-auto object-cover" />
+        </div>
+        <div class="flex-1">
+          <h1 class="text-2xl sm:text-3xl font-bold mb-4">${s.name.full}${s.name.native ? ` <span class="text-[--muted]">(${s.name.native})</span>` : ""}</h1>
+          <p class="text-[--muted] leading-relaxed whitespace-pre-line">${s.description || "No description available."}</p>
+        </div>
+      `;
+
+      // Works
+      const works = s.staffMedia?.edges || [];
+      document.getElementById("works-grid").innerHTML = works.map(edge => {
+        const m = edge.node;
+        return `
+          <a href="info.html?id=${m.id}&type=anime" class="card rounded-xl overflow-hidden hover:scale-105 transition block">
+            <img src="${safeImg(m.coverImage?.large)}" alt="${m.title.romaji}" class="w-full h-72 object-cover">
+            <div class="p-3">
+              <h3 class="text-sm font-medium line-clamp-2 hover:text-[--accent]">${m.title.romaji || m.title.english}</h3>
+              <p class="text-xs text-gray-400 mt-1">
+                ${m.type} | ${m.status || "?"} | ${m.episodes || "?"} eps
+                <span class="ml-2"><i class="fa fa-star star"></i> ${(m.averageScore ? (m.averageScore/10).toFixed(1) : "—")}</span>
+              </p>
+              <p class="text-xs text-[--muted] mt-1">Role: ${edge.role}</p>
+            </div>
+          </a>
+        `;
+      }).join("");
+    }
+  </script>
+</body>
+</html>
