@@ -7,7 +7,6 @@
 
   <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
-
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
@@ -27,7 +26,7 @@
 </head>
 <body class="min-h-screen flex flex-col bg-[--bg] text-white">
 
-  <!-- Header include -->
+  <!-- Header -->
   <div id="header"></div>
 
   <main class="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-6 py-6 md:pt-28 pb-24 space-y-16">
@@ -35,16 +34,24 @@
     <!-- Staff Info -->
     <section id="staff-info" class="flex flex-col md:flex-row gap-6 items-start"></section>
 
-    <!-- Works -->
-    <section id="works">
+    <!-- Voice Acting Roles -->
+    <section id="va-roles" class="hidden">
       <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
-        <i class="fa fa-briefcase text-[--accent]"></i> Works
+        <i class="fa fa-microphone text-[--accent]"></i> Voice Acting Roles
+      </h2>
+      <div id="va-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-6"></div>
+    </section>
+
+    <!-- Staff Roles -->
+    <section id="staff-roles" class="hidden">
+      <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+        <i class="fa fa-briefcase text-[--accent]"></i> Staff Roles
       </h2>
       <div id="works-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-6"></div>
     </section>
   </main>
 
-  <!-- Footer include -->
+  <!-- Footer -->
   <div id="footer"></div>
 
   <script>
@@ -74,6 +81,31 @@
           name { full native }
           image { large }
           description(asHtml: false)
+          characters(perPage: 20, sort: RELEVANCE) {
+            edges {
+              role
+              voiceActorRoles(staffId: $id) {
+                roleNotes
+                dubGroup
+                voiceActor {
+                  languageV2
+                }
+              }
+              node {
+                id
+                name { full }
+                image { large }
+              }
+              media {
+                id
+                title { romaji english }
+                coverImage { large }
+                averageScore
+                status
+                episodes
+              }
+            }
+          }
           staffMedia(perPage: 20) {
             edges {
               role
@@ -120,24 +152,49 @@
         </div>
       `;
 
-      // Works
+      // Voice acting roles
+      const vaRoles = s.characters?.edges || [];
+      if (vaRoles.length > 0) {
+        document.getElementById("va-roles").classList.remove("hidden");
+        document.getElementById("va-grid").innerHTML = vaRoles.map(edge => {
+          const m = edge.media?.[0];
+          return `
+            <a href="info.html?id=${m.id}&type=anime" class="card rounded-xl overflow-hidden hover:scale-105 transition block">
+              <img src="${safeImg(m.coverImage?.large)}" alt="${m.title.romaji}" class="w-full h-72 object-cover">
+              <div class="p-3">
+                <h3 class="text-sm font-medium line-clamp-2 hover:text-[--accent]">${m.title.romaji || m.title.english}</h3>
+                <p class="text-xs text-gray-400 mt-1">
+                  ${m.status || "?"} | ${m.episodes || "?"} eps
+                  <span class="ml-2"><i class="fa fa-star star"></i> ${(m.averageScore ? (m.averageScore/10).toFixed(1) : "—")}</span>
+                </p>
+                <p class="text-xs text-[--muted] mt-1">Role: ${edge.role} (${edge.voiceActorRoles?.[0]?.voiceActor.languageV2 || "—"})</p>
+              </div>
+            </a>
+          `;
+        }).join("");
+      }
+
+      // Staff roles
       const works = s.staffMedia?.edges || [];
-      document.getElementById("works-grid").innerHTML = works.map(edge => {
-        const m = edge.node;
-        return `
-          <a href="info.html?id=${m.id}&type=anime" class="card rounded-xl overflow-hidden hover:scale-105 transition block">
-            <img src="${safeImg(m.coverImage?.large)}" alt="${m.title.romaji}" class="w-full h-72 object-cover">
-            <div class="p-3">
-              <h3 class="text-sm font-medium line-clamp-2 hover:text-[--accent]">${m.title.romaji || m.title.english}</h3>
-              <p class="text-xs text-gray-400 mt-1">
-                ${m.type} | ${m.status || "?"} | ${m.episodes || "?"} eps
-                <span class="ml-2"><i class="fa fa-star star"></i> ${(m.averageScore ? (m.averageScore/10).toFixed(1) : "—")}</span>
-              </p>
-              <p class="text-xs text-[--muted] mt-1">Role: ${edge.role}</p>
-            </div>
-          </a>
-        `;
-      }).join("");
+      if (works.length > 0) {
+        document.getElementById("staff-roles").classList.remove("hidden");
+        document.getElementById("works-grid").innerHTML = works.map(edge => {
+          const m = edge.node;
+          return `
+            <a href="info.html?id=${m.id}&type=anime" class="card rounded-xl overflow-hidden hover:scale-105 transition block">
+              <img src="${safeImg(m.coverImage?.large)}" alt="${m.title.romaji}" class="w-full h-72 object-cover">
+              <div class="p-3">
+                <h3 class="text-sm font-medium line-clamp-2 hover:text-[--accent]">${m.title.romaji || m.title.english}</h3>
+                <p class="text-xs text-gray-400 mt-1">
+                  ${m.type} | ${m.status || "?"} | ${m.episodes || "?"} eps
+                  <span class="ml-2"><i class="fa fa-star star"></i> ${(m.averageScore ? (m.averageScore/10).toFixed(1) : "—")}</span>
+                </p>
+                <p class="text-xs text-[--muted] mt-1">Role: ${edge.role}</p>
+              </div>
+            </a>
+          `;
+        }).join("");
+      }
     }
   </script>
 </body>
