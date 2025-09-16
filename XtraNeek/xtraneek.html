@@ -65,7 +65,7 @@
 
     <!-- Clips Grid -->
     <section>
-      <div id="clips-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-6"></div>
+      <div id="clips-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
       <div id="pagination" class="flex justify-center gap-2 mt-6"></div>
     </section>
   </main>
@@ -75,11 +75,13 @@
 
   <!-- Modal -->
   <div id="modal" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center z-50">
-    <div class="bg-[#1a1a1a] rounded-lg max-w-2xl w-full p-4 relative">
+    <div class="bg-[#1a1a1a] rounded-lg max-w-5xl w-full p-6 relative">
       <button onclick="closeModal()" class="absolute top-2 right-2 text-white">
         <i class="fa fa-times"></i>
       </button>
-      <div id="modal-content"></div>
+      <div id="modal-title" class="font-bold text-lg mb-3"></div>
+      <div id="modal-embed" class="w-full h-[500px] mb-4"></div>
+      <div id="modal-sources" class="flex gap-2 flex-wrap"></div>
     </div>
   </div>
 
@@ -101,6 +103,7 @@
     let filtered = [];
     let currentPage = 1;
     const perPage = 6;
+    let activeSources = [];
 
     function parseDate(str) {
       if (!str) return null;
@@ -112,6 +115,11 @@
       return new Date(str);
     }
 
+    function formatDate(d) {
+      if (!d) return "";
+      return d.toLocaleString("en-US",{month:"short",day:"2-digit",year:"numeric"});
+    }
+
     function createCard(c) {
       const d = parseDate(c.Date);
       const month = d ? d.toLocaleString("en-US",{month:"short"}).toUpperCase() : "—";
@@ -119,7 +127,8 @@
       const year = d ? d.getFullYear() : "----";
 
       return `
-        <div class="relative card rounded-xl overflow-hidden shadow-lg group cursor-pointer" onclick='openModal(${JSON.stringify(c.Sources)})'>
+        <div class="relative card rounded-xl overflow-hidden shadow-lg group cursor-pointer" 
+             onclick='openModal(${JSON.stringify(c).replace(/'/g,"&#39;")})'>
           <img src="${c.IMG||FALLBACK_POSTER}" alt="${c.Title}" class="w-full h-48 object-cover">
           <div class="absolute top-0 left-0 bg-[--accent] text-xs px-2 py-1 font-bold">${c.Studio||""}</div>
           <div class="absolute top-0 right-0 text-center bg-black bg-opacity-70 px-2 py-1 text-xs leading-tight">
@@ -168,22 +177,48 @@
 
     window.gotoPage = (n)=>{ currentPage=n; render(); };
 
-    window.openModal = (sources)=>{
-      const content = sources.map(s=>`
-        <div class="mb-4">
-          <h4 class="font-bold mb-2">${s.SourceName}</h4>
-          <iframe src="${s.EmbedURL}" class="w-full h-64" frameborder="0" allowfullscreen></iframe>
-        </div>
-      `).join("");
-      document.getElementById("modal-content").innerHTML = content;
+    window.openModal = (clip)=>{
+      activeSources = clip.Sources || [];
+      const d = parseDate(clip.Date);
+
+      document.getElementById("modal-title").innerText = 
+        `[${clip.Studio||""}] ${clip.Title} | ${clip.Stars||""} | ${formatDate(d)}`;
+
+      loadSource(0); // default load first source
+
+      // Build sources buttons
+      document.getElementById("modal-sources").innerHTML = activeSources.map((s,i)=>
+        `<button class="px-3 py-1 rounded ${i===0?"bg-[--accent]":"bg-[#1a1a1a]"}"
+                 onclick="loadSource(${i})">${s.SourceName}</button>`
+      ).join("");
+
       document.getElementById("modal").classList.remove("hidden");
       document.getElementById("modal").classList.add("flex");
+    };
+
+    window.loadSource = (i)=>{
+      const src = activeSources[i];
+      if (!src) return;
+      document.getElementById("modal-embed").innerHTML = `
+        <iframe src="${src.EmbedURL.replace(/^http:\/\//,"https://")}" 
+                class="w-full h-[500px]" frameborder="0" allowfullscreen></iframe>
+      `;
+
+      // highlight selected
+      const btns = document.querySelectorAll("#modal-sources button");
+      btns.forEach((b,idx)=>{
+        if (idx===i) b.classList.add("bg-[--accent]");
+        else b.classList.remove("bg-[--accent]");
+        b.classList.add("bg-[#1a1a1a]");
+      });
     };
 
     window.closeModal = ()=>{
       document.getElementById("modal").classList.add("hidden");
       document.getElementById("modal").classList.remove("flex");
-      document.getElementById("modal-content").innerHTML = "";
+      document.getElementById("modal-embed").innerHTML = ""; // stop video
+      document.getElementById("modal-sources").innerHTML = "";
+      activeSources = [];
     };
 
     try {
