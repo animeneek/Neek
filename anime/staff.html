@@ -26,7 +26,7 @@
 </head>
 <body class="min-h-screen flex flex-col bg-[--bg] text-white">
 
-  <!-- Header -->
+  <!-- Header include -->
   <div id="header"></div>
 
   <main class="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-6 py-6 md:pt-28 pb-24 space-y-16">
@@ -51,11 +51,11 @@
     </section>
   </main>
 
-  <!-- Footer -->
+  <!-- Footer include -->
   <div id="footer"></div>
 
+  <!-- Header/footer script -->
   <script>
-    // Header/Footer injection
     (async function insertHeaderFooterAndInit() {
       try {
         const [hHtml, fHtml] = await Promise.all([
@@ -67,8 +67,24 @@
       } catch (e) {
         console.warn("header/footer load failed", e);
       }
-    })();
 
+      const tryApplyPadding = () => {
+        const headerEl = document.querySelector(".neek-header");
+        if (!headerEl) return;
+        if (window.matchMedia("(min-width: 768px)").matches) {
+          const h = headerEl.getBoundingClientRect().height || 64;
+          document.body.style.paddingTop = h + "px";
+        } else {
+          document.body.style.paddingTop = "";
+        }
+      };
+      tryApplyPadding();
+      window.addEventListener("resize", tryApplyPadding);
+    })();
+  </script>
+
+  <!-- Main logic -->
+  <script>
     const params = new URLSearchParams(window.location.search);
     const id = params.get("id");
     const API = "https://graphql.anilist.co";
@@ -84,18 +100,7 @@
           characters(perPage: 20, sort: RELEVANCE) {
             edges {
               role
-              voiceActorRoles(staffId: $id) {
-                roleNotes
-                dubGroup
-                voiceActor {
-                  languageV2
-                }
-              }
-              node {
-                id
-                name { full }
-                image { large }
-              }
+              node { id name { full } image { large } }
               media {
                 id
                 title { romaji english }
@@ -152,7 +157,7 @@
         </div>
       `;
 
-      // Voice acting roles
+      // Voice Acting Roles
       const vaRoles = s.characters?.edges || [];
       if (vaRoles.length > 0) {
         document.getElementById("va-roles").classList.remove("hidden");
@@ -167,14 +172,14 @@
                   ${m.status || "?"} | ${m.episodes || "?"} eps
                   <span class="ml-2"><i class="fa fa-star star"></i> ${(m.averageScore ? (m.averageScore/10).toFixed(1) : "—")}</span>
                 </p>
-                <p class="text-xs text-[--muted] mt-1">Role: ${edge.role} (${edge.voiceActorRoles?.[0]?.voiceActor.languageV2 || "—"})</p>
+                <p class="text-xs text-[--muted] mt-1">Role: ${edge.role}</p>
               </div>
             </a>
           `;
         }).join("");
       }
 
-      // Staff roles
+      // Staff Roles
       const works = s.staffMedia?.edges || [];
       if (works.length > 0) {
         document.getElementById("staff-roles").classList.remove("hidden");
