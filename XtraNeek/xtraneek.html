@@ -30,6 +30,16 @@
       backdrop-filter:blur(6px);
     }
     .star { color:var(--accent); }
+    .chip {
+      border:1px solid #333;
+      border-radius:9999px;
+      padding:4px 10px;
+      font-size:0.875rem;
+      cursor:pointer;
+      transition:all 0.2s;
+      white-space:nowrap;
+    }
+    .chip.active { background:var(--accent); border-color:var(--accent); color:#fff; }
   </style>
 </head>
 <body class="min-h-screen flex flex-col bg-[#0b0b0b] text-white">
@@ -66,7 +76,13 @@
     <!-- Clips Grid -->
     <section>
       <div id="clips-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-      <div id="pagination" class="flex justify-center gap-2 mt-6"></div>
+
+      <!-- Pagination like search.html -->
+      <div class="flex justify-center items-center gap-4 mt-8" id="pagination" style="display:none;">
+        <button id="prevPage" class="px-4 py-2 bg-[#1a1a1a] rounded-lg hover:bg-[--accent] hover:text-white disabled:opacity-40">Prev</button>
+        <span id="pageInfo" class="text-sm text-gray-400"></span>
+        <button id="nextPage" class="px-4 py-2 bg-[#1a1a1a] rounded-lg hover:bg-[--accent] hover:text-white disabled:opacity-40">Next</button>
+      </div>
     </section>
   </main>
 
@@ -81,7 +97,7 @@
       </button>
       <div id="modal-title" class="font-bold text-lg mb-3"></div>
       <div id="modal-embed" class="w-full h-[500px] mb-4"></div>
-      <div id="modal-sources" class="flex gap-2 flex-wrap"></div>
+      <div id="modal-sources" class="flex gap-2 justify-center flex-wrap"></div>
     </div>
   </div>
 
@@ -134,9 +150,9 @@
           <div class="absolute top-0 right-0 text-center bg-black bg-opacity-70 px-2 py-1 text-xs leading-tight">
             <div>${month}</div><div>${day}</div><div>${year}</div>
           </div>
-          <div class="absolute bottom-0 left-0 right-0 overlay-blur p-3">
-            <h3 class="font-bold text-white truncate">${c.Title}</h3>
-            <p class="text-sm text-[--muted]">${c.Stars||""}</p>
+          <div class="absolute bottom-0 left-0 right-0 overlay-blur p-2">
+            <h3 class="font-bold text-white text-sm truncate">${c.Title}</h3>
+            <p class="text-xs text-[--muted]">${c.Stars||""}</p>
           </div>
         </div>
       `;
@@ -147,13 +163,12 @@
       const pageItems = filtered.slice(start, start+perPage);
       document.getElementById("clips-grid").innerHTML = pageItems.map(createCard).join("");
 
-      // Pagination
+      // Pagination like search.html
       const totalPages = Math.ceil(filtered.length/perPage);
-      let pagHTML = "";
-      for (let i=1;i<=totalPages;i++) {
-        pagHTML += `<button class="px-3 py-1 rounded ${i===currentPage?"bg-[--accent]":"bg-[#1a1a1a]"}" onclick="gotoPage(${i})">${i}</button>`;
-      }
-      document.getElementById("pagination").innerHTML = pagHTML;
+      document.getElementById("pagination").style.display=totalPages>1?"flex":"none";
+      document.getElementById("pageInfo").innerText=`Page ${currentPage} of ${totalPages}`;
+      document.getElementById("prevPage").disabled=currentPage<=1;
+      document.getElementById("nextPage").disabled=currentPage>=totalPages;
     }
 
     function applyFilters() {
@@ -175,8 +190,6 @@
       render();
     }
 
-    window.gotoPage = (n)=>{ currentPage=n; render(); };
-
     window.openModal = (clip)=>{
       activeSources = clip.Sources || [];
       const d = parseDate(clip.Date);
@@ -186,9 +199,8 @@
 
       loadSource(0); // default load first source
 
-      // Build sources buttons
       document.getElementById("modal-sources").innerHTML = activeSources.map((s,i)=>
-        `<button class="px-3 py-1 rounded ${i===0?"bg-[--accent]":"bg-[#1a1a1a]"}"
+        `<button class="px-4 py-2 rounded-full ${i===0?"bg-[--accent]":"bg-[#1a1a1a]"} hover:bg-[--accent] hover:text-white transition"
                  onclick="loadSource(${i})">${s.SourceName}</button>`
       ).join("");
 
@@ -207,16 +219,20 @@
       // highlight selected
       const btns = document.querySelectorAll("#modal-sources button");
       btns.forEach((b,idx)=>{
-        if (idx===i) b.classList.add("bg-[--accent]");
-        else b.classList.remove("bg-[--accent]");
-        b.classList.add("bg-[#1a1a1a]");
+        if (idx===i) {
+          b.classList.add("bg-[--accent]");
+          b.classList.remove("bg-[#1a1a1a]");
+        } else {
+          b.classList.remove("bg-[--accent]");
+          b.classList.add("bg-[#1a1a1a]");
+        }
       });
     };
 
     window.closeModal = ()=>{
       document.getElementById("modal").classList.add("hidden");
       document.getElementById("modal").classList.remove("flex");
-      document.getElementById("modal-embed").innerHTML = ""; // stop video
+      document.getElementById("modal-embed").innerHTML = "";
       document.getElementById("modal-sources").innerHTML = "";
       activeSources = [];
     };
@@ -224,18 +240,19 @@
     try {
       const res = await fetch(DATA_URL);
       const data = await res.json();
-      clips = data.clips;  // ✅ FIXED
+      clips = data.clips;
 
-      // Populate dropdowns
       const studios = [...new Set(clips.map(c=>c.Studio).filter(Boolean))];
       const stars = [...new Set(clips.map(c=>c.Stars).filter(Boolean))];
       document.getElementById("filter-studio").innerHTML += studios.map(s=>`<option value="${s}">${s}</option>`).join("");
       document.getElementById("filter-star").innerHTML += stars.map(s=>`<option value="${s}">${s}</option>`).join("");
 
-      // Event listeners
       document.getElementById("filter-studio").addEventListener("change",applyFilters);
       document.getElementById("filter-star").addEventListener("change",applyFilters);
       document.getElementById("sort-date").addEventListener("change",applyFilters);
+
+      document.getElementById("prevPage").addEventListener("click",()=>{ if(currentPage>1){currentPage--;render();} });
+      document.getElementById("nextPage").addEventListener("click",()=>{ if(currentPage<Math.ceil(filtered.length/perPage)){currentPage++;render();} });
 
       applyFilters();
     } catch(err) {
