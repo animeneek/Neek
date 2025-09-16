@@ -7,6 +7,7 @@
 
   <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
+
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
@@ -20,7 +21,6 @@
     a { color:#fff; text-decoration:none !important; }
     a:hover { color:var(--accent); }
     .card { background:#1a1a1a; }
-    .card h3 { color:#fff; }
     .star { color:var(--accent); }
   </style>
 </head>
@@ -34,18 +34,10 @@
     <!-- Staff Info -->
     <section id="staff-info" class="flex flex-col md:flex-row gap-6 items-start"></section>
 
-    <!-- Voice Acting Roles -->
-    <section id="va-roles" class="hidden">
+    <!-- Works -->
+    <section id="works">
       <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
-        <i class="fa fa-microphone text-[--accent]"></i> Voice Acting Roles
-      </h2>
-      <div id="va-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-6"></div>
-    </section>
-
-    <!-- Staff Roles -->
-    <section id="staff-roles" class="hidden">
-      <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
-        <i class="fa fa-briefcase text-[--accent]"></i> Staff Roles
+        <i class="fa fa-film text-[--accent]"></i> Works
       </h2>
       <div id="works-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-6"></div>
     </section>
@@ -54,8 +46,8 @@
   <!-- Footer include -->
   <div id="footer"></div>
 
-  <!-- Header/footer script -->
   <script>
+    // Header/Footer injection
     (async function insertHeaderFooterAndInit() {
       try {
         const [hHtml, fHtml] = await Promise.all([
@@ -67,24 +59,8 @@
       } catch (e) {
         console.warn("header/footer load failed", e);
       }
-
-      const tryApplyPadding = () => {
-        const headerEl = document.querySelector(".neek-header");
-        if (!headerEl) return;
-        if (window.matchMedia("(min-width: 768px)").matches) {
-          const h = headerEl.getBoundingClientRect().height || 64;
-          document.body.style.paddingTop = h + "px";
-        } else {
-          document.body.style.paddingTop = "";
-        }
-      };
-      tryApplyPadding();
-      window.addEventListener("resize", tryApplyPadding);
     })();
-  </script>
 
-  <!-- Main logic -->
-  <script>
     const params = new URLSearchParams(window.location.search);
     const id = params.get("id");
     const API = "https://graphql.anilist.co";
@@ -97,20 +73,6 @@
           name { full native }
           image { large }
           description(asHtml: false)
-          characters(perPage: 20, sort: RELEVANCE) {
-            edges {
-              role
-              node { id name { full } image { large } }
-              media {
-                id
-                title { romaji english }
-                coverImage { large }
-                averageScore
-                status
-                episodes
-              }
-            }
-          }
           staffMedia(perPage: 20) {
             edges {
               role
@@ -132,13 +94,17 @@
     if (id) loadStaff(id);
 
     async function loadStaff(staffId) {
-      const res = await fetch(API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query, variables: { id: Number(staffId) } })
-      });
-      const json = await res.json();
-      renderStaff(json.data.Staff);
+      try {
+        const res = await fetch(API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query, variables: { id: Number(staffId) } })
+        });
+        const json = await res.json();
+        renderStaff(json.data.Staff);
+      } catch (e) {
+        console.error("Failed to load staff", e);
+      }
     }
 
     function safeImg(src) {
@@ -146,7 +112,7 @@
     }
 
     function renderStaff(s) {
-      // Staff info
+      // Staff Info
       document.getElementById("staff-info").innerHTML = `
         <div class="w-full md:w-64 flex-shrink-0">
           <img src="${safeImg(s.image?.large)}" alt="${s.name.full}" class="rounded-xl shadow-lg w-full h-auto object-cover" />
@@ -157,49 +123,24 @@
         </div>
       `;
 
-      // Voice Acting Roles
-      const vaRoles = s.characters?.edges || [];
-      if (vaRoles.length > 0) {
-        document.getElementById("va-roles").classList.remove("hidden");
-        document.getElementById("va-grid").innerHTML = vaRoles.map(edge => {
-          const m = edge.media?.[0];
-          return `
-            <a href="info.html?id=${m.id}&type=anime" class="card rounded-xl overflow-hidden hover:scale-105 transition block">
-              <img src="${safeImg(m.coverImage?.large)}" alt="${m.title.romaji}" class="w-full h-72 object-cover">
-              <div class="p-3">
-                <h3 class="text-sm font-medium line-clamp-2 hover:text-[--accent]">${m.title.romaji || m.title.english}</h3>
-                <p class="text-xs text-gray-400 mt-1">
-                  ${m.status || "?"} | ${m.episodes || "?"} eps
-                  <span class="ml-2"><i class="fa fa-star star"></i> ${(m.averageScore ? (m.averageScore/10).toFixed(1) : "—")}</span>
-                </p>
-                <p class="text-xs text-[--muted] mt-1">Role: ${edge.role}</p>
-              </div>
-            </a>
-          `;
-        }).join("");
-      }
-
-      // Staff Roles
+      // Works
       const works = s.staffMedia?.edges || [];
-      if (works.length > 0) {
-        document.getElementById("staff-roles").classList.remove("hidden");
-        document.getElementById("works-grid").innerHTML = works.map(edge => {
-          const m = edge.node;
-          return `
-            <a href="info.html?id=${m.id}&type=anime" class="card rounded-xl overflow-hidden hover:scale-105 transition block">
-              <img src="${safeImg(m.coverImage?.large)}" alt="${m.title.romaji}" class="w-full h-72 object-cover">
-              <div class="p-3">
-                <h3 class="text-sm font-medium line-clamp-2 hover:text-[--accent]">${m.title.romaji || m.title.english}</h3>
-                <p class="text-xs text-gray-400 mt-1">
-                  ${m.type} | ${m.status || "?"} | ${m.episodes || "?"} eps
-                  <span class="ml-2"><i class="fa fa-star star"></i> ${(m.averageScore ? (m.averageScore/10).toFixed(1) : "—")}</span>
-                </p>
-                <p class="text-xs text-[--muted] mt-1">Role: ${edge.role}</p>
-              </div>
-            </a>
-          `;
-        }).join("");
-      }
+      document.getElementById("works-grid").innerHTML = works.map(edge => {
+        const m = edge.node;
+        return `
+          <a href="info.html?id=${m.id}&type=anime" class="card rounded-xl overflow-hidden hover:scale-105 transition block">
+            <img src="${safeImg(m.coverImage?.large)}" alt="${m.title.romaji}" class="w-full h-72 object-cover">
+            <div class="p-3">
+              <h3 class="text-sm font-medium line-clamp-2 hover:text-[--accent]">${m.title.romaji || m.title.english}</h3>
+              <p class="text-xs text-gray-400 mt-1">
+                ${m.type} | ${m.status || "?"} | ${m.episodes || "?"} eps
+                <span class="ml-2"><i class="fa fa-star star"></i> ${(m.averageScore ? (m.averageScore/10).toFixed(1) : "—")}</span>
+              </p>
+              <p class="text-xs text-[--muted] mt-1">Role: ${edge.role}</p>
+            </div>
+          </a>
+        `;
+      }).join("");
     }
   </script>
 </body>
