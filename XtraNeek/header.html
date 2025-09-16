@@ -1,0 +1,81 @@
+<!-- /XtraNeek/header.html -->
+<header class="neek-header w-full bg-[#0b0b0b] border-b border-gray-800 md:fixed md:top-0 md:left-0 md:right-0 z-50">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between min-h-[56px]">
+    <!-- Logo -->
+    <a href="../index.html" class="flex items-center gap-3" aria-label="Home">
+      <img src="https://github.com/animeneek/Neek/blob/main/assets/images/Neek_haiyku.png?raw=true"
+           alt="Neek logo" class="h-10 object-contain max-h-11" />
+    </a>
+
+    <!-- Desktop Navigation -->
+    <nav class="hidden md:flex gap-6 text-sm font-medium" aria-label="Main navigation">
+      <a class="neek-link" href="../movies/index.html">Movies & Series</a>
+      <a class="neek-link" href="../anime/index.html">Anime</a>
+    </nav>
+
+    <!-- Desktop Search -->
+    <div class="hidden md:flex">
+      <div class="relative w-72">
+        <input id="desktopSearch" type="text" placeholder="Search clips..."
+               class="w-full rounded-xl bg-[#1a1a1a] border border-gray-700 px-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#ff4444]" />
+        <i class="fa-solid fa-magnifying-glass absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+        <!-- Live results -->
+        <div id="searchResults" class="absolute left-0 right-0 mt-1 bg-[#1a1a1a] border border-gray-700 rounded-lg shadow-lg max-h-64 overflow-y-auto hidden z-50"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Bottom Navigation -->
+  <nav class="neek-mobile-nav md:hidden fixed bottom-0 left-0 right-0 bg-black/70 backdrop-blur-lg border-t border-gray-800 flex justify-around text-xs py-2 z-50" aria-label="Mobile navigation">
+    <a class="neek-link flex flex-col items-center" href="../movies/index.html" title="Movies & Series">
+      <i class="fa-solid fa-film"></i>
+      <span class="mt-1 text-[10px]">Movies</span>
+    </a>
+    <a class="neek-link flex flex-col items-center" href="../anime/index.html" title="Anime">
+      <i class="fa-solid fa-dragon"></i>
+      <span class="mt-1 text-[10px]">Anime</span>
+    </a>
+    <!-- Search trigger -->
+    <a class="neek-link flex flex-col items-center" href="#mobileSearchOverlay" title="Search">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <span class="mt-1 text-[10px]">Search</span>
+    </a>
+  </nav>
+</header>
+
+<!-- Mobile Search Overlay -->
+<div id="mobileSearchOverlay" class="mobile-search-overlay" aria-hidden="true">
+  <div class="mobile-search-panel">
+    <div class="relative w-full max-w-md mx-auto">
+      <input id="mobileSearchInput" type="text" placeholder="Search clips..."
+             class="w-full rounded-xl bg-[#1a1a1a] border border-gray-700 px-4 py-3 text-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#ff4444]" />
+      <i class="fa-solid fa-magnifying-glass absolute right-4 top-1/2 -translate-y-1/2 text-gray-300"></i>
+      <!-- Live results -->
+      <div id="mobileSearchResults" class="absolute left-0 right-0 mt-2 bg-[#1a1a1a] border border-gray-700 rounded-lg shadow-lg max-h-72 overflow-y-auto hidden z-50"></div>
+    </div>
+
+    <div class="text-center mt-5">
+      <a href="#" class="text-sm text-gray-300 hover:text-white">Close <i class="fa-solid fa-times ml-2"></i></a>
+    </div>
+  </div>
+</div>
+
+<style>
+  :root { --accent: #ff4444; }
+  .neek-link {
+    color: #fff;
+    text-decoration: none !important;
+    display: inline-flex;
+    align-items: center;
+    gap: .375rem;
+  }
+  .neek-link:hover { color: var(--accent) !important; }
+  .neek-mobile-nav a { flex: 1; text-align:center; }
+  .neek-mobile-nav i { font-size: 18px; }
+  .mobile-search-overlay {
+    display: none; position: fixed; inset: 0; z-index: 9999;
+    background: rgba(0,0,0,0.95); backdrop-filter: blur(8px);
+    align-items: center; justify-content: center; padding: 24px;
+  }
+  .mobile-search-overlay:target { display: flex; }
+</style>
