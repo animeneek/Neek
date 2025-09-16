@@ -105,13 +105,30 @@
     if (id) loadStaff(id);
 
     async function loadStaff(staffId) {
-      const res = await fetch(API, {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body:JSON.stringify({ query, variables:{ id:Number(staffId) } })
-      });
-      const json = await res.json();
-      renderStaff(json.data.Staff);
+      try {
+        const res = await fetch(API, {
+          method:"POST",
+          headers:{ "Content-Type":"application/json" },
+          body:JSON.stringify({ query, variables:{ id:Number(staffId) } })
+        });
+        const json = await res.json();
+
+        if (json.errors) {
+          console.error("AniList API errors:", json.errors);
+          document.getElementById("staff-info").innerHTML = `<p class="text-red-500">Error fetching staff.</p>`;
+          return;
+        }
+
+        if (!json.data?.Staff) {
+          document.getElementById("staff-info").innerHTML = `<p class="text-red-500">Staff not found.</p>`;
+          return;
+        }
+
+        renderStaff(json.data.Staff);
+      } catch(e) {
+        console.error("fetch failed:", e);
+        document.getElementById("staff-info").innerHTML = `<p class="text-red-500">Failed to load data.</p>`;
+      }
     }
 
     function safeImg(src){ return src || FALLBACK_IMG; }
