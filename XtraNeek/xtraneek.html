@@ -40,6 +40,19 @@
       white-space:nowrap;
     }
     .chip.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+
+    select {
+  outline: none !important;
+  box-shadow: none !important;
+  border: 1px solid #333;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+select:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 2px var(--accent) !important;
+  outline: none !important;
+}
+
   </style>
 </head>
 <body class="min-h-screen flex flex-col bg-[#0b0b0b] text-white">
