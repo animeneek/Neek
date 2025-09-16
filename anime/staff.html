@@ -39,6 +39,7 @@
   <div id="footer"></div>
 
   <script>
+    // Inject header/footer
     (async function insertHeaderFooter() {
       try {
         const [h,f] = await Promise.all([
@@ -63,7 +64,7 @@
           image { large }
           description(asHtml: false)
 
-          staffMedia(perPage: 20) {
+          staffMedia(perPage: 20, sort: START_DATE_DESC) {
             edges {
               role
               node {
@@ -78,7 +79,7 @@
             }
           }
 
-          characterMedia(perPage: 20) {
+          characterMedia(perPage: 20, sort: START_DATE_DESC) {
             edges {
               characterRole
               character {
@@ -116,7 +117,7 @@
     function safeImg(src){ return src || FALLBACK_IMG; }
 
     function renderStaff(s){
-      // Info
+      // Staff Info
       document.getElementById("staff-info").innerHTML = `
         <div class="w-full md:w-64 flex-shrink-0">
           <img src="${safeImg(s.image?.large)}" class="rounded-xl shadow-lg w-full h-auto object-cover"/>
@@ -156,7 +157,7 @@
               <p class="text-xs text-gray-400 mt-1">${m.type} | ${m.status||"?"} | ${m.episodes||"?"} eps
                 <span class="ml-2"><i class="fa fa-star star"></i> ${(m.averageScore?(m.averageScore/10).toFixed(1):"—")}</span>
               </p>
-              <p class="text-xs text-[--muted] mt-1">Character: ${c.name.full}</p>
+              <p class="text-xs text-[--muted] mt-1">Character: ${c?.name?.full||"?"} (${edge.characterRole})</p>
             </div>
           </a>`;
       }).join(""):`<p class="text-gray-400">No voice roles found.</p>`;
