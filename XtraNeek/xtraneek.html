@@ -42,17 +42,16 @@
     .chip.active { background:var(--accent); border-color:var(--accent); color:#fff; }
 
     select {
-  outline: none !important;
-  box-shadow: none !important;
-  border: 1px solid #333;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-select:focus {
-  border-color: var(--accent) !important;
-  box-shadow: 0 0 0 2px var(--accent) !important;
-  outline: none !important;
-}
-
+      outline: none !important;
+      box-shadow: none !important;
+      border: 1px solid #333;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    select:focus {
+      border-color: var(--accent) !important;
+      box-shadow: 0 0 0 2px var(--accent) !important;
+      outline: none !important;
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col bg-[#0b0b0b] text-white">
@@ -176,7 +175,6 @@ select:focus {
       const pageItems = filtered.slice(start, start+perPage);
       document.getElementById("clips-grid").innerHTML = pageItems.map(createCard).join("");
 
-      // Pagination like search.html
       const totalPages = Math.ceil(filtered.length/perPage);
       document.getElementById("pagination").style.display=totalPages>1?"flex":"none";
       document.getElementById("pageInfo").innerText=`Page ${currentPage} of ${totalPages}`;
@@ -229,7 +227,6 @@ select:focus {
                 class="w-full h-[500px]" frameborder="0" allowfullscreen></iframe>
       `;
 
-      // highlight selected
       const btns = document.querySelectorAll("#modal-sources button");
       btns.forEach((b,idx)=>{
         if (idx===i) {
@@ -250,6 +247,49 @@ select:focus {
       activeSources = [];
     };
 
+    // --- SEARCH EXECUTION FIX ---
+    function setupSearch(inputId, resultsId) {
+      const input = document.getElementById(inputId);
+      const results = document.getElementById(resultsId);
+      if (!input || !results) return;
+
+      input.addEventListener("input", () => {
+        const q = input.value.trim().toLowerCase();
+        if (!q) {
+          results.innerHTML = "";
+          results.classList.add("hidden");
+          return;
+        }
+
+        const matches = clips.filter(c =>
+          (c.Title && c.Title.toLowerCase().includes(q)) ||
+          (c.Stars && c.Stars.toLowerCase().includes(q)) ||
+          (c.Studio && c.Studio.toLowerCase().includes(q))
+        ).slice(0, 8);
+
+        if (!matches.length) {
+          results.innerHTML = `<div class="px-3 py-2 text-sm text-gray-400">No results</div>`;
+          results.classList.remove("hidden");
+          return;
+        }
+
+        results.innerHTML = matches.map(c => `
+          <div class="px-3 py-2 hover:bg-[--accent] hover:text-white cursor-pointer text-sm truncate"
+               onclick='openModal(${JSON.stringify(c).replace(/'/g,"&#39;")})'>
+            [${c.Studio||"??"}] ${c.Title}
+          </div>
+        `).join("");
+
+        results.classList.remove("hidden");
+      });
+
+      document.addEventListener("click", e => {
+        if (!results.contains(e.target) && e.target !== input) {
+          results.classList.add("hidden");
+        }
+      });
+    }
+
     try {
       const res = await fetch(DATA_URL);
       const data = await res.json();
@@ -268,6 +308,10 @@ select:focus {
       document.getElementById("nextPage").addEventListener("click",()=>{ if(currentPage<Math.ceil(filtered.length/perPage)){currentPage++;render();} });
 
       applyFilters();
+
+      // setup search after clips are loaded
+      setupSearch("desktopSearch","searchResults");
+      setupSearch("mobileSearchInput","mobileSearchResults");
     } catch(err) {
       console.error("Error fetching clips:",err);
     }
