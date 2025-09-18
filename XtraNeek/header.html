@@ -84,7 +84,7 @@
   function goToSearch(query) {
     if (!query) return;
     const encoded = encodeURIComponent(query.trim());
-    window.location.href = `../search.html?q=${encoded}`;
+    window.location.href = `/search.html?q=${encoded}`;
   }
 
   document.addEventListener("DOMContentLoaded", () => {
