@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Neek — XtraNeek Search</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    :root {
+      --accent:#ff4444;
+      --bg:#0b0b0b;
+    }
+    body { background:var(--bg); color:#fff; }
+    a { color:#fff; text-decoration:none !important; }
+    a:hover { color:var(--accent); text-decoration:none !important; }
+    input, select {
+      outline: none !important;
+      box-shadow: none !important;
+      border: 1px solid #333;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input:focus, select:focus {
+      border-color: var(--accent) !important;
+      box-shadow: 0 0 0 2px var(--accent) !important;
+      outline: none !important;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-[--bg] text-white">
+
+  <!-- Header -->
+  <div id="header"></div>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-6 md:pt-28 pb-24 flex flex-col md:flex-row gap-6">
+
+    <!-- Sidebar filters -->
+    <aside class="w-full md:w-64 shrink-0 bg-[#111] p-4 rounded-xl h-fit mb-6 md:mb-0">
+      <!-- Search -->
+      <div class="mb-6">
+        <input id="searchInput" type="text" placeholder="Search clips..." 
+          class="w-full bg-[#1a1a1a] border border-gray-700 rounded-xl px-4 py-2">
+        <button id="searchBtn" class="mt-2 w-full bg-[--accent] py-2 rounded-xl font-semibold hover:opacity-90 transition">
+          <i class="fa fa-search"></i> Search
+        </button>
+      </div>
+
+      <!-- Studio filter -->
+      <div class="mb-6">
+        <h3 class="font-semibold mb-2">Studio</h3>
+        <select id="studioFilter" class="w-full bg-[#1a1a1a] border border-gray-700 rounded-xl px-3 py-2">
+          <option value="">All Studios</option>
+        </select>
+      </div>
+
+      <!-- Stars filter -->
+      <div class="mb-6">
+        <h3 class="font-semibold mb-2">Stars</h3>
+        <select id="starsFilter" class="w-full bg-[#1a1a1a] border border-gray-700 rounded-xl px-3 py-2">
+          <option value="">All Stars</option>
+        </select>
+      </div>
+
+      <!-- Sort -->
+      <div class="mb-6">
+        <h3 class="font-semibold mb-2">Sort By</h3>
+        <select id="sortFilter" 
+          class="w-full bg-[#1a1a1a] border border-gray-700 rounded-xl px-3 py-2">
+          <option value="dateDesc">Date (Newest)</option>
+          <option value="dateAsc">Date (Oldest)</option>
+          <option value="title">Title (A–Z)</option>
+        </select>
+      </div>
+    </aside>
+
+    <!-- Results section -->
+    <section class="flex-1">
+      <h2 class="text-2xl font-bold mb-6">Results</h2>
+      <div id="resultsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+
+      <!-- Pagination -->
+      <div class="flex justify-center items-center gap-4 mt-8" id="pagination" style="display:none;">
+        <button id="prevPage" class="px-4 py-2 bg-[#1a1a1a] rounded-lg hover:bg-[--accent] hover:text-white disabled:opacity-40">Prev</button>
+        <span id="pageInfo" class="text-sm text-gray-400"></span>
+        <button id="nextPage" class="px-4 py-2 bg-[#1a1a1a] rounded-lg hover:bg-[--accent] hover:text-white disabled:opacity-40">Next</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <div id="footer"></div>
+
+  <script>
+    const DATA_URL = "https://raw.githubusercontent.com/animeneek/MovieNeek/main/XN.json";
+    const FALLBACK_POSTER = "https://raw.githubusercontent.com/animeneek/Neek/main/assets/images/Poster%20404%20Error.png";
+
+    let allResults = [];
+    let filteredResults = [];
+    let currentPage = 1;
+    const pageSize = 18;
+
+    function parseDate(str) {
+      if (!str) return null;
+      const parts = str.split(".");
+      if (parts.length === 3) {
+        const [mm, dd, yyyy] = parts;
+        return new Date(`${yyyy}-${mm}-${dd}`);
+      }
+      return new Date(str);
+    }
+
+    function renderResults(page) {
+      currentPage = page;
+      const start = (page-1)*pageSize;
+      const end = start+pageSize;
+      const pageResults = filteredResults.slice(start,end);
+
+      document.getElementById("resultsGrid").innerHTML = pageResults.map(c=>{
+        const d = parseDate(c.Date);
+        const dateStr = d ? d.toLocaleDateString("en-US",{month:"short",day:"2-digit",year:"numeric"}) : "";
+        return `
+          <div class="bg-[#1a1a1a] rounded-xl overflow-hidden hover:scale-105 transition block">
+            <img src="${c.IMG||FALLBACK_POSTER}" class="w-full h-56 object-cover" alt="${c.Title}">
+            <div class="p-3">
+              <h3 class="text-lg font-semibold text-white truncate">${c.Title}</h3>
+              <p class="text-sm text-gray-400">${c.Studio||""} | ${c.Stars||""} | ${dateStr}</p>
+            </div>
+          </div>`;
+      }).join("");
+
+      const totalPages = Math.ceil(filteredResults.length/pageSize);
+      document.getElementById("pagination").style.display = totalPages>1 ? "flex" : "none";
+      document.getElementById("pageInfo").innerText = `Page ${page} of ${totalPages}`;
+      document.getElementById("prevPage").disabled = page<=1;
+      document.getElementById("nextPage").disabled = page>=totalPages;
+    }
+
+    function applyFilters(page=1) {
+      const query = document.getElementById("searchInput").value.trim().toLowerCase();
+      const studio = document.getElementById("studioFilter").value;
+      const star = document.getElementById("starsFilter").value;
+      const sort = document.getElementById("sortFilter").value;
+
+      filteredResults = allResults.filter(c=>{
+        const matchesQuery = !query || c.Title.toLowerCase().includes(query) || (c.Stars||"").toLowerCase().includes(query);
+        const matchesStudio = !studio || c.Studio===studio;
+        const matchesStar = !star || c.Stars===star;
+        return matchesQuery && matchesStudio && matchesStar;
+      });
+
+      if (sort==="dateDesc") {
+        filteredResults.sort((a,b)=>(parseDate(b.Date)||0)-(parseDate(a.Date)||0));
+      } else if (sort==="dateAsc") {
+        filteredResults.sort((a,b)=>(parseDate(a.Date)||0)-(parseDate(b.Date)||0));
+      } else if (sort==="title") {
+        filteredResults.sort((a,b)=>(a.Title||"").localeCompare(b.Title||""));
+      }
+
+      renderResults(page);
+    }
+
+    async function loadData() {
+      const res = await fetch(DATA_URL);
+      const data = await res.json();
+      allResults = data.sequence.clips || [];
+
+      // Populate dropdowns
+      const studios = [...new Set(allResults.map(c=>c.Studio).filter(Boolean))].sort();
+      const stars = [...new Set(allResults.map(c=>c.Stars).filter(Boolean))].sort();
+      document.getElementById("studioFilter").innerHTML += studios.map(s=>`<option value="${s}">${s}</option>`).join("");
+      document.getElementById("starsFilter").innerHTML += stars.map(s=>`<option value="${s}">${s}</option>`).join("");
+
+      // If coming from ?q= in URL
+      const params = new URLSearchParams(window.location.search);
+      if(params.get("q")){
+        document.getElementById("searchInput").value = params.get("q");
+      }
+
+      applyFilters(1);
+    }
+
+    // Events
+    document.getElementById("searchBtn").addEventListener("click",()=>applyFilters(1));
+    document.getElementById("searchInput").addEventListener("keypress",(e)=>{if(e.key==="Enter")applyFilters(1);});
+    document.getElementById("studioFilter").addEventListener("change",()=>applyFilters(1));
+    document.getElementById("starsFilter").addEventListener("change",()=>applyFilters(1));
+    document.getElementById("sortFilter").addEventListener("change",()=>applyFilters(1));
+    document.getElementById("prevPage").addEventListener("click",()=>renderResults(currentPage-1));
+    document.getElementById("nextPage").addEventListener("click",()=>renderResults(currentPage+1));
+
+    // Load header/footer + data
+    Promise.all([
+      fetch("header.html").then(r=>r.text()),
+      fetch("footer.html").then(r=>r.text())
+    ]).then(([h,f])=>{
+      document.getElementById("header").innerHTML=h;
+      document.getElementById("footer").innerHTML=f;
+      loadData();
+    });
+  </script>
+</body>
+</html>
