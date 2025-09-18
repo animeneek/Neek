@@ -18,9 +18,11 @@
       <div class="relative w-72">
         <input id="desktopSearch" type="text" placeholder="Search clips..."
                class="w-full rounded-xl bg-[#1a1a1a] border border-gray-700 px-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#ff4444]" />
-        <i id="desktopSearchBtn" class="fa-solid fa-magnifying-glass absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer"></i>
-        <!-- Live results -->
-        <div id="searchResults" class="absolute left-0 right-0 mt-1 bg-[#1a1a1a] border border-gray-700 rounded-lg shadow-lg max-h-64 overflow-y-auto hidden z-50"></div>
+        <button id="desktopSearchBtn" type="button"
+          class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+          aria-label="Search">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
       </div>
     </div>
   </div>
@@ -49,9 +51,11 @@
     <div class="relative w-full max-w-md mx-auto">
       <input id="mobileSearchInput" type="text" placeholder="Search clips..."
              class="w-full rounded-xl bg-[#1a1a1a] border border-gray-700 px-4 py-3 text-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#ff4444]" />
-      <i id="mobileSearchBtn" class="fa-solid fa-magnifying-glass absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 cursor-pointer"></i>
-      <!-- Live results -->
-      <div id="mobileSearchResults" class="absolute left-0 right-0 mt-2 bg-[#1a1a1a] border border-gray-700 rounded-lg shadow-lg max-h-72 overflow-y-auto hidden z-50"></div>
+      <button id="mobileSearchBtn" type="button"
+        class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 hover:text-white"
+        aria-label="Search">
+        <i class="fa-solid fa-magnifying-glass"></i>
+      </button>
     </div>
 
     <div class="text-center mt-5">
@@ -84,7 +88,7 @@
   function goToSearch(query) {
     if (!query) return;
     const encoded = encodeURIComponent(query.trim());
-    window.location.href = `/search.html?q=${encoded}`;
+    window.location.href = `../search.html?q=${encoded}`;
   }
 
   document.addEventListener("DOMContentLoaded", () => {
@@ -93,7 +97,10 @@
     const desktopBtn = document.getElementById("desktopSearchBtn");
     if (desktopInput) {
       desktopInput.addEventListener("keydown", e => {
-        if (e.key === "Enter") goToSearch(desktopInput.value);
+        if (e.key === "Enter") {
+          e.preventDefault();
+          goToSearch(desktopInput.value);
+        }
       });
     }
     if (desktopBtn) {
@@ -105,7 +112,10 @@
     const mobileBtn = document.getElementById("mobileSearchBtn");
     if (mobileInput) {
       mobileInput.addEventListener("keydown", e => {
-        if (e.key === "Enter") goToSearch(mobileInput.value);
+        if (e.key === "Enter") {
+          e.preventDefault();
+          goToSearch(mobileInput.value);
+        }
       });
     }
     if (mobileBtn) {
