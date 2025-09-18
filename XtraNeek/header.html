@@ -81,14 +81,14 @@
 </style>
 
 <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    function goToSearch(query) {
-      if (!query) return;
-      const encoded = encodeURIComponent(query.trim());
-      window.location.href = `../search.html?q=${encoded}`;
-    }
+  function goToSearch(query) {
+    if (!query) return;
+    const encoded = encodeURIComponent(query.trim());
+    window.location.href = `../search.html?q=${encoded}`;
+  }
 
-    // Desktop search
+  document.addEventListener("DOMContentLoaded", () => {
+    // Desktop
     const desktopInput = document.getElementById("desktopSearch");
     const desktopBtn = document.getElementById("desktopSearchBtn");
     if (desktopInput) {
@@ -100,7 +100,7 @@
       desktopBtn.addEventListener("click", () => goToSearch(desktopInput.value));
     }
 
-    // Mobile search
+    // Mobile
     const mobileInput = document.getElementById("mobileSearchInput");
     const mobileBtn = document.getElementById("mobileSearchBtn");
     if (mobileInput) {
