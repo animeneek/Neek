@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Neek | Streamtape Files</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <style>
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .card {
+      background: #111;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+    }
+    .card img {
+      width: 100%;
+      height: 350px;
+      object-fit: cover;
+      display: block;
+    }
+    .card-body {
+      padding: 10px;
+    }
+    .card-body h3 {
+      font-size: 16px;
+      margin: 0;
+      color: #fff;
+    }
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.9);
+      justify-content: center;
+      align-items: center;
+      overflow: auto;
+    }
+    .modal-content {
+      background: #222;
+      border-radius: 12px;
+      padding: 20px;
+      max-width: 1000px;
+      width: 95%;
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      top: 10px; right: 20px;
+      font-size: 28px;
+      cursor: pointer;
+      color: #fff;
+    }
+    .video-frame {
+      width: 100%;
+      height: 500px;
+      border: none;
+      border-radius: 8px;
+    }
+    .sources {
+      margin-top: 12px;
+    }
+    .sources button {
+      background: #ff4444;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      margin-right: 8px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .sources button:hover {
+      background: #cc0000;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="logo"><a href="../index.html">Neek</a></div>
+    <nav>
+      <a href="../anime/ongoing.html">Ongoing</a>
+      <a href="../anime/latest.html">Latest</a>
+      <a href="../anime/staff.html">Staff</a>
+      <a href="xn.html" class="active">XN</a>
+    </nav>
+    <form id="searchForm" class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search anime..." />
+      <button type="submit">🔍</button>
+    </form>
+  </header>
+
+  <!-- Main -->
+  <main class="container">
+    <h1>Streamtape Files</h1>
+    <div id="fileGrid" class="grid"></div>
+  </main>
+
+  <!-- Modal -->
+  <div id="videoModal" class="modal">
+    <div class="modal-content">
+      <span class="modal-close">&times;</span>
+      <h2 id="modalTitle"></h2>
+      <iframe id="videoFrame" class="video-frame" allowfullscreen></iframe>
+      <div class="sources" id="sourcesContainer"></div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p>© 2025 Neek</p>
+  </footer>
+
+<script>
+const login = "e7ee4fadf810fd1c648e";
+const key = "1jZwwG0Gkxsev3J";
+const API_BASE = "https://api.streamtape.com";
+
+document.addEventListener("DOMContentLoaded", () => {
+  fetchFiles();
+
+  // Search redirect
+  document.getElementById("searchForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const q = document.getElementById("searchInput").value.trim();
+    if (q) {
+      window.location.href = `../search.html?q=${encodeURIComponent(q)}`;
+    }
+  });
+});
+
+async function fetchFiles() {
+  try {
+    const res = await fetch(`${API_BASE}/file/listfolder?login=${login}&key=${key}&folder=0`);
+    const data = await res.json();
+    if (data.status !== 200) {
+      console.error("API error", data.msg);
+      return;
+    }
+    const files = data.result.files || [];
+    renderFiles(files);
+  } catch (err) {
+    console.error("Fetch error", err);
+  }
+}
+
+function renderFiles(files) {
+  const grid = document.getElementById("fileGrid");
+  grid.innerHTML = "";
+
+  files.forEach(file => {
+    const card = document.createElement("div");
+    card.className = "card";
+
+    const img = document.createElement("img");
+    img.src = `https://api.streamtape.com/file/getsplash?login=${login}&key=${key}&file=${file.linkid}`;
+    img.onerror = () => {
+      img.src = "https://github.com/animeneek/Neek/blob/main/assets/images/Poster%20404%20Error.png?raw=true";
+    };
+
+    const body = document.createElement("div");
+    body.className = "card-body";
+
+    const title = document.createElement("h3");
+    title.textContent = file.name;
+
+    body.appendChild(title);
+    card.appendChild(img);
+    card.appendChild(body);
+
+    card.addEventListener("click", () => openModal(file));
+
+    grid.appendChild(card);
+  });
+}
+
+function openModal(file) {
+  const modal = document.getElementById("videoModal");
+  const frame = document.getElementById("videoFrame");
+  const title = document.getElementById("modalTitle");
+  const sources = document.getElementById("sourcesContainer");
+
+  // Title format
+  const date = new Date(file.created_at);
+  const formattedDate = date.toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" });
+  title.textContent = `[Streamtape] ${file.name} | ⭐ 0 | ${formattedDate}`;
+
+  // Default source
+  const embedUrl = `https://streamtape.com/e/${file.linkid}`;
+  frame.src = embedUrl;
+
+  // Sources
+  sources.innerHTML = "";
+  const btn = document.createElement("button");
+  btn.textContent = "Source 1";
+  btn.onclick = () => {
+    frame.src = embedUrl;
+  };
+  sources.appendChild(btn);
+
+  modal.style.display = "flex";
+
+  // Close modal
+  document.querySelector(".modal-close").onclick = () => {
+    modal.style.display = "none";
+    frame.src = "";
+  };
+  window.onclick = e => {
+    if (e.target === modal) {
+      modal.style.display = "none";
+      frame.src = "";
+    }
+  };
+}
+</script>
+
+</body>
+</html>
