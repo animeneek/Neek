@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Neek — XtraNeek</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    :root {
+      --accent:#ff4444;
+      --bg:#0b0b0b;
+      --muted:#9b9b9b;
+    }
+    html,body { background:var(--bg); color:#fff; overflow-x:hidden; }
+    a { color:#fff; text-decoration:none !important; }
+    a:hover { color:var(--accent); }
+    .card { background:#1a1a1a; }
+    .overlay-blur { background:rgba(0,0,0,0.6); backdrop-filter:blur(6px); }
+    .loader { border:4px solid #333; border-top:4px solid var(--accent); border-radius:50%; width:40px; height:40px; animation:spin 1s linear infinite; margin:auto; }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-[#0b0b0b] text-white">
+
+  <!-- Header include -->
+  <div id="header"></div>
+
+  <!-- MAIN CONTENT -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-6 py-6 md:pt-28 pb-24 space-y-12">
+
+    <!-- Hero Section -->
+    <section class="text-center">
+      <p class="text-2xl sm:text-3xl md:text-5xl font-extrabold mb-4 text-center text-white">
+        <i class="fa-solid fa-film mr-2" style="color:#ff4444;"></i>
+        XtraNeek Specials
+      </p>
+      <p class="text-[--muted] italic">Streamtape uploads, neatly organized.</p>
+    </section>
+
+    <!-- Search -->
+    <section>
+      <input id="searchInput" type="text" placeholder="Search by title, studio, or star..."
+        class="w-full px-3 py-2 rounded-lg bg-[#1a1a1a] border border-gray-700 focus:outline-none focus:ring-2 focus:ring-[--accent] text-sm" />
+    </section>
+
+    <!-- Filters -->
+    <section class="flex flex-wrap gap-3">
+      <!-- Studio Filter -->
+      <select id="studioFilter" class="px-3 py-2 rounded-lg bg-[#1a1a1a] border border-gray-700 text-sm">
+        <option value="">All Studios</option>
+      </select>
+
+      <!-- Star Filter -->
+      <select id="starFilter" class="px-3 py-2 rounded-lg bg-[#1a1a1a] border border-gray-700 text-sm">
+        <option value="">All Stars</option>
+      </select>
+
+      <!-- Sort -->
+      <select id="sortFilter" class="px-3 py-2 rounded-lg bg-[#1a1a1a] border border-gray-700 text-sm">
+        <option value="date-desc">Date ↓ (Newest)</option>
+        <option value="date-asc">Date ↑ (Oldest)</option>
+        <option value="title-asc">Title A–Z</option>
+        <option value="title-desc">Title Z–A</option>
+      </select>
+    </section>
+
+    <!-- Clips Grid -->
+    <section>
+      <div id="clips-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="loader"></div>
+      </div>
+
+      <!-- Pagination -->
+      <div class="flex justify-center items-center gap-4 mt-8" id="pagination" style="display:none;">
+        <button id="prevPage" class="px-4 py-2 bg-[#1a1a1a] rounded-lg hover:bg-[--accent] hover:text-white disabled:opacity-40">Prev</button>
+        <span id="pageInfo" class="text-sm text-gray-400"></span>
+        <button id="nextPage" class="px-4 py-2 bg-[#1a1a1a] rounded-lg hover:bg-[--accent] hover:text-white disabled:opacity-40">Next</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer include -->
+  <div id="footer"></div>
+
+  <!-- Modal -->
+  <div id="modal" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center z-50">
+    <div class="bg-[#1a1a1a] rounded-lg max-w-6xl w-full p-6 relative">
+      <button onclick="closeModal()" class="absolute top-2 right-2 text-white">
+        <i class="fa fa-times"></i>
+      </button>
+      <div id="modal-title" class="font-bold text-lg mb-3"></div>
+      <div id="modal-embed" class="w-full h-[600px] mb-4"></div>
+    </div>
+  </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  // Header/footer includes
+  Promise.all([
+    fetch("header.html").then(r => r.text()),
+    fetch("footer.html").then(r => r.text())
+  ]).then(([header, footer]) => {
+    document.getElementById("header").innerHTML = header;
+    document.getElementById("footer").innerHTML = footer;
+  });
+
+  const STREAMTAPE_DOMAIN = "streamtape.net"; // changeable
+  const login = "e7ee4fadf810fd1c648e";
+  const key   = "1jZwwG0Gkxsev3J";
+  const apiUrl = `https://api.${STREAMTAPE_DOMAIN}/file/listfolder?login=${login}&key=${key}`;
+
+  let clips = [];
+  let filteredClips = [];
+  let currentPage = 1;
+  const perPage = 18;
+
+  function parseVideoName(name) {
+    const regex = /^\[(.*?)\]\s*(.*?)\s*\((.*?)\s*\/\s*([\d.]+)\)/;
+    const match = name.match(regex);
+    if (match) {
+      return {
+        studio: match[1].trim(),
+        star: match[2].trim(),
+        title: match[3].trim(),
+        date: match[4].trim()
+      };
+    }
+    return { studio:"Unknown", star:"Unknown", title:name, date:"" };
+  }
+
+  function splitStars(starStr) {
+    return starStr.split(/,|&/).map(s => s.trim()).filter(Boolean);
+  }
+
+  function parseDate(dateStr) {
+    if (!dateStr) return new Date(0);
+    const [MM, DD, YYYY] = dateStr.split(".");
+    return new Date(`${YYYY}-${MM}-${DD}`);
+  }
+
+  function applyFilters() {
+    const search = document.getElementById("searchInput").value.toLowerCase();
+    const studio = document.getElementById("studioFilter").value;
+    const star = document.getElementById("starFilter").value;
+    const sort = document.getElementById("sortFilter").value;
+
+    filteredClips = clips.filter(file => {
+      const { studio:st, star:sr, title } = parseVideoName(file.name);
+      const starsArr = splitStars(sr);
+      const matchSearch = [st, title, ...starsArr].some(x => x.toLowerCase().includes(search));
+      const matchStudio = !studio || st === studio;
+      const matchStar = !star || starsArr.includes(star);
+      return matchSearch && matchStudio && matchStar;
+    });
+
+    // Sorting
+    filteredClips.sort((a,b) => {
+      const aInfo = parseVideoName(a.name);
+      const bInfo = parseVideoName(b.name);
+      if (sort === "date-desc") return parseDate(bInfo.date) - parseDate(aInfo.date);
+      if (sort === "date-asc") return parseDate(aInfo.date) - parseDate(bInfo.date);
+      if (sort === "title-asc") return aInfo.title.localeCompare(bInfo.title);
+      if (sort === "title-desc") return bInfo.title.localeCompare(aInfo.title);
+      return 0;
+    });
+
+    currentPage = 1;
+    render();
+  }
+
+  function render() {
+    const start = (currentPage-1)*perPage;
+    const pageItems = filteredClips.slice(start, start+perPage);
+    document.getElementById("clips-grid").innerHTML = pageItems.map(createCard).join("");
+
+    const totalPages = Math.ceil(filteredClips.length/perPage);
+    document.getElementById("pagination").style.display=totalPages>1?"flex":"none";
+    document.getElementById("pageInfo").innerText=`Page ${currentPage} of ${totalPages}`;
+    document.getElementById("prevPage").disabled=currentPage<=1;
+    document.getElementById("nextPage").disabled=currentPage>=totalPages;
+  }
+
+  function createCard(file) {
+    const { studio, star, title, date } = parseVideoName(file.name);
+    const thumb = `https://thumb.tapecontent.net/thumb/${file.linkid}/1.jpg`;
+    return `
+      <div class="relative card rounded-xl overflow-hidden shadow-lg group cursor-pointer"
+           onclick='openModal(${JSON.stringify({id:file.linkid,studio,title,star,date}).replace(/'/g,"&#39;")})'>
+        <img src="${thumb}" alt="${title}" class="w-full h-48 object-cover" onerror="this.src='https://via.placeholder.com/400x225?text=No+Thumbnail'">
+        <span class="absolute top-2 left-2 bg-[--accent] text-xs font-bold px-2 py-1 rounded">${studio}</span>
+        <span class="absolute top-2 right-2 bg-black/70 text-xs px-2 py-1 rounded">${date}</span>
+        <div class="absolute bottom-0 left-0 right-0 overlay-blur p-2">
+          <h3 class="font-bold text-white text-sm truncate">${title}</h3>
+          <p class="text-xs text-[--muted]">${star}</p>
+        </div>
+      </div>
+    `;
+  }
+
+  window.openModal = (file) => {
+    const titleText = `[${file.studio}] ${file.title} | ${file.star} | ${file.date}`;
+    document.getElementById("modal-title").innerText = titleText;
+    document.getElementById("modal-embed").innerHTML = `
+      <iframe src="https://${STREAMTAPE_DOMAIN}/e/${file.id}" class="w-full h-[600px]" frameborder="0" allowfullscreen></iframe>
+    `;
+    document.getElementById("modal").classList.remove("hidden");
+    document.getElementById("modal").classList.add("flex");
+  };
+
+  window.closeModal = () => {
+    document.getElementById("modal").classList.add("hidden");
+    document.getElementById("modal").classList.remove("flex");
+    document.getElementById("modal-embed").innerHTML = "";
+  };
+
+  try {
+    const res = await fetch(apiUrl);
+    const data = await res.json();
+    if (data && data.result && data.result.files) {
+      clips = data.result.files;
+
+      // Populate dropdowns
+      const studios = [...new Set(clips.map(f => parseVideoName(f.name).studio))].sort();
+      const stars = [...new Set(clips.flatMap(f => splitStars(parseVideoName(f.name).star)))].sort();
+
+      document.getElementById("studioFilter").innerHTML += studios.map(s=>`<option value="${s}">${s}</option>`).join("");
+      document.getElementById("starFilter").innerHTML += stars.map(s=>`<option value="${s}">${s}</option>`).join("");
+
+      applyFilters();
+    } else {
+      document.getElementById("clips-grid").innerHTML = '<p class="col-span-3 text-red-400">No videos found or API error.</p>';
+    }
+  } catch(err) {
+    console.error(err);
+    document.getElementById("clips-grid").innerHTML = '<p class="col-span-3 text-red-400">Error loading videos.</p>';
+  }
+
+  // Events
+  document.getElementById("prevPage").addEventListener("click",()=>{ if(currentPage>1){currentPage--;render();} });
+  document.getElementById("nextPage").addEventListener("click",()=>{ if(currentPage<Math.ceil(filteredClips.length/perPage)){currentPage++;render();} });
+  document.getElementById("searchInput").addEventListener("input", applyFilters);
+  document.getElementById("studioFilter").addEventListener("change", applyFilters);
+  document.getElementById("starFilter").addEventListener("change", applyFilters);
+  document.getElementById("sortFilter").addEventListener("change", applyFilters);
+});
+</script>
+</body>
+</html>
