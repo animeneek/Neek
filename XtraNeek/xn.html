@@ -70,108 +70,116 @@
   </div>
 
 <script>
-  document.addEventListener("DOMContentLoaded", async () => {
-    // Load header & footer
-    Promise.all([
-      fetch("header.html").then(r => r.text()),
-      fetch("footer.html").then(r => r.text())
-    ]).then(([header, footer]) => {
-      document.getElementById("header").innerHTML = header;
-      document.getElementById("footer").innerHTML = footer;
-    });
-
-    // Config: change this once if domain changes
-    const STREAMTAPE_DOMAIN = "streamtape.net";
-
-    // Streamtape API
-    const login = "e7ee4fadf810fd1c648e";
-    const key   = "1jZwwG0Gkxsev3J";
-    const apiUrl = `https://api.${STREAMTAPE_DOMAIN}/file/listfolder?login=${login}&key=${key}`;
-
-    let clips = [];
-    let currentPage = 1;
-    const perPage = 18;
-
-    function parseVideoName(name) {
-      // [Studio] Star (Title / MM.DD.YYYY)
-      const regex = /^\[(.*?)\]\s*(.*?)\s*\((.*?)\s*\/\s*([\d.]+)\)/;
-      const match = name.match(regex);
-      if (match) {
-        return {
-          studio: match[1].trim(),
-          star: match[2].trim(),
-          title: match[3].trim(),
-          date: match[4].trim()
-        };
-      }
-      return { studio:"Unknown", star:"Unknown", title:name, date:"" };
-    }
-
-    function render() {
-      const start = (currentPage-1)*perPage;
-      const pageItems = clips.slice(start, start+perPage);
-      document.getElementById("clips-grid").innerHTML = pageItems.map(createCard).join("");
-
-      const totalPages = Math.ceil(clips.length/perPage);
-      document.getElementById("pagination").style.display=totalPages>1?"flex":"none";
-      document.getElementById("pageInfo").innerText=`Page ${currentPage} of ${totalPages}`;
-      document.getElementById("prevPage").disabled=currentPage<=1;
-      document.getElementById("nextPage").disabled=currentPage>=totalPages;
-    }
-
-    function createCard(file) {
-      const { studio, star, title, date } = parseVideoName(file.name);
-      return `
-        <div class="relative card rounded-xl overflow-hidden shadow-lg group cursor-pointer"
-             onclick='openModal(${JSON.stringify({id:file.linkid,studio,title,star,date}).replace(/'/g,"&#39;")})'>
-          <img src="https://thumb.tapecontent.net/thumb/${file.linkid}/1.jpg"
-               alt="${title}" class="w-full h-48 object-cover">
-          <!-- Studio -->
-          <span class="absolute top-2 left-2 bg-[--accent] text-xs font-bold px-2 py-1 rounded">${studio}</span>
-          <!-- Date -->
-          <span class="absolute top-2 right-2 bg-black/70 text-xs px-2 py-1 rounded">${date}</span>
-          <!-- Overlay Info -->
-          <div class="absolute bottom-0 left-0 right-0 overlay-blur p-2">
-            <h3 class="font-bold text-white text-sm truncate">${title}</h3>
-            <p class="text-xs text-[--muted]">${star}</p>
-          </div>
-        </div>
-      `;
-    }
-
-    window.openModal = (file) => {
-      const titleText = `[${file.studio}] ${file.title} | ${file.star} | ${file.date}`;
-      document.getElementById("modal-title").innerText = titleText;
-      document.getElementById("modal-embed").innerHTML = `
-        <iframe src="https://${STREAMTAPE_DOMAIN}/e/${file.id}" class="w-full h-[600px]" frameborder="0" allowfullscreen></iframe>
-      `;
-      document.getElementById("modal").classList.remove("hidden");
-      document.getElementById("modal").classList.add("flex");
-    };
-
-    window.closeModal = () => {
-      document.getElementById("modal").classList.add("hidden");
-      document.getElementById("modal").classList.remove("flex");
-      document.getElementById("modal-embed").innerHTML = "";
-    };
-
-    try {
-      const res = await fetch(apiUrl);
-      const data = await res.json();
-      if (data && data.result && data.result.files) {
-        clips = data.result.files;
-        render();
-      } else {
-        document.getElementById("clips-grid").innerHTML = '<p class="col-span-3 text-red-400">No videos found or API error.</p>';
-      }
-    } catch(err) {
-      console.error(err);
-      document.getElementById("clips-grid").innerHTML = '<p class="col-span-3 text-red-400">Error loading videos.</p>';
-    }
-
-    document.getElementById("prevPage").addEventListener("click",()=>{ if(currentPage>1){currentPage--;render();} });
-    document.getElementById("nextPage").addEventListener("click",()=>{ if(currentPage<Math.ceil(clips.length/perPage)){currentPage++;render();} });
+document.addEventListener("DOMContentLoaded", async () => {
+  // Load header & footer
+  Promise.all([
+    fetch("header.html").then(r => r.text()),
+    fetch("footer.html").then(r => r.text())
+  ]).then(([header, footer]) => {
+    document.getElementById("header").innerHTML = header;
+    document.getElementById("footer").innerHTML = footer;
   });
+
+  const STREAMTAPE_DOMAIN = "streamtape.net";
+  const login = "e7ee4fadf810fd1c648e";
+  const key   = "1jZwwG0Gkxsev3J";
+  const apiBase = `https://api.${STREAMTAPE_DOMAIN}`;
+  const apiUrl = `${apiBase}/file/listfolder?login=${login}&key=${key}`;
+  const clipsGrid = document.getElementById("clips-grid");
+
+  let clips = [];
+  let currentPage = 1;
+  const perPage = 18;
+
+  function parseVideoName(name) {
+    const regex = /^\[(.*?)\]\s*(.*?)\s*\((.*?)\s*\/\s*([\d.]+)\)/;
+    const match = name.match(regex);
+    if (match) {
+      return {
+        studio: match[1].trim(),
+        star: match[2].trim(),
+        title: match[3].trim(),
+        date: match[4].trim()
+      };
+    }
+    return { studio:"Unknown", star:"Unknown", title:name, date:"" };
+  }
+
+  async function fetchThumbnail(linkid) {
+    try {
+      const res = await fetch(`${apiBase}/file/getsplash?login=${login}&key=${key}&file=${linkid}`);
+      const json = await res.json();
+      if (json.status === 200 && json.result) return json.result;
+    } catch {}
+    return `https://thumb.tapecontent.net/${linkid}.jpg`; // fallback
+  }
+
+  function render() {
+    const start = (currentPage-1)*perPage;
+    const pageItems = clips.slice(start, start+perPage);
+    clipsGrid.innerHTML = pageItems.map(createCard).join("");
+
+    const totalPages = Math.ceil(clips.length/perPage);
+    document.getElementById("pagination").style.display = totalPages>1?"flex":"none";
+    document.getElementById("pageInfo").innerText = `Page ${currentPage} of ${totalPages}`;
+    document.getElementById("prevPage").disabled = currentPage<=1;
+    document.getElementById("nextPage").disabled = currentPage>=totalPages;
+  }
+
+  function createCard(file) {
+    const { studio, star, title, date } = parseVideoName(file.name);
+    const thumbUrl = file.thumbnail || `https://thumb.tapecontent.net/${file.linkid}.jpg`;
+    return `
+      <div class="relative card rounded-xl overflow-hidden shadow-lg group cursor-pointer"
+           onclick='openModal(${JSON.stringify({id:file.linkid,studio,title,star,date}).replace(/'/g,"&#39;")})'>
+        <img src="${thumbUrl}" alt="${title}" class="w-full h-48 object-cover">
+        <span class="absolute top-2 left-2 bg-[--accent] text-xs font-bold px-2 py-1 rounded">${studio}</span>
+        <span class="absolute top-2 right-2 bg-black/70 text-xs px-2 py-1 rounded">${date}</span>
+        <div class="absolute bottom-0 left-0 right-0 overlay-blur p-2">
+          <h3 class="font-bold text-white text-sm truncate">${title}</h3>
+          <p class="text-xs text-[--muted]">${star}</p>
+        </div>
+      </div>`;
+  }
+
+  window.openModal = (file) => {
+    const titleText = `[${file.studio}] ${file.title} | ${file.star} | ${file.date}`;
+    document.getElementById("modal-title").innerText = titleText;
+    document.getElementById("modal-embed").innerHTML = `
+      <iframe src="https://${STREAMTAPE_DOMAIN}/e/${file.id}" class="w-full h-[600px]" frameborder="0" allowfullscreen></iframe>
+    `;
+    document.getElementById("modal").classList.remove("hidden");
+    document.getElementById("modal").classList.add("flex");
+  };
+
+  window.closeModal = () => {
+    document.getElementById("modal").classList.add("hidden");
+    document.getElementById("modal").classList.remove("flex");
+    document.getElementById("modal-embed").innerHTML = "";
+  };
+
+  try {
+    const res = await fetch(apiUrl);
+    const data = await res.json();
+    if (data && data.result && data.result.files) {
+      const files = data.result.files;
+      // fetch thumbnails
+      clips = await Promise.all(files.map(async file => {
+        const thumb = await fetchThumbnail(file.linkid);
+        return {...file, thumbnail: thumb};
+      }));
+      render();
+    } else {
+      clipsGrid.innerHTML = '<p class="col-span-3 text-red-400">No videos found or API error.</p>';
+    }
+  } catch(err) {
+    console.error(err);
+    clipsGrid.innerHTML = '<p class="col-span-3 text-red-400">Error loading videos.</p>';
+  }
+
+  document.getElementById("prevPage").addEventListener("click",()=>{ if(currentPage>1){currentPage--;render();} });
+  document.getElementById("nextPage").addEventListener("click",()=>{ if(currentPage<Math.ceil(clips.length/perPage)){currentPage++;render();} });
+});
 </script>
 </body>
 </html>
