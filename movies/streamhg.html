@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Neek — XtraNeek (StreamHG)</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    :root {
+      --accent:#ff4444;
+      --bg:#0b0b0b;
+      --muted:#9b9b9b;
+    }
+    html,body { background:var(--bg); color:#fff; overflow-x:hidden; }
+    a { color:#fff; text-decoration:none !important; }
+    a:hover { color:var(--accent); }
+    .card { background:#1a1a1a; }
+    .overlay-blur { background:rgba(0,0,0,0.6); backdrop-filter:blur(6px); }
+    .loader { border:4px solid #333; border-top:4px solid var(--accent); border-radius:50%; width:40px; height:40px; animation:spin 1s linear infinite; margin:auto; }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-[#0b0b0b] text-white">
+
+  <!-- Header include -->
+  <div id="header"></div>
+
+  <!-- MAIN CONTENT -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-6 py-6 md:pt-28 pb-24 space-y-12">
+
+    <!-- Hero Section -->
+    <section class="text-center">
+      <p class="text-2xl sm:text-3xl md:text-5xl font-extrabold mb-4 text-center text-white">
+        <i class="fa-solid fa-film mr-2" style="color:#ff4444;"></i>
+        StreamHG Specials
+      </p>
+      <p class="text-[--muted] italic">StreamHG uploads, neatly organized.</p>
+    </section>
+
+    <!-- Search -->
+    <section>
+      <input id="searchInput" type="text" placeholder="Search by title..."
+        class="w-full px-3 py-2 rounded-lg bg-[#1a1a1a] border border-gray-700 focus:outline-none focus:ring-2 focus:ring-[--accent] text-sm" />
+    </section>
+
+    <!-- Filters -->
+    <section class="flex flex-wrap justify-center gap-3">
+      <select id="sortFilter" class="px-3 py-2 rounded-lg bg-[#1a1a1a] border border-gray-700 text-sm">
+        <option value="date-desc">Date ↓ (Newest)</option>
+        <option value="date-asc">Date ↑ (Oldest)</option>
+        <option value="title-asc">Title A–Z</option>
+        <option value="title-desc">Title Z–A</option>
+      </select>
+    </section>
+
+    <!-- Clips Grid -->
+    <section>
+      <div id="clips-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="loader"></div>
+      </div>
+
+      <!-- Pagination -->
+      <div class="flex justify-center items-center gap-4 mt-8" id="pagination" style="display:none;">
+        <button id="prevPage" class="px-4 py-2 bg-[#1a1a1a] rounded-lg hover:bg-[--accent] hover:text-white disabled:opacity-40">Prev</button>
+        <span id="pageInfo" class="text-sm text-gray-400"></span>
+        <button id="nextPage" class="px-4 py-2 bg-[#1a1a1a] rounded-lg hover:bg-[--accent] hover:text-white disabled:opacity-40">Next</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer include -->
+  <div id="footer"></div>
+
+  <!-- Modal -->
+  <div id="modal" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center z-50">
+    <div class="bg-[#1a1a1a] rounded-lg max-w-6xl w-full p-6 relative">
+      <button onclick="closeModal()" class="absolute top-2 right-2 text-white">
+        <i class="fa fa-times"></i>
+      </button>
+      <div id="modal-title" class="font-bold text-lg mb-3"></div>
+      <div id="modal-embed" class="w-full h-[600px] mb-4"></div>
+    </div>
+  </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  // Header/footer includes
+  Promise.all([
+    fetch("header.html").then(r => r.text()),
+    fetch("footer.html").then(r => r.text())
+  ]).then(([header, footer]) => {
+    document.getElementById("header").innerHTML = header;
+    document.getElementById("footer").innerHTML = footer;
+  });
+
+  const API_KEY = "5246k5msi8pt06o5e4pp";
+  const API_URL = `https://streamhgapi.com/api/file/list?key=${API_KEY}`;
+
+  let clips = [];
+  let filteredClips = [];
+  let currentPage = 1;
+  const perPage = 18;
+
+  function parseDate(dateStr) {
+    return dateStr ? new Date(dateStr) : new Date(0);
+  }
+
+  function applyFilters() {
+    const search = document.getElementById("searchInput").value.toLowerCase();
+    const sort = document.getElementById("sortFilter").value;
+
+    filteredClips = clips.filter(file => {
+      return file.title.toLowerCase().includes(search);
+    });
+
+    // Sorting
+    filteredClips.sort((a, b) => {
+      if (sort === "date-desc") return parseDate(b.uploaded) - parseDate(a.uploaded);
+      if (sort === "date-asc") return parseDate(a.uploaded) - parseDate(b.uploaded);
+      if (sort === "title-asc") return a.title.localeCompare(b.title);
+      if (sort === "title-desc") return b.title.localeCompare(a.title);
+      return 0;
+    });
+
+    currentPage = 1;
+    render();
+  }
+
+  function render() {
+    const start = (currentPage - 1) * perPage;
+    const pageItems = filteredClips.slice(start, start + perPage);
+    document.getElementById("clips-grid").innerHTML = pageItems.map(createCard).join("");
+
+    const totalPages = Math.ceil(filteredClips.length / perPage);
+    document.getElementById("pagination").style.display = totalPages > 1 ? "flex" : "none";
+    document.getElementById("pageInfo").innerText = `Page ${currentPage} of ${totalPages}`;
+    document.getElementById("prevPage").disabled = currentPage <= 1;
+    document.getElementById("nextPage").disabled = currentPage >= totalPages;
+  }
+
+  function createCard(file) {
+    const thumb = file.thumbnail || "https://via.placeholder.com/400x225?text=No+Thumbnail";
+    return `
+      <div class="relative card rounded-xl overflow-hidden shadow-lg group cursor-pointer"
+           onclick='openModal(${JSON.stringify({code:file.file_code,title:file.title,uploaded:file.uploaded}).replace(/'/g,"&#39;")})'>
+        <img src="${thumb}" loading="lazy" alt="${file.title}" class="w-full h-48 object-cover">
+        <span class="absolute top-2 left-2 bg-[--accent] text-xs font-bold px-2 py-1 rounded">HG</span>
+        <span class="absolute top-2 right-2 bg-black/70 text-xs px-2 py-1 rounded">${file.uploaded.split(" ")[0]}</span>
+        <div class="absolute bottom-0 left-0 right-0 overlay-blur p-2">
+          <h3 class="font-bold text-white text-sm truncate">${file.title}</h3>
+        </div>
+      </div>
+    `;
+  }
+
+  window.openModal = (file) => {
+    document.getElementById("modal-title").innerText = `${file.title} | ${file.uploaded}`;
+    document.getElementById("modal-embed").innerHTML = `
+      <iframe src="https://xvs.tt/${file.code}.html" class="w-full h-[600px]" frameborder="0" allowfullscreen></iframe>
+    `;
+    document.getElementById("modal").classList.remove("hidden");
+    document.getElementById("modal").classList.add("flex");
+  };
+
+  window.closeModal = () => {
+    document.getElementById("modal").classList.add("hidden");
+    document.getElementById("modal").classList.remove("flex");
+    document.getElementById("modal-embed").innerHTML = "";
+  };
+
+  try {
+    const res = await fetch(API_URL);
+    const data = await res.json();
+    if (data && data.result && data.result.files) {
+      clips = data.result.files;
+      applyFilters();
+    } else {
+      document.getElementById("clips-grid").innerHTML = '<p class="col-span-3 text-red-400">No videos found or API error.</p>';
+    }
+  } catch (err) {
+    console.error(err);
+    document.getElementById("clips-grid").innerHTML = '<p class="col-span-3 text-red-400">Error loading videos.</p>';
+  }
+
+  // Events
+  document.getElementById("prevPage").addEventListener("click", () => { if (currentPage > 1) { currentPage--; render(); } });
+  document.getElementById("nextPage").addEventListener("click", () => { if (currentPage < Math.ceil(filteredClips.length / perPage)) { currentPage++; render(); } });
+  document.getElementById("searchInput").addEventListener("input", applyFilters);
+  document.getElementById("sortFilter").addEventListener("change", applyFilters);
+});
+</script>
+</body>
+</html>
