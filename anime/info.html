@@ -285,9 +285,9 @@
         case "hanime-mp4":      url = `https://www.mp4upload.com/embed-${currentEpisode.id}.html`; break;
         case "hanime-mp4-sub":  url = `https://www.mp4upload.com/embed-${currentEpisode.id}.html`; break;
         case "hanime-mp4-dub":  url = `https://www.mp4upload.com/embed-${currentEpisode.id}.html`; break;
-        case "hanime":      url = `https://examplehanimeraw.com/e/${currentEpisode.id}`; break;
-        case "hanime-sub":  url = `https://examplehanimesub.com/e/${currentEpisode.id}`; break;
-        case "hanime-dub":  url = `https://examplehanimedub.com/e/${currentEpisode.id}`; break;
+        case "1hanime":      url = `https://r2.1hanime.com/${currentEpisode.id}.mp4`; break;
+        case "1hanime-sub":  url = `https://r2.1hanime.com/${currentEpisode.id}.mp4`; break;
+        case "1hanime-dub":  url = `https://r2.1hanime.com/${currentEpisode.id}.mp4`; break;
       }
 
       document.getElementById("player").innerHTML = `<iframe src="${url}" allowfullscreen class="w-full h-full"></iframe>`;
