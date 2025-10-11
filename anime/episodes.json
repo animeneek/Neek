@@ -18850,132 +18850,236 @@
         "id": "72190"
       },
       {
-        "episode": "1",
-        "id": "100228"
+        "episode": "nan",
+        "id": "nan"
       },
       {
-        "episode": "1",
-        "id": "98658"
+        "episode": "nan",
+        "id": "nan"
       },
       {
-        "episode": "1",
-        "id": "98843"
+        "episode": "nan",
+        "id": "nan"
       },
       {
-        "episode": "2",
-        "id": "98844"
+        "episode": "nan",
+        "id": "nan"
       },
       {
-        "episode": "3",
-        "id": "98845"
+        "episode": "nan",
+        "id": "nan"
       },
       {
-        "episode": "4",
-        "id": "98846"
+        "episode": "nan",
+        "id": "nan"
       },
       {
-        "episode": "5",
-        "id": "98847"
+        "episode": "nan",
+        "id": "nan"
       },
       {
-        "episode": "6",
-        "id": "98848"
+        "episode": "nan",
+        "id": "nan"
       },
       {
-        "episode": "7",
-        "id": "98849"
+        "episode": "nan",
+        "id": "nan"
       },
       {
-        "episode": "8",
-        "id": "98850"
+        "episode": "nan",
+        "id": "nan"
       },
       {
-        "episode": "9",
-        "id": "98851"
+        "episode": "nan",
+        "id": "nan"
       },
       {
-        "episode": "10",
-        "id": "98852"
+        "episode": "nan",
+        "id": "nan"
       },
       {
-        "episode": "11",
-        "id": "98853"
+        "episode": "nan",
+        "id": "nan"
       },
       {
-        "episode": "12",
-        "id": "98854"
+        "episode": "nan",
+        "id": "nan"
       },
       {
-        "episode": "1",
-        "id": "83393"
+        "episode": "nan",
+        "id": "nan"
       },
       {
-        "episode": "1",
-        "id": "94321"
+        "episode": "nan",
+        "id": "nan"
       },
       {
-        "episode": "1",
-        "id": "112669"
+        "episode": "nan",
+        "id": "nan"
       },
       {
-        "episode": "1",
-        "id": "112672"
+        "episode": "nan",
+        "id": "nan"
       },
       {
-        "episode": "2",
-        "id": "112675"
+        "episode": "nan",
+        "id": "nan"
       },
       {
-        "episode": "3",
-        "id": "112678"
+        "episode": "nan",
+        "id": "nan"
       },
       {
-        "episode": "4",
-        "id": "112681"
+        "episode": "nan",
+        "id": "nan"
       },
       {
-        "episode": "5",
-        "id": "112684"
+        "episode": "nan",
+        "id": "nan"
       },
       {
-        "episode": "6",
-        "id": "112687"
+        "episode": "nan",
+        "id": "nan"
       },
       {
-        "episode": "7",
-        "id": "112690"
+        "episode": "nan",
+        "id": "nan"
       },
       {
-        "episode": "8",
-        "id": "112693"
+        "episode": "nan",
+        "id": "nan"
       },
       {
-        "episode": "9",
-        "id": "112696"
+        "episode": "nan",
+        "id": "nan"
       },
       {
-        "episode": "10",
-        "id": "112699"
+        "episode": "nan",
+        "id": "nan"
       },
       {
-        "episode": "11",
-        "id": "112702"
+        "episode": "nan",
+        "id": "nan"
       },
       {
-        "episode": "12",
-        "id": "112705"
+        "episode": "nan",
+        "id": "nan"
       },
       {
-        "episode": "13",
-        "id": "112708"
+        "episode": "nan",
+        "id": "nan"
       },
       {
-        "episode": "14",
-        "id": "112711"
+        "episode": "nan",
+        "id": "nan"
       },
       {
-        "episode": "15",
-        "id": "112714"
+        "episode": "nan",
+        "id": "nan"
+      },
+      {
+        "episode": "nan",
+        "id": "nan"
+      },
+      {
+        "episode": "nan",
+        "id": "nan"
+      },
+      {
+        "episode": "nan",
+        "id": "nan"
+      },
+      {
+        "episode": "nan",
+        "id": "nan"
+      },
+      {
+        "episode": "nan",
+        "id": "nan"
+      },
+      {
+        "episode": "nan",
+        "id": "nan"
+      },
+      {
+        "episode": "nan",
+        "id": "nan"
+      },
+      {
+        "episode": "nan",
+        "id": "nan"
+      },
+      {
+        "episode": "nan",
+        "id": "nan"
+      },
+      {
+        "episode": "nan",
+        "id": "nan"
+      },
+      {
+        "episode": "nan",
+        "id": "nan"
+      },
+      {
+        "episode": "nan",
+        "id": "nan"
+      },
+      {
+        "episode": "nan",
+        "id": "nan"
+      },
+      {
+        "episode": "nan",
+        "id": "nan"
+      },
+      {
+        "episode": "nan",
+        "id": "nan"
+      },
+      {
+        "episode": "nan",
+        "id": "nan"
+      },
+      {
+        "episode": "nan",
+        "id": "nan"
+      },
+      {
+        "episode": "nan",
+        "id": "nan"
+      },
+      {
+        "episode": "nan",
+        "id": "nan"
+      },
+      {
+        "episode": "nan",
+        "id": "nan"
+      },
+      {
+        "episode": "nan",
+        "id": "nan"
+      },
+      {
+        "episode": "nan",
+        "id": "nan"
+      },
+      {
+        "episode": "nan",
+        "id": "nan"
+      },
+      {
+        "episode": "nan",
+        "id": "nan"
+      },
+      {
+        "episode": "nan",
+        "id": "nan"
+      },
+      {
+        "episode": "nan",
+        "id": "nan"
       },
       {
         "episode": "nan",
@@ -22302,6 +22406,176 @@
     ]
   },
   {
+    "id": "103002",
+    "title": "Right Places: Sono Toki, Boku no Irubeki Basho",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "100228"
+      }
+    ]
+  },
+  {
+    "id": "106215",
+    "title": "Itsuka Aeru Kimi ni",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "98658"
+      }
+    ]
+  },
+  {
+    "id": "16692",
+    "title": "Jigoku Youchien",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "98843"
+      },
+      {
+        "episode": "2",
+        "id": "98844"
+      },
+      {
+        "episode": "3",
+        "id": "98845"
+      },
+      {
+        "episode": "4",
+        "id": "98846"
+      },
+      {
+        "episode": "5",
+        "id": "98847"
+      },
+      {
+        "episode": "6",
+        "id": "98848"
+      },
+      {
+        "episode": "7",
+        "id": "98849"
+      },
+      {
+        "episode": "8",
+        "id": "98850"
+      },
+      {
+        "episode": "9",
+        "id": "98851"
+      },
+      {
+        "episode": "10",
+        "id": "98852"
+      },
+      {
+        "episode": "11",
+        "id": "98853"
+      },
+      {
+        "episode": "12",
+        "id": "98854"
+      }
+    ]
+  },
+  {
+    "id": "118030",
+    "title": "Hachigatsu no Cinderella Nine (ONA)",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "83393"
+      }
+    ]
+  },
+  {
+    "id": "136145",
+    "title": "Shiguang Dailiren Special",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "94321"
+      }
+    ]
+  },
+  {
+    "id": "134089",
+    "title": "Feng Qi Luoyang: Shen Ji Shaonian",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "112669"
+      },
+      {
+        "episode": "2",
+        "id": "112672"
+      },
+      {
+        "episode": "3",
+        "id": "112675"
+      },
+      {
+        "episode": "4",
+        "id": "112678"
+      },
+      {
+        "episode": "5",
+        "id": "112681"
+      },
+      {
+        "episode": "6",
+        "id": "112684"
+      },
+      {
+        "episode": "7",
+        "id": "112687"
+      },
+      {
+        "episode": "8",
+        "id": "112690"
+      },
+      {
+        "episode": "9",
+        "id": "112693"
+      },
+      {
+        "episode": "10",
+        "id": "112696"
+      },
+      {
+        "episode": "11",
+        "id": "112699"
+      },
+      {
+        "episode": "12",
+        "id": "112702"
+      },
+      {
+        "episode": "13",
+        "id": "112705"
+      },
+      {
+        "episode": "14",
+        "id": "112708"
+      },
+      {
+        "episode": "15",
+        "id": "112711"
+      },
+      {
+        "episode": "16",
+        "id": "112714"
+      }
+    ]
+  },
+  {
     "id": "186190",
     "title": "Alma-chan wa Kazoku ni Naritai",
     "type": "anime",
@@ -22390,6 +22664,10 @@
       {
         "episode": "1",
         "id": "145452"
+      },
+      {
+        "episode": "2",
+        "id": "145762"
       }
     ]
   },
@@ -22492,20 +22770,2083 @@
     "type": "hanime-mp4-sub",
     "episodes": [
       {
-        "episode": "1",
+        "episode": "1 (Mirror 1)",
         "id": "3wlcmatgl7b9"
       },
       {
-        "episode": "2",
+        "episode": "2 (Mirror 1)",
         "id": "vipxinxxz9h8"
       },
       {
-        "episode": "1",
+        "episode": "1 (Mirror 2)",
         "id": "project-boobs-1"
       },
       {
-        "episode": "2",
+        "episode": "2 (Mirror 2)",
         "id": "project-boobs-2"
+      }
+    ]
+  },
+  {
+    "id": "158641",
+    "title": "Bakeneko Anzu-chan",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "132480"
+      }
+    ]
+  },
+  {
+    "id": "18617",
+    "title": "Girls und Panzer Movie",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "58185"
+      }
+    ]
+  },
+  {
+    "id": "861",
+    "title": "xxxHOLiC",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "10158"
+      },
+      {
+        "episode": "2",
+        "id": "10159"
+      },
+      {
+        "episode": "3",
+        "id": "10160"
+      },
+      {
+        "episode": "4",
+        "id": "10161"
+      },
+      {
+        "episode": "5",
+        "id": "10162"
+      },
+      {
+        "episode": "6",
+        "id": "10163"
+      },
+      {
+        "episode": "7",
+        "id": "10164"
+      },
+      {
+        "episode": "8",
+        "id": "10165"
+      },
+      {
+        "episode": "9",
+        "id": "10166"
+      },
+      {
+        "episode": "10",
+        "id": "10167"
+      },
+      {
+        "episode": "11",
+        "id": "10168"
+      },
+      {
+        "episode": "12",
+        "id": "10169"
+      },
+      {
+        "episode": "13",
+        "id": "10170"
+      },
+      {
+        "episode": "14",
+        "id": "10171"
+      },
+      {
+        "episode": "15",
+        "id": "10172"
+      },
+      {
+        "episode": "16",
+        "id": "10173"
+      },
+      {
+        "episode": "17",
+        "id": "10174"
+      },
+      {
+        "episode": "18",
+        "id": "10175"
+      },
+      {
+        "episode": "19",
+        "id": "10176"
+      },
+      {
+        "episode": "20",
+        "id": "10177"
+      },
+      {
+        "episode": "21",
+        "id": "10178"
+      },
+      {
+        "episode": "22",
+        "id": "10179"
+      },
+      {
+        "episode": "23",
+        "id": "10180"
+      },
+      {
+        "episode": "24",
+        "id": "10181"
+      }
+    ]
+  },
+  {
+    "id": "194835",
+    "title": "Onimomomomo",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "145773"
+      },
+      {
+        "episode": "2",
+        "id": "145774"
+      },
+      {
+        "episode": "3",
+        "id": "145775"
+      },
+      {
+        "episode": "4",
+        "id": "145776"
+      },
+      {
+        "episode": "5",
+        "id": "145777"
+      },
+      {
+        "episode": "6",
+        "id": "145778"
+      },
+      {
+        "episode": "7",
+        "id": "145779"
+      },
+      {
+        "episode": "8",
+        "id": "145780"
+      },
+      {
+        "episode": "9",
+        "id": "145781"
+      },
+      {
+        "episode": "10",
+        "id": "145782"
+      },
+      {
+        "episode": "11",
+        "id": "145783"
+      },
+      {
+        "episode": "12",
+        "id": "145784"
+      },
+      {
+        "episode": "13",
+        "id": "145785"
+      }
+    ]
+  },
+  {
+    "id": "9926",
+    "title": "Sekaiichi Hatsukoi",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "13325"
+      },
+      {
+        "episode": "2",
+        "id": "13326"
+      },
+      {
+        "episode": "3",
+        "id": "13327"
+      },
+      {
+        "episode": "4",
+        "id": "13328"
+      },
+      {
+        "episode": "5",
+        "id": "13329"
+      },
+      {
+        "episode": "6",
+        "id": "13330"
+      },
+      {
+        "episode": "7",
+        "id": "13331"
+      },
+      {
+        "episode": "8",
+        "id": "13332"
+      },
+      {
+        "episode": "9",
+        "id": "13333"
+      },
+      {
+        "episode": "10",
+        "id": "13334"
+      },
+      {
+        "episode": "11",
+        "id": "13335"
+      },
+      {
+        "episode": "12",
+        "id": "13336"
+      }
+    ]
+  },
+  {
+    "id": "98704",
+    "title": "Kuroko no Basket 3 NG-shuu",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "99380"
+      },
+      {
+        "episode": "2",
+        "id": "99381"
+      },
+      {
+        "episode": "3",
+        "id": "99382"
+      },
+      {
+        "episode": "4",
+        "id": "99383"
+      },
+      {
+        "episode": "5",
+        "id": "99384"
+      },
+      {
+        "episode": "6",
+        "id": "99385"
+      },
+      {
+        "episode": "7",
+        "id": "99386"
+      },
+      {
+        "episode": "8",
+        "id": "99387"
+      },
+      {
+        "episode": "9",
+        "id": "99388"
+      }
+    ]
+  },
+  {
+    "id": "129",
+    "title": "Gensou Maden Saiyuuki",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "98064"
+      },
+      {
+        "episode": "2",
+        "id": "98065"
+      },
+      {
+        "episode": "3",
+        "id": "98066"
+      },
+      {
+        "episode": "4",
+        "id": "98067"
+      },
+      {
+        "episode": "5",
+        "id": "98068"
+      },
+      {
+        "episode": "6",
+        "id": "98069"
+      },
+      {
+        "episode": "7",
+        "id": "98070"
+      },
+      {
+        "episode": "8",
+        "id": "98071"
+      },
+      {
+        "episode": "9",
+        "id": "98072"
+      },
+      {
+        "episode": "10",
+        "id": "98073"
+      },
+      {
+        "episode": "11",
+        "id": "98074"
+      },
+      {
+        "episode": "12",
+        "id": "98075"
+      },
+      {
+        "episode": "13",
+        "id": "98076"
+      },
+      {
+        "episode": "14",
+        "id": "98077"
+      },
+      {
+        "episode": "15",
+        "id": "98078"
+      },
+      {
+        "episode": "16",
+        "id": "98079"
+      },
+      {
+        "episode": "17",
+        "id": "98080"
+      },
+      {
+        "episode": "18",
+        "id": "98081"
+      },
+      {
+        "episode": "19",
+        "id": "98082"
+      },
+      {
+        "episode": "20",
+        "id": "98083"
+      },
+      {
+        "episode": "21",
+        "id": "98084"
+      },
+      {
+        "episode": "22",
+        "id": "98085"
+      },
+      {
+        "episode": "23",
+        "id": "98086"
+      },
+      {
+        "episode": "24",
+        "id": "98087"
+      },
+      {
+        "episode": "25",
+        "id": "98088"
+      },
+      {
+        "episode": "26",
+        "id": "98089"
+      },
+      {
+        "episode": "27",
+        "id": "98090"
+      },
+      {
+        "episode": "28",
+        "id": "98091"
+      },
+      {
+        "episode": "29",
+        "id": "98092"
+      },
+      {
+        "episode": "30",
+        "id": "98093"
+      },
+      {
+        "episode": "31",
+        "id": "98094"
+      },
+      {
+        "episode": "32",
+        "id": "98095"
+      },
+      {
+        "episode": "33",
+        "id": "98096"
+      },
+      {
+        "episode": "34",
+        "id": "98097"
+      },
+      {
+        "episode": "35",
+        "id": "98098"
+      },
+      {
+        "episode": "36",
+        "id": "98099"
+      },
+      {
+        "episode": "37",
+        "id": "98100"
+      },
+      {
+        "episode": "38",
+        "id": "98101"
+      },
+      {
+        "episode": "39",
+        "id": "98102"
+      },
+      {
+        "episode": "40",
+        "id": "98103"
+      },
+      {
+        "episode": "41",
+        "id": "98104"
+      },
+      {
+        "episode": "42",
+        "id": "98105"
+      },
+      {
+        "episode": "43",
+        "id": "98106"
+      },
+      {
+        "episode": "44",
+        "id": "98107"
+      },
+      {
+        "episode": "45",
+        "id": "98108"
+      },
+      {
+        "episode": "46",
+        "id": "98109"
+      },
+      {
+        "episode": "47",
+        "id": "98110"
+      },
+      {
+        "episode": "48",
+        "id": "98111"
+      },
+      {
+        "episode": "49",
+        "id": "98112"
+      },
+      {
+        "episode": "50",
+        "id": "98113"
+      }
+    ]
+  },
+  {
+    "id": "14289",
+    "title": "Sukitte Ii na yo.",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "20985"
+      },
+      {
+        "episode": "2",
+        "id": "20986"
+      },
+      {
+        "episode": "3",
+        "id": "20987"
+      },
+      {
+        "episode": "4",
+        "id": "20988"
+      },
+      {
+        "episode": "5",
+        "id": "20989"
+      },
+      {
+        "episode": "6",
+        "id": "20990"
+      },
+      {
+        "episode": "7",
+        "id": "20991"
+      },
+      {
+        "episode": "8",
+        "id": "20992"
+      },
+      {
+        "episode": "9",
+        "id": "20993"
+      },
+      {
+        "episode": "10",
+        "id": "20994"
+      },
+      {
+        "episode": "11",
+        "id": "20995"
+      },
+      {
+        "episode": "12",
+        "id": "20996"
+      },
+      {
+        "episode": "13",
+        "id": "20997"
+      }
+    ]
+  },
+  {
+    "id": "1651",
+    "title": "Uchuu Senkan Yamato 2",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "22936"
+      },
+      {
+        "episode": "2",
+        "id": "22937"
+      },
+      {
+        "episode": "3",
+        "id": "22938"
+      },
+      {
+        "episode": "4",
+        "id": "22939"
+      },
+      {
+        "episode": "5",
+        "id": "22940"
+      },
+      {
+        "episode": "6",
+        "id": "22941"
+      },
+      {
+        "episode": "7",
+        "id": "22942"
+      },
+      {
+        "episode": "8",
+        "id": "22943"
+      },
+      {
+        "episode": "9",
+        "id": "22944"
+      },
+      {
+        "episode": "10",
+        "id": "22945"
+      },
+      {
+        "episode": "11",
+        "id": "22946"
+      },
+      {
+        "episode": "12",
+        "id": "22947"
+      },
+      {
+        "episode": "13",
+        "id": "22948"
+      },
+      {
+        "episode": "14",
+        "id": "22949"
+      },
+      {
+        "episode": "15",
+        "id": "22950"
+      },
+      {
+        "episode": "16",
+        "id": "22951"
+      },
+      {
+        "episode": "17",
+        "id": "22952"
+      },
+      {
+        "episode": "18",
+        "id": "22953"
+      },
+      {
+        "episode": "19",
+        "id": "22954"
+      },
+      {
+        "episode": "20",
+        "id": "22955"
+      },
+      {
+        "episode": "21",
+        "id": "22956"
+      },
+      {
+        "episode": "22",
+        "id": "22957"
+      },
+      {
+        "episode": "23",
+        "id": "22958"
+      },
+      {
+        "episode": "24",
+        "id": "22959"
+      },
+      {
+        "episode": "25",
+        "id": "22960"
+      },
+      {
+        "episode": "26",
+        "id": "22961"
+      }
+    ]
+  },
+  {
+    "id": "1424",
+    "title": "Lupin III: Otakara Henkyaku Daisakusen!!",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "58358"
+      }
+    ]
+  },
+  {
+    "id": "20908",
+    "title": "Hana to Alice Satsujin Jiken",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "58315"
+      }
+    ]
+  },
+  {
+    "id": "9488",
+    "title": "Cencoroll 2",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "86276"
+      }
+    ]
+  },
+  {
+    "id": "16668",
+    "title": "Kakumeiki Valvrave",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "29941"
+      },
+      {
+        "episode": "2",
+        "id": "29942"
+      },
+      {
+        "episode": "3",
+        "id": "29943"
+      },
+      {
+        "episode": "4",
+        "id": "29944"
+      },
+      {
+        "episode": "5",
+        "id": "29945"
+      },
+      {
+        "episode": "6",
+        "id": "29946"
+      },
+      {
+        "episode": "7",
+        "id": "29947"
+      },
+      {
+        "episode": "8",
+        "id": "29948"
+      },
+      {
+        "episode": "9",
+        "id": "29949"
+      },
+      {
+        "episode": "10",
+        "id": "29950"
+      },
+      {
+        "episode": "11",
+        "id": "29951"
+      },
+      {
+        "episode": "12",
+        "id": "29952"
+      }
+    ]
+  },
+  {
+    "id": "102350",
+    "title": "K SEVEN STORIES: Circle Vision ~Nameless Song~",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "58239"
+      }
+    ]
+  },
+  {
+    "id": "620",
+    "title": "Takahashi Rumiko Gekijou: Ningyo no Mori",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "131231"
+      },
+      {
+        "episode": "2",
+        "id": "131232"
+      },
+      {
+        "episode": "3",
+        "id": "131233"
+      },
+      {
+        "episode": "4",
+        "id": "131234"
+      },
+      {
+        "episode": "5",
+        "id": "131235"
+      },
+      {
+        "episode": "6",
+        "id": "131236"
+      },
+      {
+        "episode": "7",
+        "id": "131237"
+      },
+      {
+        "episode": "8",
+        "id": "131238"
+      },
+      {
+        "episode": "9",
+        "id": "131239"
+      },
+      {
+        "episode": "10",
+        "id": "131240"
+      },
+      {
+        "episode": "11",
+        "id": "131241"
+      },
+      {
+        "episode": "12",
+        "id": "131242"
+      },
+      {
+        "episode": "13",
+        "id": "131243"
+      }
+    ]
+  },
+  {
+    "id": "21238",
+    "title": "Anne Happy♪",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "34141"
+      },
+      {
+        "episode": "2",
+        "id": "34142"
+      },
+      {
+        "episode": "3",
+        "id": "34143"
+      },
+      {
+        "episode": "4",
+        "id": "34144"
+      },
+      {
+        "episode": "5",
+        "id": "34145"
+      },
+      {
+        "episode": "6",
+        "id": "34146"
+      },
+      {
+        "episode": "7",
+        "id": "34147"
+      },
+      {
+        "episode": "8",
+        "id": "34148"
+      },
+      {
+        "episode": "9",
+        "id": "34149"
+      },
+      {
+        "episode": "10",
+        "id": "34150"
+      },
+      {
+        "episode": "11",
+        "id": "34151"
+      },
+      {
+        "episode": "12",
+        "id": "34152"
+      }
+    ]
+  },
+  {
+    "id": "108715",
+    "title": "Shaonian Ge Xing",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "118696"
+      },
+      {
+        "episode": "2",
+        "id": "118699"
+      },
+      {
+        "episode": "3",
+        "id": "118702"
+      },
+      {
+        "episode": "4",
+        "id": "118705"
+      },
+      {
+        "episode": "5",
+        "id": "118708"
+      },
+      {
+        "episode": "6",
+        "id": "118711"
+      },
+      {
+        "episode": "7",
+        "id": "118714"
+      },
+      {
+        "episode": "8",
+        "id": "118717"
+      },
+      {
+        "episode": "9",
+        "id": "118720"
+      },
+      {
+        "episode": "10",
+        "id": "118723"
+      },
+      {
+        "episode": "11",
+        "id": "118726"
+      },
+      {
+        "episode": "12",
+        "id": "118729"
+      },
+      {
+        "episode": "13",
+        "id": "118732"
+      },
+      {
+        "episode": "14",
+        "id": "118735"
+      },
+      {
+        "episode": "15",
+        "id": "118738"
+      },
+      {
+        "episode": "16",
+        "id": "118741"
+      },
+      {
+        "episode": "17",
+        "id": "118744"
+      },
+      {
+        "episode": "18",
+        "id": "118747"
+      },
+      {
+        "episode": "19",
+        "id": "118750"
+      },
+      {
+        "episode": "20",
+        "id": "118753"
+      },
+      {
+        "episode": "21",
+        "id": "118756"
+      },
+      {
+        "episode": "22",
+        "id": "118759"
+      },
+      {
+        "episode": "23",
+        "id": "118762"
+      },
+      {
+        "episode": "24",
+        "id": "118765"
+      },
+      {
+        "episode": "25",
+        "id": "118768"
+      },
+      {
+        "episode": "26",
+        "id": "118771"
+      }
+    ]
+  },
+  {
+    "id": "3159",
+    "title": "The♥Kabocha Wine",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "64271"
+      },
+      {
+        "episode": "2",
+        "id": "64272"
+      },
+      {
+        "episode": "3",
+        "id": "64273"
+      },
+      {
+        "episode": "4",
+        "id": "64274"
+      },
+      {
+        "episode": "5",
+        "id": "64275"
+      },
+      {
+        "episode": "6",
+        "id": "64276"
+      },
+      {
+        "episode": "7",
+        "id": "64277"
+      },
+      {
+        "episode": "8",
+        "id": "64278"
+      },
+      {
+        "episode": "9",
+        "id": "64279"
+      },
+      {
+        "episode": "10",
+        "id": "64280"
+      },
+      {
+        "episode": "11",
+        "id": "64281"
+      },
+      {
+        "episode": "12",
+        "id": "64282"
+      },
+      {
+        "episode": "13",
+        "id": "64283"
+      },
+      {
+        "episode": "14",
+        "id": "64284"
+      },
+      {
+        "episode": "15",
+        "id": "64285"
+      },
+      {
+        "episode": "16",
+        "id": "64286"
+      },
+      {
+        "episode": "17",
+        "id": "64287"
+      },
+      {
+        "episode": "18",
+        "id": "64288"
+      },
+      {
+        "episode": "19",
+        "id": "64289"
+      },
+      {
+        "episode": "20",
+        "id": "64290"
+      },
+      {
+        "episode": "21",
+        "id": "64291"
+      },
+      {
+        "episode": "22",
+        "id": "64292"
+      },
+      {
+        "episode": "23",
+        "id": "64293"
+      },
+      {
+        "episode": "24",
+        "id": "64294"
+      },
+      {
+        "episode": "25",
+        "id": "64295"
+      },
+      {
+        "episode": "26",
+        "id": "64296"
+      },
+      {
+        "episode": "27",
+        "id": "64297"
+      },
+      {
+        "episode": "28",
+        "id": "64298"
+      },
+      {
+        "episode": "29",
+        "id": "64299"
+      },
+      {
+        "episode": "30",
+        "id": "64300"
+      },
+      {
+        "episode": "31",
+        "id": "64301"
+      },
+      {
+        "episode": "32",
+        "id": "64302"
+      },
+      {
+        "episode": "33",
+        "id": "64303"
+      },
+      {
+        "episode": "34",
+        "id": "64304"
+      },
+      {
+        "episode": "35",
+        "id": "64305"
+      },
+      {
+        "episode": "36",
+        "id": "64306"
+      },
+      {
+        "episode": "37",
+        "id": "64307"
+      },
+      {
+        "episode": "38",
+        "id": "64308"
+      },
+      {
+        "episode": "39",
+        "id": "64309"
+      },
+      {
+        "episode": "40",
+        "id": "64310"
+      },
+      {
+        "episode": "41",
+        "id": "64311"
+      },
+      {
+        "episode": "42",
+        "id": "64312"
+      },
+      {
+        "episode": "43",
+        "id": "64313"
+      },
+      {
+        "episode": "44",
+        "id": "64314"
+      },
+      {
+        "episode": "45",
+        "id": "64315"
+      },
+      {
+        "episode": "46",
+        "id": "64316"
+      },
+      {
+        "episode": "47",
+        "id": "64317"
+      },
+      {
+        "episode": "48",
+        "id": "64318"
+      },
+      {
+        "episode": "49",
+        "id": "64319"
+      },
+      {
+        "episode": "50",
+        "id": "64320"
+      },
+      {
+        "episode": "51",
+        "id": "64321"
+      },
+      {
+        "episode": "52",
+        "id": "64322"
+      },
+      {
+        "episode": "53",
+        "id": "64323"
+      },
+      {
+        "episode": "54",
+        "id": "64324"
+      },
+      {
+        "episode": "55",
+        "id": "64325"
+      },
+      {
+        "episode": "56",
+        "id": "64326"
+      },
+      {
+        "episode": "57",
+        "id": "64327"
+      },
+      {
+        "episode": "58",
+        "id": "64328"
+      },
+      {
+        "episode": "59",
+        "id": "64329"
+      },
+      {
+        "episode": "60",
+        "id": "64330"
+      },
+      {
+        "episode": "61",
+        "id": "64331"
+      },
+      {
+        "episode": "62",
+        "id": "64332"
+      },
+      {
+        "episode": "63",
+        "id": "64333"
+      },
+      {
+        "episode": "64",
+        "id": "64334"
+      },
+      {
+        "episode": "65",
+        "id": "64335"
+      },
+      {
+        "episode": "66",
+        "id": "64336"
+      },
+      {
+        "episode": "67",
+        "id": "64337"
+      },
+      {
+        "episode": "68",
+        "id": "64338"
+      },
+      {
+        "episode": "69",
+        "id": "64339"
+      },
+      {
+        "episode": "70",
+        "id": "64340"
+      },
+      {
+        "episode": "71",
+        "id": "64341"
+      },
+      {
+        "episode": "72",
+        "id": "64342"
+      },
+      {
+        "episode": "73",
+        "id": "64343"
+      },
+      {
+        "episode": "74",
+        "id": "64344"
+      },
+      {
+        "episode": "75",
+        "id": "64345"
+      },
+      {
+        "episode": "76",
+        "id": "64346"
+      },
+      {
+        "episode": "77",
+        "id": "64347"
+      },
+      {
+        "episode": "78",
+        "id": "64348"
+      },
+      {
+        "episode": "79",
+        "id": "64349"
+      },
+      {
+        "episode": "80",
+        "id": "64350"
+      },
+      {
+        "episode": "81",
+        "id": "64351"
+      },
+      {
+        "episode": "82",
+        "id": "64352"
+      },
+      {
+        "episode": "83",
+        "id": "64353"
+      },
+      {
+        "episode": "84",
+        "id": "64354"
+      },
+      {
+        "episode": "85",
+        "id": "64355"
+      },
+      {
+        "episode": "86",
+        "id": "64356"
+      },
+      {
+        "episode": "87",
+        "id": "64357"
+      },
+      {
+        "episode": "88",
+        "id": "64358"
+      },
+      {
+        "episode": "89",
+        "id": "64359"
+      },
+      {
+        "episode": "90",
+        "id": "64360"
+      },
+      {
+        "episode": "91",
+        "id": "64361"
+      },
+      {
+        "episode": "92",
+        "id": "64362"
+      },
+      {
+        "episode": "93",
+        "id": "64363"
+      },
+      {
+        "episode": "94",
+        "id": "64364"
+      },
+      {
+        "episode": "95",
+        "id": "64365"
+      }
+    ]
+  },
+  {
+    "id": "677",
+    "title": "Sentimental Journey",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "126113"
+      },
+      {
+        "episode": "2",
+        "id": "126092"
+      },
+      {
+        "episode": "3",
+        "id": "126114"
+      },
+      {
+        "episode": "4",
+        "id": "126094"
+      },
+      {
+        "episode": "5",
+        "id": "126095"
+      },
+      {
+        "episode": "6",
+        "id": "126096"
+      },
+      {
+        "episode": "7",
+        "id": "126097"
+      },
+      {
+        "episode": "8",
+        "id": "126098"
+      },
+      {
+        "episode": "9",
+        "id": "126099"
+      },
+      {
+        "episode": "10",
+        "id": "126100"
+      },
+      {
+        "episode": "11",
+        "id": "126101"
+      },
+      {
+        "episode": "12",
+        "id": "126102"
+      }
+    ]
+  },
+  {
+    "id": "11101",
+    "title": "Honoo no Alpen Rose",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "90367"
+      },
+      {
+        "episode": "2",
+        "id": "90368"
+      }
+    ]
+  },
+  {
+    "id": "19773",
+    "title": "Akuma Tou no Prince: Mitsume ga Tooru",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "90354"
+      }
+    ]
+  },
+  {
+    "id": "6798",
+    "title": "Saa Ikou! Tamagotchi",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "95088"
+      },
+      {
+        "episode": "2",
+        "id": "95089"
+      },
+      {
+        "episode": "3",
+        "id": "95090"
+      },
+      {
+        "episode": "4",
+        "id": "95091"
+      },
+      {
+        "episode": "5",
+        "id": "95092"
+      },
+      {
+        "episode": "6",
+        "id": "95093"
+      },
+      {
+        "episode": "7",
+        "id": "95094"
+      },
+      {
+        "episode": "8",
+        "id": "95095"
+      },
+      {
+        "episode": "9",
+        "id": "95096"
+      },
+      {
+        "episode": "10",
+        "id": "95097"
+      },
+      {
+        "episode": "11",
+        "id": "95098"
+      },
+      {
+        "episode": "12",
+        "id": "95099"
+      }
+    ]
+  },
+  {
+    "id": "8496",
+    "title": "Neko Neko Fantasia",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "130583"
+      }
+    ]
+  },
+  {
+    "id": "3597",
+    "title": "Fantasia",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "92191"
+      }
+    ]
+  },
+  {
+    "id": "150007",
+    "title": "Ninja Bugeichou Pilot Film",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "107372"
+      }
+    ]
+  },
+  {
+    "id": "114557",
+    "title": "Fei Ren Zai Part 2",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "82203"
+      },
+      {
+        "episode": "2",
+        "id": "82204"
+      },
+      {
+        "episode": "3",
+        "id": "82205"
+      },
+      {
+        "episode": "4",
+        "id": "82206"
+      },
+      {
+        "episode": "5",
+        "id": "82207"
+      },
+      {
+        "episode": "6",
+        "id": "82208"
+      },
+      {
+        "episode": "7",
+        "id": "82209"
+      },
+      {
+        "episode": "8",
+        "id": "82210"
+      },
+      {
+        "episode": "9",
+        "id": "82211"
+      },
+      {
+        "episode": "10",
+        "id": "82212"
+      },
+      {
+        "episode": "11",
+        "id": "82213"
+      },
+      {
+        "episode": "12",
+        "id": "82214"
+      }
+    ]
+  },
+  {
+    "id": "115907",
+    "title": "Wo Jia Da Shixiong Shi Ge Fanpai",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "87927"
+      },
+      {
+        "episode": "2",
+        "id": "87928"
+      },
+      {
+        "episode": "3",
+        "id": "87929"
+      },
+      {
+        "episode": "4",
+        "id": "87930"
+      },
+      {
+        "episode": "5",
+        "id": "87931"
+      },
+      {
+        "episode": "6",
+        "id": "87932"
+      },
+      {
+        "episode": "7",
+        "id": "87933"
+      },
+      {
+        "episode": "8",
+        "id": "87934"
+      },
+      {
+        "episode": "9",
+        "id": "87935"
+      },
+      {
+        "episode": "10",
+        "id": "87936"
+      },
+      {
+        "episode": "11",
+        "id": "87937"
+      },
+      {
+        "episode": "12",
+        "id": "87938"
+      },
+      {
+        "episode": "13",
+        "id": "87939"
+      }
+    ]
+  },
+  {
+    "id": "169403",
+    "title": "Wonderful Precure! The Movie! Dokidoki♡Game no Sekai de Daibouken!",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "143118"
+      }
+    ]
+  },
+  {
+    "id": "185716",
+    "title": "Hyakushou Kizoku 2nd Season OVA",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "138182"
+      },
+      {
+        "episode": "2",
+        "id": "138183"
+      }
+    ]
+  },
+  {
+    "id": "11123",
+    "title": "Sekaiichi Hatsukoi 2",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "10121"
+      },
+      {
+        "episode": "2",
+        "id": "10122"
+      },
+      {
+        "episode": "3",
+        "id": "10123"
+      },
+      {
+        "episode": "4",
+        "id": "10124"
+      },
+      {
+        "episode": "5",
+        "id": "10125"
+      },
+      {
+        "episode": "6",
+        "id": "10126"
+      },
+      {
+        "episode": "7",
+        "id": "10127"
+      },
+      {
+        "episode": "8",
+        "id": "10128"
+      },
+      {
+        "episode": "9",
+        "id": "10129"
+      },
+      {
+        "episode": "10",
+        "id": "10130"
+      },
+      {
+        "episode": "11",
+        "id": "10131"
+      },
+      {
+        "episode": "12",
+        "id": "10132"
+      }
+    ]
+  },
+  {
+    "id": "5460",
+    "title": "Meitantei Conan: Shikkoku no Chaser",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "58045"
+      }
+    ]
+  },
+  {
+    "id": "322",
+    "title": "Paradise Kiss",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "13301"
+      },
+      {
+        "episode": "2",
+        "id": "13302"
+      },
+      {
+        "episode": "3",
+        "id": "13303"
+      },
+      {
+        "episode": "4",
+        "id": "13304"
+      },
+      {
+        "episode": "5",
+        "id": "13305"
+      },
+      {
+        "episode": "6",
+        "id": "13306"
+      },
+      {
+        "episode": "7",
+        "id": "13307"
+      },
+      {
+        "episode": "8",
+        "id": "13308"
+      },
+      {
+        "episode": "9",
+        "id": "13309"
+      },
+      {
+        "episode": "10",
+        "id": "13310"
+      },
+      {
+        "episode": "11",
+        "id": "13311"
+      },
+      {
+        "episode": "12",
+        "id": "13312"
+      }
+    ]
+  },
+  {
+    "id": "105081",
+    "title": "Joshikousei no Mudazukai",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "16508"
+      },
+      {
+        "episode": "2",
+        "id": "16509"
+      },
+      {
+        "episode": "3",
+        "id": "16510"
+      },
+      {
+        "episode": "4",
+        "id": "16511"
+      },
+      {
+        "episode": "5",
+        "id": "16512"
+      },
+      {
+        "episode": "6",
+        "id": "16513"
+      },
+      {
+        "episode": "7",
+        "id": "16514"
+      },
+      {
+        "episode": "8",
+        "id": "16515"
+      },
+      {
+        "episode": "9",
+        "id": "16516"
+      },
+      {
+        "episode": "10",
+        "id": "16517"
+      },
+      {
+        "episode": "11",
+        "id": "16518"
+      },
+      {
+        "episode": "12",
+        "id": "16519"
+      }
+    ]
+  },
+  {
+    "id": "98496",
+    "title": "Free!: Timeless Medley - Yakusoku",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "64866"
+      }
+    ]
+  },
+  {
+    "id": "13245",
+    "title": "Shin Tennis no Ouji-sama OVA",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "82919"
+      },
+      {
+        "episode": "2",
+        "id": "82920"
+      },
+      {
+        "episode": "3",
+        "id": "82921"
+      },
+      {
+        "episode": "4",
+        "id": "82922"
+      },
+      {
+        "episode": "5",
+        "id": "82923"
+      },
+      {
+        "episode": "6",
+        "id": "82924"
+      },
+      {
+        "episode": "7",
+        "id": "82925"
+      }
+    ]
+  },
+  {
+    "id": "25",
+    "title": "Sunabouzu",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "22912"
+      },
+      {
+        "episode": "2",
+        "id": "22913"
+      },
+      {
+        "episode": "3",
+        "id": "22914"
+      },
+      {
+        "episode": "4",
+        "id": "22915"
+      },
+      {
+        "episode": "5",
+        "id": "22916"
+      },
+      {
+        "episode": "6",
+        "id": "22917"
+      },
+      {
+        "episode": "7",
+        "id": "22918"
+      },
+      {
+        "episode": "8",
+        "id": "22919"
+      },
+      {
+        "episode": "9",
+        "id": "22920"
+      },
+      {
+        "episode": "10",
+        "id": "22921"
+      },
+      {
+        "episode": "11",
+        "id": "22922"
+      },
+      {
+        "episode": "12",
+        "id": "22923"
+      },
+      {
+        "episode": "13",
+        "id": "22924"
+      },
+      {
+        "episode": "14",
+        "id": "22925"
+      },
+      {
+        "episode": "15",
+        "id": "22926"
+      },
+      {
+        "episode": "16",
+        "id": "22927"
+      },
+      {
+        "episode": "17",
+        "id": "22928"
+      },
+      {
+        "episode": "18",
+        "id": "22929"
+      },
+      {
+        "episode": "19",
+        "id": "22930"
+      },
+      {
+        "episode": "20",
+        "id": "22931"
+      },
+      {
+        "episode": "21",
+        "id": "22932"
+      },
+      {
+        "episode": "22",
+        "id": "22933"
+      },
+      {
+        "episode": "23",
+        "id": "22934"
+      },
+      {
+        "episode": "24",
+        "id": "22935"
+      }
+    ]
+  },
+  {
+    "id": "16353",
+    "title": "Love Lab",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "24736"
+      },
+      {
+        "episode": "2",
+        "id": "24737"
+      },
+      {
+        "episode": "3",
+        "id": "24738"
+      },
+      {
+        "episode": "4",
+        "id": "24739"
+      },
+      {
+        "episode": "5",
+        "id": "24740"
+      },
+      {
+        "episode": "6",
+        "id": "24741"
+      },
+      {
+        "episode": "7",
+        "id": "24742"
+      },
+      {
+        "episode": "8",
+        "id": "24743"
+      },
+      {
+        "episode": "9",
+        "id": "24744"
+      },
+      {
+        "episode": "10",
+        "id": "24745"
+      },
+      {
+        "episode": "11",
+        "id": "24746"
+      },
+      {
+        "episode": "12",
+        "id": "24747"
+      },
+      {
+        "episode": "13",
+        "id": "24748"
       }
     ]
   }
