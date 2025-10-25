@@ -68,10 +68,45 @@
     src="https://www.youtube.com/embed/iV1pV5XNsDU?start=6&end=93&autoplay=1&mute=1&loop=1&playlist=iV1pV5XNsDU&controls=0&showinfo=0&modestbranding=1"
     class="w-full h-full object-cover"
     frameborder="0"
-    allow="autoplay; encrypted-media"
-  ></iframe>
+    allow="autoplay; encrypted-media">
+    </iframe>
   <div class="absolute inset-0 bg-black/60"></div> <!-- dark overlay -->
 </div>
+
+  <!-- Background Video -->
+<div id="video-bg" class="absolute inset-0 -z-10 overflow-hidden">
+  <div id="player"></div>
+  <div class="absolute inset-0 bg-black/60"></div> <!-- dark overlay -->
+</div>
+
+<!-- YouTube Player API -->
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+  let player;
+  function onYouTubeIframeAPIReady() {
+    player = new YT.Player('player', {
+      videoId: 'iV1pV5XNsDU',
+      playerVars: {
+        autoplay: 1,
+        mute: 1,
+        loop: 1,
+        controls: 0,
+        showinfo: 0,
+        modestbranding: 1,
+        start: 6,
+        end: 93,
+        playlist: 'iV1pV5XNsDU'
+      },
+      events: {
+        onReady: function(e) {
+          e.target.mute();
+          e.target.playVideo();
+        }
+      }
+    });
+  }
+</script>
+
 
 
   <!-- FOOTER -->
