@@ -23,6 +23,21 @@
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
     }
+
+    /* Background image with black faded edges */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(circle at center, rgba(0,0,0,0) 40%, rgba(0,0,0,1) 100%),
+    url("https://raw.githubusercontent.com/animeneek/Neek/main/assets/images/Prabhas_Salaar_01.jpg");
+  background-size: cover;
+  background-position: center;
+  filter: brightness(0.6);
+}
+
   </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans antialiased">
@@ -61,39 +76,6 @@
     </div>
   </main>
 
-   <!-- BACKGROUND VIDEO (API method) -->
-  <div id="video-bg" class="absolute inset-0 -z-10 overflow-hidden">
-    <div id="player" class="w-full h-full"></div>
-    <div class="absolute inset-0 bg-black/60"></div> <!-- dark overlay -->
-  </div>
-
-  <!-- YouTube Player API -->
-  <script src="https://www.youtube.com/iframe_api"></script>
-  <script>
-    let player;
-    function onYouTubeIframeAPIReady() {
-      player = new YT.Player('player', {
-        videoId: 'iV1pV5XNsDU',
-        playerVars: {
-          autoplay: 1,
-          mute: 1,
-          loop: 1,
-          controls: 0,
-          showinfo: 0,
-          modestbranding: 1,
-          start: 6,
-          end: 93,
-          playlist: 'iV1pV5XNsDU'
-        },
-        events: {
-          onReady: function(e) {
-            e.target.mute();
-            e.target.playVideo();
-          }
-        }
-      });
-    }
-  </script>
 
   <!-- FOOTER -->
   <footer class="border-t border-gray-800">
