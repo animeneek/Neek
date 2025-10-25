@@ -715,7 +715,7 @@
     "type": "anime",
     "episodes": [
       {
-        "episode": "2025-01-15 00:00:00",
+        "episode": "01-15",
         "id": "57939"
       }
     ]
@@ -18365,7 +18365,7 @@
     "type": "anime",
     "episodes": [
       {
-        "episode": "2025-01-03 00:00:00",
+        "episode": "01-03",
         "id": "126986"
       }
     ]
@@ -19003,154 +19003,6 @@
       {
         "episode": "10",
         "id": "146781"
-      },
-      {
-        "episode": "nan",
-        "id": "nan"
-      },
-      {
-        "episode": "nan",
-        "id": "nan"
-      },
-      {
-        "episode": "nan",
-        "id": "nan"
-      },
-      {
-        "episode": "nan",
-        "id": "nan"
-      },
-      {
-        "episode": "nan",
-        "id": "nan"
-      },
-      {
-        "episode": "nan",
-        "id": "nan"
-      },
-      {
-        "episode": "nan",
-        "id": "nan"
-      },
-      {
-        "episode": "nan",
-        "id": "nan"
-      },
-      {
-        "episode": "nan",
-        "id": "nan"
-      },
-      {
-        "episode": "nan",
-        "id": "nan"
-      },
-      {
-        "episode": "nan",
-        "id": "nan"
-      },
-      {
-        "episode": "nan",
-        "id": "nan"
-      },
-      {
-        "episode": "nan",
-        "id": "nan"
-      },
-      {
-        "episode": "nan",
-        "id": "nan"
-      },
-      {
-        "episode": "nan",
-        "id": "nan"
-      },
-      {
-        "episode": "nan",
-        "id": "nan"
-      },
-      {
-        "episode": "nan",
-        "id": "nan"
-      },
-      {
-        "episode": "nan",
-        "id": "nan"
-      },
-      {
-        "episode": "nan",
-        "id": "nan"
-      },
-      {
-        "episode": "nan",
-        "id": "nan"
-      },
-      {
-        "episode": "nan",
-        "id": "nan"
-      },
-      {
-        "episode": "nan",
-        "id": "nan"
-      },
-      {
-        "episode": "nan",
-        "id": "nan"
-      },
-      {
-        "episode": "nan",
-        "id": "nan"
-      },
-      {
-        "episode": "nan",
-        "id": "nan"
-      },
-      {
-        "episode": "nan",
-        "id": "nan"
-      },
-      {
-        "episode": "nan",
-        "id": "nan"
-      },
-      {
-        "episode": "nan",
-        "id": "nan"
-      },
-      {
-        "episode": "nan",
-        "id": "nan"
-      },
-      {
-        "episode": "nan",
-        "id": "nan"
-      },
-      {
-        "episode": "nan",
-        "id": "nan"
-      },
-      {
-        "episode": "nan",
-        "id": "nan"
-      },
-      {
-        "episode": "nan",
-        "id": "nan"
-      },
-      {
-        "episode": "nan",
-        "id": "nan"
-      },
-      {
-        "episode": "nan",
-        "id": "nan"
-      },
-      {
-        "episode": "nan",
-        "id": "nan"
-      },
-      {
-        "episode": "nan",
-        "id": "nan"
       },
       {
         "episode": "nan",
@@ -27196,19 +27048,19 @@
     "type": "anime",
     "episodes": [
       {
-        "episode": "2025-01-03 00:00:00",
+        "episode": "01-03",
         "id": "61665"
       },
       {
-        "episode": "2025-04-06 00:00:00",
+        "episode": "04-06",
         "id": "61668"
       },
       {
-        "episode": "2025-07-09 00:00:00",
+        "episode": "07-09",
         "id": "61671"
       },
       {
-        "episode": "2025-10-12 00:00:00",
+        "episode": "10-12",
         "id": "61674"
       },
       {
@@ -35202,6 +35054,10 @@
       {
         "episode": "2",
         "id": "145954"
+      },
+      {
+        "episode": "3",
+        "id": "147249"
       }
     ]
   },
@@ -36034,6 +35890,406 @@
       {
         "episode": "100",
         "id": "146054"
+      },
+      {
+        "episode": "101",
+        "id": "146845"
+      },
+      {
+        "episode": "102",
+        "id": "146849"
+      },
+      {
+        "episode": "103",
+        "id": "146853"
+      },
+      {
+        "episode": "104",
+        "id": "146857"
+      },
+      {
+        "episode": "105",
+        "id": "146861"
+      },
+      {
+        "episode": "106",
+        "id": "146865"
+      },
+      {
+        "episode": "107",
+        "id": "146869"
+      },
+      {
+        "episode": "108",
+        "id": "146873"
+      },
+      {
+        "episode": "109",
+        "id": "146877"
+      },
+      {
+        "episode": "110",
+        "id": "146881"
+      },
+      {
+        "episode": "111",
+        "id": "146885"
+      },
+      {
+        "episode": "112",
+        "id": "146889"
+      },
+      {
+        "episode": "113",
+        "id": "146893"
+      },
+      {
+        "episode": "114",
+        "id": "146897"
+      },
+      {
+        "episode": "115",
+        "id": "146901"
+      },
+      {
+        "episode": "116",
+        "id": "146905"
+      },
+      {
+        "episode": "117",
+        "id": "146909"
+      },
+      {
+        "episode": "118",
+        "id": "146913"
+      },
+      {
+        "episode": "119",
+        "id": "146917"
+      },
+      {
+        "episode": "120",
+        "id": "146921"
+      },
+      {
+        "episode": "121",
+        "id": "146925"
+      },
+      {
+        "episode": "122",
+        "id": "146929"
+      },
+      {
+        "episode": "123",
+        "id": "146933"
+      },
+      {
+        "episode": "124",
+        "id": "146937"
+      },
+      {
+        "episode": "125",
+        "id": "146941"
+      },
+      {
+        "episode": "126",
+        "id": "146945"
+      },
+      {
+        "episode": "127",
+        "id": "146949"
+      },
+      {
+        "episode": "128",
+        "id": "146953"
+      },
+      {
+        "episode": "129",
+        "id": "146957"
+      },
+      {
+        "episode": "130",
+        "id": "146961"
+      },
+      {
+        "episode": "131",
+        "id": "146965"
+      },
+      {
+        "episode": "132",
+        "id": "146969"
+      },
+      {
+        "episode": "133",
+        "id": "146973"
+      },
+      {
+        "episode": "134",
+        "id": "146977"
+      },
+      {
+        "episode": "135",
+        "id": "146981"
+      },
+      {
+        "episode": "136",
+        "id": "146985"
+      },
+      {
+        "episode": "137",
+        "id": "146989"
+      },
+      {
+        "episode": "138",
+        "id": "146993"
+      },
+      {
+        "episode": "139",
+        "id": "146997"
+      },
+      {
+        "episode": "140",
+        "id": "147001"
+      },
+      {
+        "episode": "141",
+        "id": "147005"
+      },
+      {
+        "episode": "142",
+        "id": "147009"
+      },
+      {
+        "episode": "143",
+        "id": "147013"
+      },
+      {
+        "episode": "144",
+        "id": "147017"
+      },
+      {
+        "episode": "145",
+        "id": "147021"
+      },
+      {
+        "episode": "146",
+        "id": "147025"
+      },
+      {
+        "episode": "147",
+        "id": "147029"
+      },
+      {
+        "episode": "148",
+        "id": "147033"
+      },
+      {
+        "episode": "149",
+        "id": "147037"
+      },
+      {
+        "episode": "150",
+        "id": "147041"
+      },
+      {
+        "episode": "151",
+        "id": "147045"
+      },
+      {
+        "episode": "152",
+        "id": "147049"
+      },
+      {
+        "episode": "153",
+        "id": "147053"
+      },
+      {
+        "episode": "154",
+        "id": "147057"
+      },
+      {
+        "episode": "155",
+        "id": "147061"
+      },
+      {
+        "episode": "156",
+        "id": "147065"
+      },
+      {
+        "episode": "157",
+        "id": "147069"
+      },
+      {
+        "episode": "158",
+        "id": "147073"
+      },
+      {
+        "episode": "159",
+        "id": "147077"
+      },
+      {
+        "episode": "160",
+        "id": "147081"
+      },
+      {
+        "episode": "161",
+        "id": "147085"
+      },
+      {
+        "episode": "162",
+        "id": "147089"
+      },
+      {
+        "episode": "163",
+        "id": "147093"
+      },
+      {
+        "episode": "164",
+        "id": "147097"
+      },
+      {
+        "episode": "165",
+        "id": "147101"
+      },
+      {
+        "episode": "166",
+        "id": "147105"
+      },
+      {
+        "episode": "167",
+        "id": "147109"
+      },
+      {
+        "episode": "168",
+        "id": "147113"
+      },
+      {
+        "episode": "169",
+        "id": "147117"
+      },
+      {
+        "episode": "170",
+        "id": "147121"
+      },
+      {
+        "episode": "171",
+        "id": "147125"
+      },
+      {
+        "episode": "172",
+        "id": "147129"
+      },
+      {
+        "episode": "173",
+        "id": "147133"
+      },
+      {
+        "episode": "174",
+        "id": "147137"
+      },
+      {
+        "episode": "175",
+        "id": "147141"
+      },
+      {
+        "episode": "176",
+        "id": "147145"
+      },
+      {
+        "episode": "177",
+        "id": "147149"
+      },
+      {
+        "episode": "178",
+        "id": "147153"
+      },
+      {
+        "episode": "179",
+        "id": "147157"
+      },
+      {
+        "episode": "180",
+        "id": "147161"
+      },
+      {
+        "episode": "181",
+        "id": "147165"
+      },
+      {
+        "episode": "182",
+        "id": "147169"
+      },
+      {
+        "episode": "183",
+        "id": "147173"
+      },
+      {
+        "episode": "184",
+        "id": "147177"
+      },
+      {
+        "episode": "185",
+        "id": "147181"
+      },
+      {
+        "episode": "186",
+        "id": "147185"
+      },
+      {
+        "episode": "187",
+        "id": "147189"
+      },
+      {
+        "episode": "188",
+        "id": "147193"
+      },
+      {
+        "episode": "189",
+        "id": "147197"
+      },
+      {
+        "episode": "190",
+        "id": "147201"
+      },
+      {
+        "episode": "191",
+        "id": "147205"
+      },
+      {
+        "episode": "192",
+        "id": "147209"
+      },
+      {
+        "episode": "193",
+        "id": "147213"
+      },
+      {
+        "episode": "194",
+        "id": "147217"
+      },
+      {
+        "episode": "195",
+        "id": "147221"
+      },
+      {
+        "episode": "196",
+        "id": "147225"
+      },
+      {
+        "episode": "197",
+        "id": "147229"
+      },
+      {
+        "episode": "198",
+        "id": "147233"
+      },
+      {
+        "episode": "199",
+        "id": "147237"
+      },
+      {
+        "episode": "200",
+        "id": "147241"
       }
     ]
   },
@@ -41312,6 +41568,10 @@
       {
         "episode": "3",
         "id": "146130"
+      },
+      {
+        "episode": "4",
+        "id": "147253"
       }
     ]
   },
@@ -41365,90 +41625,90 @@
     "episodes": [
       {
         "episode": "1",
-        "id": "nan"
+        "id": "145529"
       },
       {
         "episode": "2",
-        "id": "nan"
+        "id": "145849"
       },
       {
         "episode": "3",
-        "id": "nan"
+        "id": "146139"
+      }
+    ]
+  },
+  {
+    "id": "181447",
+    "title": "Saigo ni Hitotsu dake Onegai Shite mo Yoroshii Deshou ka",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "145501"
+      },
+      {
+        "episode": "2",
+        "id": "145502"
+      },
+      {
+        "episode": "3",
+        "id": "145819"
       },
       {
         "episode": "4",
-        "id": "nan"
+        "id": "146109"
       },
       {
         "episode": "5",
-        "id": "nan"
+        "id": "146813"
+      }
+    ]
+  },
+  {
+    "id": "185731",
+    "title": "Ranma 1/2 (2024) 2nd Season",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "145533"
       },
       {
-        "episode": "6",
-        "id": "nan"
+        "episode": "2",
+        "id": "145853"
       },
       {
-        "episode": "7",
-        "id": "nan"
+        "episode": "3",
+        "id": "146143"
+      }
+    ]
+  },
+  {
+    "id": "185801",
+    "title": "Nageki no Bourei wa Intai shitai 2",
+    "type": "anime",
+    "episodes": [
+      {
+        "episode": "1",
+        "id": "145528"
       },
       {
-        "episode": "8",
-        "id": "nan"
+        "episode": "2",
+        "id": "145848"
       },
       {
-        "episode": "9",
-        "id": "nan"
-      },
+        "episode": "3",
+        "id": "146138"
+      }
+    ]
+  },
+  {
+    "id": "162890",
+    "title": "3-nen Z-gumi Ginpachi-sensei",
+    "type": "anime",
+    "episodes": [
       {
-        "episode": "10",
-        "id": "nan"
-      },
-      {
-        "episode": "11",
-        "id": "nan"
-      },
-      {
-        "episode": "12",
-        "id": "nan"
-      },
-      {
-        "episode": "13",
-        "id": "nan"
-      },
-      {
-        "episode": "14",
-        "id": "nan"
-      },
-      {
-        "episode": "15",
-        "id": "nan"
-      },
-      {
-        "episode": "16",
-        "id": "nan"
-      },
-      {
-        "episode": "17",
-        "id": "nan"
-      },
-      {
-        "episode": "18",
-        "id": "nan"
-      },
-      {
-        "episode": "19",
-        "id": "nan"
-      },
-      {
-        "episode": "20",
-        "id": "nan"
-      },
-      {
-        "episode": "21",
-        "id": "nan"
-      },
-      {
-        "episode": "22",
+        "episode": "nan",
         "id": "nan"
       }
     ]
