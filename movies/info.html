@@ -80,11 +80,10 @@
             <option value="">Select Episode</option>
           </select>
 
-          <!-- ✅ ADDED SOURCE DROPDOWN -->
           <select id="sourceSelect" class="bg-[#1a1a1a] border border-gray-700 rounded-xl px-3 py-2 text-sm w-48">
-            <option value="1">Source 1</option>
-            <option value="2">Source 2</option>
-          </select>
+  <option value="1">Source 1</option>
+  <option value="2">Source 2</option>
+</select>
 
           <button id="playBtn" disabled
                   class="bg-[--accent] text-white px-4 py-2 rounded-xl opacity-60 cursor-not-allowed transition">
@@ -189,17 +188,18 @@
         </div>`;
       document.getElementById('info').innerHTML = html;
 
-      // ✅ UPDATED SOURCES
-      const source1 = `https://embedmaster.link/movie/${data.id}`;
-      const source2 = `https://player.embed-api.stream/?id=${data.id}&type=movie`;
+const source1 = `https://embedmaster.link/movie/${data.id}`;
+const source2 = `https://player.embed-api.stream/?id=${data.id}&type=movie`;
 
-      document.getElementById('player-placeholder')?.remove();
-      document.getElementById('player').innerHTML = `<div class="w-full h-full flex items-center justify-center text-gray-400">Select a source to play</div>`;
-      document.getElementById('sources').innerHTML = `
-        <button class="src-btn bg-[--accent] text-white px-4 py-2 rounded-xl" data-url="${source1}">Source 1</button>
-        <button class="src-btn bg-gray-700 text-white px-4 py-2 rounded-xl" data-url="${source2}">Source 2</button>
-      `;
-      wireSourceButtons();
+document.getElementById('player-placeholder')?.remove();
+document.getElementById('player').innerHTML = `<div class="w-full h-full flex items-center justify-center text-gray-400">Select a source to play</div>`;
+
+document.getElementById('sources').innerHTML = `
+  <button class="src-btn bg-[--accent] text-white px-4 py-2 rounded-xl" data-url="${source1}">Source 1</button>
+  <button class="src-btn bg-gray-700 text-white px-4 py-2 rounded-xl" data-url="${source2}">Source 2</button>
+`;
+
+wireSourceButtons();
     }
 
     function renderSeries(data) {
@@ -225,6 +225,83 @@
       document.getElementById('episodes').classList.remove('hidden');
     }
 
+    async function loadCast(mediaType) {
+      try {
+        const res = await fetch(`https://api.themoviedb.org/3/${mediaType}/${id}/credits?api_key=${API_KEY}`);
+        const data = await res.json();
+        const cast = (data.cast||[]).slice(0,12);
+        const html = cast.map(p=>{
+          const img = p.profile_path?IMG+p.profile_path:FALLBACK_POSTER;
+          return `
+            <a href="people.html?id=${p.id}" class="flex flex-col items-center text-center hover:text-[--accent]">
+              <div class="w-16 h-16 rounded-full overflow-hidden ring-2 ring-[--accent]">
+                <img src="${img}" alt="${escapeHtml(p.name)}" class="w-full h-full object-cover">
+              </div>
+              <div class="mt-2 text-sm font-medium">${escapeHtml(p.name)}</div>
+              <div class="text-xs text-gray-400">${escapeHtml(p.character||'')}</div>
+            </a>`;
+        }).join('');
+        document.getElementById('cast-grid').innerHTML = html;
+      } catch(e){console.error(e);}
+    }
+
+    async function loadSimilar(mediaType) {
+      try {
+        const res = await fetch(`https://api.themoviedb.org/3/${mediaType}/${id}/similar?api_key=${API_KEY}&language=en-US&page=1`);
+        const data = await res.json();
+        const items = (data.results||[]).slice(0,10);
+        const html = items.map(it=>{
+          const poster = it.poster_path?IMG+it.poster_path:FALLBACK_POSTER;
+          const title = escapeHtml(it.title||it.name||'—');
+          const linkType = (mediaType==='movie')?'movie':'series';
+          const meta = (mediaType==='movie')
+            ? `Movie | ${getYear(it.release_date)} | <i class="fa fa-star star"></i> ${(it.vote_average||0).toFixed(1)}`
+            : `Series | ${getYear(it.first_air_date)} | ${it.number_of_seasons||'?'} Seasons | <i class="fa fa-star star"></i> ${(it.vote_average||0).toFixed(1)}`;
+          return `
+            <a href="info.html?id=${it.id}&type=${linkType}" class="block rounded-xl overflow-hidden hover:scale-105 transition bg-[#1a1a1a]">
+              <img src="${poster}" class="w-full h-72 object-cover" alt="${title}">
+              <div class="p-2">
+                <p class="text-sm font-bold line-clamp-1">${title}</p>
+                <p class="text-xs text-gray-400">${meta}</p>
+              </div>
+            </a>`;
+        }).join('');
+        document.getElementById('similar-grid').innerHTML = html;
+      } catch(e){console.error(e);}
+    }
+
+    async function loadExtraSources() {
+      try {
+        const raw = await fetch('https://raw.githubusercontent.com/animeneek/MovieNeek/main/MovieNeek.json');
+        const arr = await raw.json();
+        const match = arr.find(x=>String(x.TMDBID)===String(id));
+        if (!match) return;
+        const sourcesEl=document.getElementById('sources');
+        const seriesSourcesEl=document.getElementById('series-sources');
+        for(let i=0;i<(match.SRC||[]).length;i++){
+          const src=match.SRC[i];const label=match.Source?.[i]||`Source ${i+2}`;const vid=match.VIDEOID?.[i];
+          if(!vid)continue;
+          const url=src==='streamtape'?`https://streamtape.to/e/${vid}`:
+                    src==='streamwish'?`https://streamwish.to/e/${vid}`:
+                    src==='mp4upload'?`https://mp4upload.com/v/${vid}`:
+                    src==='other'?`https://otherone.com/e/${vid}`:
+                    src==='other2'?`https://othertwo.com/e/${vid}`:`https://example.com/e/${vid}`;
+          const btn=document.createElement('button');
+          btn.className='bg-[--accent] text-white px-4 py-2 rounded-xl';
+          btn.textContent=label;btn.dataset.url=url;
+          btn.addEventListener('click',()=>{loadPlayer(url);});
+          if(type==='movie'){sourcesEl.appendChild(btn);}else{seriesSourcesEl.appendChild(btn);}
+        }
+        sourcesEl.classList.add('justify-center');
+      } catch(e){console.warn(e);}
+    }
+
+    function wireSourceButtons() {
+      document.getElementById('sources').addEventListener('click',ev=>{
+        const t=ev.target.closest('button');if(!t)return;const url=t.dataset.url;if(!url)return;loadPlayer(url);
+      });
+    }
+
     function loadPlayer(url){
       if(!url)return;
       const player=document.getElementById('player');
@@ -237,8 +314,8 @@
         const seasonSelect = document.getElementById('seasonSelect');
         const episodeSelect = document.getElementById('episodeSelect');
         const playBtn = document.getElementById('playBtn');
-        const sourceSelect = document.getElementById('sourceSelect'); // ✅ added
 
+        // populate seasons (exclude season 0 if exists)
         (seriesData.seasons || []).forEach(s => {
           if (s.season_number && s.season_number > 0) {
             const opt = document.createElement('option');
@@ -253,54 +330,58 @@
           episodeSelect.disabled = true;
           playBtn.disabled = true;
           playBtn.classList.add('opacity-60', 'cursor-not-allowed');
-
           const sn = seasonSelect.value;
           if (!sn) return;
-
-          const res = await fetch(`https://api.themoviedb.org/3/tv/${id}/season/${sn}?api_key=${API_KEY}&language=en-US`);
-          const sd = await res.json();
-
-          (sd.episodes || []).forEach(ep => {
-            const o = document.createElement('option');
-            o.value = ep.episode_number;
-            o.textContent = `Episode ${ep.episode_number} — ${ep.name || ''}`;
-            episodeSelect.appendChild(o);
-          });
-
-          episodeSelect.disabled = false;
+          try {
+            const res = await fetch(`https://api.themoviedb.org/3/tv/${id}/season/${sn}?api_key=${API_KEY}&language=en-US`);
+            const sd = await res.json();
+            (sd.episodes || []).forEach(ep => {
+              const o = document.createElement('option');
+              o.value = ep.episode_number;
+              o.textContent = `Episode ${ep.episode_number} — ${ep.name || ''}`;
+              episodeSelect.appendChild(o);
+            });
+            episodeSelect.disabled = false;
+          } catch (e) {
+            console.error('Failed season fetch', e);
+          }
         });
 
         episodeSelect.addEventListener('change', () => {
           if (episodeSelect.value && seasonSelect.value) {
             playBtn.disabled = false;
             playBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+          } else {
+            playBtn.disabled = true;
+            playBtn.classList.add('opacity-60', 'cursor-not-allowed');
           }
         });
 
-        // ✅ UPDATED PLAY LOGIC
-        playBtn.addEventListener('click', () => {
-          const s = seasonSelect.value;
-          const e = episodeSelect.value;
-          const src = sourceSelect.value;
+const sourceSelect = document.getElementById('sourceSelect');
 
-          if (s && e) {
-            let url;
+playBtn.addEventListener('click', () => {
+  const s = seasonSelect.value;
+  const e = episodeSelect.value;
+  const src = sourceSelect.value;
 
-            if (src === "1") {
-              url = `https://embedmaster.link/tv/${id}/${s}/${e}`;
-            } else {
-              url = `https://player.embed-api.stream/?id=${id}&s=${s}&e=${e}`;
-            }
+  if (s && e) {
+    let url;
 
-            loadPlayer(url);
-          }
-        });
+    if (src === "1") {
+      url = `https://embedmaster.link/tv/${id}/${s}/${e}`;
+    } else {
+      url = `https://player.embed-api.stream/?id=${id}&s=${s}&e=${e}`;
+    }
 
+    loadPlayer(url);
+  }
+});
       } catch (err) {
         console.error('initSeriesControls error', err);
       }
     }
 
+    // small helpers
     function getYear(dateStr) {
       if (!dateStr) return '—';
       return (dateStr.split && dateStr.split('-')[0]) || dateStr;
