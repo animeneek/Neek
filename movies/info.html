@@ -296,11 +296,27 @@ wireSourceButtons();
       } catch(e){console.warn(e);}
     }
 
-    function wireSourceButtons() {
-      document.getElementById('sources').addEventListener('click',ev=>{
-        const t=ev.target.closest('button');if(!t)return;const url=t.dataset.url;if(!url)return;loadPlayer(url);
-      });
-    }
+function wireSourceButtons() {
+  document.getElementById('sources').addEventListener('click', ev => {
+    const t = ev.target.closest('button');
+    if (!t) return;
+
+    const url = t.dataset.url;
+    if (!url) return;
+
+    // ✅ REMOVE ACTIVE FROM ALL
+    document.querySelectorAll('#sources button').forEach(btn => {
+      btn.classList.remove('bg-[--accent]');
+      btn.classList.add('bg-gray-700');
+    });
+
+    // ✅ ADD ACTIVE TO CLICKED
+    t.classList.remove('bg-gray-700');
+    t.classList.add('bg-[--accent]');
+
+    loadPlayer(url);
+  });
+}
 
     function loadPlayer(url){
       if(!url)return;
