@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Neek — Info</title>
 
-  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
   <style>
@@ -32,134 +30,147 @@
 </head>
 <body class="min-h-screen flex flex-col bg-[--bg] text-white">
 
-  <div id="header"></div>
+<div id="header"></div>
 
-  <main class="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-6 py-6 md:pt-28 pb-24">
+<main class="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-6 py-6 md:pt-28 pb-24">
 
-    <section id="info" class="flex flex-col md:flex-row gap-6 items-start"></section>
+<section id="info" class="flex flex-col md:flex-row gap-6 items-start"></section>
 
-    <section id="cast" class="mt-8">
-      <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
-        <i class="fa fa-users text-[--accent]"></i> Cast
-      </h2>
-      <div id="cast-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4"></div>
-    </section>
+<section id="cast" class="mt-8">
+  <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+    <i class="fa fa-users text-[--accent]"></i> Cast
+  </h2>
+  <div id="cast-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4"></div>
+</section>
 
-    <section id="watch" class="mt-8">
-      <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
-        <i class="fa fa-play-circle text-[--accent]"></i> Watch Now
-      </h2>
+<section id="watch" class="mt-8">
+  <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+    <i class="fa fa-play-circle text-[--accent]"></i> Watch Now
+  </h2>
 
-      <div id="player" class="w-full aspect-video bg-black rounded-xl overflow-hidden flex items-center justify-center text-center text-gray-400">
-        <div id="player-placeholder" class="px-6">
-          <p class="text-lg font-semibold">Select a source or pick a season & episode to begin</p>
-        </div>
-      </div>
+  <div id="player" class="w-full aspect-video bg-black rounded-xl overflow-hidden flex items-center justify-center text-center text-gray-400">
+    <div id="player-placeholder" class="px-6">
+      <p class="text-lg font-semibold">Select a source or pick a season & episode to begin</p>
+      <p class="text-sm text-[--muted] mt-2">Choose a source to stream, or use the dropdowns for series episodes.</p>
+    </div>
+  </div>
 
-      <div id="sources" class="mt-4 flex flex-wrap justify-center gap-3"></div>
-    </section>
+  <div id="sources" class="mt-4 flex flex-wrap justify-center gap-3"></div>
+</section>
 
-    <section id="episodes" class="mt-8 hidden">
-      <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
-        <i class="fa fa-tv text-[--accent]"></i> Episodes
-      </h2>
+<section id="episodes" class="mt-8 hidden">
+  <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+    <i class="fa fa-tv text-[--accent]"></i> Episodes
+  </h2>
 
-      <div class="flex flex-col items-center gap-3">
-        <div class="flex gap-3 items-center justify-center w-full">
+  <div class="flex flex-col items-center gap-3">
+    <div class="flex gap-3 items-center justify-center w-full">
 
-          <select id="seasonSelect" class="bg-[#1a1a1a] border border-gray-700 rounded-xl px-3 py-2 text-sm w-48">
-            <option value="">Select Season</option>
-          </select>
+      <select id="seasonSelect" class="bg-[#1a1a1a] border border-gray-700 rounded-xl px-3 py-2 text-sm w-48">
+        <option value="">Select Season</option>
+      </select>
 
-          <select id="episodeSelect" class="bg-[#1a1a1a] border border-gray-700 rounded-xl px-3 py-2 text-sm w-48" disabled>
-            <option value="">Select Episode</option>
-          </select>
+      <select id="episodeSelect" class="bg-[#1a1a1a] border border-gray-700 rounded-xl px-3 py-2 text-sm w-48" disabled>
+        <option value="">Select Episode</option>
+      </select>
 
-          <!-- NEW SOURCE DROPDOWN -->
-          <select id="sourceSelect" class="bg-[#1a1a1a] border border-gray-700 rounded-xl px-3 py-2 text-sm w-48">
-            <option value="1">Source 1</option>
-            <option value="2">Source 2</option>
-          </select>
+      <!-- ✅ ADDED -->
+      <select id="sourceSelect" class="bg-[#1a1a1a] border border-gray-700 rounded-xl px-3 py-2 text-sm w-48">
+        <option value="1">Source 1</option>
+        <option value="2">Source 2</option>
+      </select>
 
-          <button id="playBtn" disabled
-                  class="bg-[--accent] text-white px-4 py-2 rounded-xl opacity-60 cursor-not-allowed transition">
-            Play
-          </button>
-        </div>
+      <button id="playBtn" disabled
+              class="bg-[--accent] text-white px-4 py-2 rounded-xl opacity-60 cursor-not-allowed transition">
+        Play
+      </button>
+    </div>
 
-        <div id="series-sources" class="flex flex-wrap justify-center gap-3"></div>
-      </div>
-    </section>
+    <div id="series-sources" class="flex flex-wrap justify-center gap-3"></div>
+  </div>
+</section>
 
-    <section id="similar" class="mt-8">
-      <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
-        <i class="fa fa-clone text-[--accent]"></i> Recommended
-      </h2>
-      <div id="similar-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4"></div>
-    </section>
-  </main>
+<section id="similar" class="mt-8">
+  <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+    <i class="fa fa-clone text-[--accent]"></i> Recommended
+  </h2>
+  <div id="similar-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4"></div>
+</section>
+</main>
 
-  <div id="footer"></div>
+<div id="footer"></div>
 
 <script>
 const params = new URLSearchParams(window.location.search);
 const id = params.get('id');
 const type = params.get('type');
-const API_KEY = "YOUR_API_KEY";
+const API_KEY = "e3afd4c89e3351edad9e875ff7a01f0c";
 const IMG = "https://image.tmdb.org/t/p/w500";
 const FALLBACK_POSTER = "https://github.com/animeneek/Neek/blob/main/assets/images/Poster%20404%20Error.png?raw=true";
 
+const safe = (v, f='—') => (v===null||v===undefined||v==='')?f:v;
+
 (async function init() {
   if (!id) return;
-
   if (type === 'movie') {
-    const res = await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${API_KEY}`);
+    const res = await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${API_KEY}&language=en-US`);
     const data = await res.json();
     renderMovie(data);
-  } else {
-    const res = await fetch(`https://api.themoviedb.org/3/tv/${id}?api_key=${API_KEY}`);
+    loadCast('movie');
+    loadSimilar('movie');
+    loadExtraSources();
+  } else if (type === 'series') {
+    const res = await fetch(`https://api.themoviedb.org/3/tv/${id}?api_key=${API_KEY}&language=en-US`);
     const data = await res.json();
     renderSeries(data);
+    loadCast('tv');
+    loadSimilar('tv');
+    loadExtraSources();
     initSeriesControls(data);
   }
 })();
 
 function renderMovie(data) {
+  const posterURL = data.poster_path ? IMG+data.poster_path : FALLBACK_POSTER;
+
   const playerURL1 = `https://embedmaster.link/movie/${data.id}`;
   const playerURL2 = `https://player.embed-api.stream/?id=${data.id}&type=movie`;
 
+  document.getElementById('player-placeholder')?.remove();
+  document.getElementById('player').innerHTML = `<div class="w-full h-full flex items-center justify-center text-gray-400">Select a source to play</div>`;
+
   document.getElementById('sources').innerHTML = `
-    <button class="bg-[--accent] px-4 py-2 rounded-xl" data-url="${playerURL1}">Source 1</button>
-    <button class="bg-gray-700 px-4 py-2 rounded-xl" data-url="${playerURL2}">Source 2</button>
+    <button class="src-btn bg-[--accent] text-white px-4 py-2 rounded-xl" data-url="${playerURL1}">Source 1</button>
+    <button class="src-btn bg-gray-700 text-white px-4 py-2 rounded-xl" data-url="${playerURL2}">Source 2</button>
   `;
 
   wireSourceButtons();
 }
 
 function wireSourceButtons() {
-  document.getElementById('sources').addEventListener('click', ev => {
-    const btn = ev.target.closest('button');
-    if (!btn) return;
+  document.getElementById('sources').addEventListener('click',ev=>{
+    const t=ev.target.closest('button');
+    if(!t)return;
 
-    document.querySelectorAll('#sources button').forEach(b => {
+    const url=t.dataset.url;
+    if(!url)return;
+
+    document.querySelectorAll('#sources button').forEach(b=>{
       b.classList.remove('bg-[--accent]');
       b.classList.add('bg-gray-700');
     });
 
-    btn.classList.remove('bg-gray-700');
-    btn.classList.add('bg-[--accent]');
+    t.classList.remove('bg-gray-700');
+    t.classList.add('bg-[--accent]');
 
-    loadPlayer(btn.dataset.url);
+    loadPlayer(url);
   });
 }
 
-function loadPlayer(url) {
-  document.getElementById('player').innerHTML =
-    `<iframe src="${url}" class="w-full h-full"></iframe>`;
-}
-
-function renderSeries(data) {
-  document.getElementById('episodes').classList.remove('hidden');
+function loadPlayer(url){
+  if(!url)return;
+  const player=document.getElementById('player');
+  player.innerHTML=`<iframe src="${url}" class="w-full h-full rounded-xl" frameborder="0" allowfullscreen></iframe>`;
 }
 
 function initSeriesControls(seriesData) {
@@ -200,6 +211,7 @@ function initSeriesControls(seriesData) {
   playBtn.addEventListener('click', () => {
     const s = seasonSelect.value;
     const e = episodeSelect.value;
+
     const source = document.getElementById('sourceSelect').value;
 
     let url = '';
