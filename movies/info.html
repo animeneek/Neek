@@ -5,7 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Neek — Info</title>
 
+  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
   <style>
@@ -18,7 +20,7 @@
     html, body {
       background: var(--bg);
       color: #fff;
-      overflow-x: hidden;
+      overflow-x: hidden; /* prevent sideways scroll */
     }
 
     a { color: #fff; text-decoration: none !important; }
@@ -30,12 +32,15 @@
 </head>
 <body class="min-h-screen flex flex-col bg-[--bg] text-white">
 
+  <!-- Header (will be injected) -->
   <div id="header"></div>
 
   <main class="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-6 py-6 md:pt-28 pb-24">
 
+    <!-- Info row -->
     <section id="info" class="flex flex-col md:flex-row gap-6 items-start"></section>
 
+    <!-- Cast -->
     <section id="cast" class="mt-8">
       <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
         <i class="fa fa-users text-[--accent]"></i> Cast
@@ -43,6 +48,7 @@
       <div id="cast-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4"></div>
     </section>
 
+    <!-- Watch -->
     <section id="watch" class="mt-8">
       <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
         <i class="fa fa-play-circle text-[--accent]"></i> Watch Now
@@ -58,6 +64,7 @@
       <div id="sources" class="mt-4 flex flex-wrap justify-center gap-3"></div>
     </section>
 
+    <!-- Episodes -->
     <section id="episodes" class="mt-8 hidden">
       <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
         <i class="fa fa-tv text-[--accent]"></i> Episodes
@@ -73,7 +80,7 @@
             <option value="">Select Episode</option>
           </select>
 
-          <!-- NEW SOURCE SELECT -->
+          <!-- ✅ ADDED SOURCE DROPDOWN -->
           <select id="sourceSelect" class="bg-[#1a1a1a] border border-gray-700 rounded-xl px-3 py-2 text-sm w-48">
             <option value="1">Source 1</option>
             <option value="2">Source 2</option>
@@ -89,6 +96,7 @@
       </div>
     </section>
 
+    <!-- Recommended -->
     <section id="similar" class="mt-8">
       <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
         <i class="fa fa-clone text-[--accent]"></i> Recommended
@@ -97,8 +105,10 @@
     </section>
   </main>
 
+  <!-- Footer -->
   <div id="footer"></div>
 
+  <!-- Header/footer script -->
   <script>
     (async function insertHeaderFooterAndInit() {
       try {
@@ -108,7 +118,9 @@
         ]);
         if (hHtml) document.getElementById('header').innerHTML = hHtml;
         if (fHtml) document.getElementById('footer').innerHTML = fHtml;
-      } catch (e) {}
+      } catch (e) {
+        console.warn('header/footer load failed', e);
+      }
 
       const tryApplyPadding = () => {
         const headerEl = document.querySelector('.neek-header');
@@ -125,6 +137,7 @@
     })();
   </script>
 
+  <!-- Main logic -->
   <script>
     const params = new URLSearchParams(window.location.search);
     const id = params.get('id');
@@ -157,53 +170,147 @@
 
     function renderMovie(data) {
       const posterURL = data.poster_path ? IMG+data.poster_path : FALLBACK_POSTER;
-
-      document.getElementById('info').innerHTML = `
+      const html = `
         <div class="flex-shrink-0 w-full md:w-64">
-          <img src="${posterURL}" class="rounded-xl shadow-lg w-full">
+          <img src="${posterURL}" alt="${escapeHtml(safe(data.title))}" class="rounded-xl shadow-lg poster-img w-full h-auto object-cover" />
         </div>
         <div class="flex-1">
-          <h1 class="text-3xl font-bold">${data.title}</h1>
+          <h1 class="text-2xl sm:text-3xl font-bold mb-2 break-words">${escapeHtml(safe(data.title))}</h1>
+          <p class="text-sm text-gray-300 mb-3">
+            Movie | ${safe(getYear(data.release_date))}
+            <span class="mx-2">|</span>
+            <i class="fa-regular fa-clock mr-1"></i> <span class="text-white">${safe(data.runtime)} min</span>
+            <span class="mx-2">|</span>
+            <i class="fa fa-film mr-1"></i> <span class="text-white">${escapeHtml((data.genres||[]).map(g=>g.name).join(', ')||'—')}</span>
+            <span class="mx-2">|</span>
+            <i class="fa fa-star star"></i> <span class="text-white">${(data.vote_average||0).toFixed(1)}</span>
+          </p>
+          <p class="text-[--muted] mb-6">${escapeHtml(safe(data.overview,'No description available'))}</p>
         </div>`;
+      document.getElementById('info').innerHTML = html;
 
+      // ✅ UPDATED SOURCES
       const source1 = `https://embedmaster.link/movie/${data.id}`;
       const source2 = `https://player.embed-api.stream/?id=${data.id}&type=movie`;
 
+      document.getElementById('player-placeholder')?.remove();
+      document.getElementById('player').innerHTML = `<div class="w-full h-full flex items-center justify-center text-gray-400">Select a source to play</div>`;
       document.getElementById('sources').innerHTML = `
-        <button class="bg-[--accent] px-4 py-2 rounded-xl" onclick="loadPlayer('${source1}')">Source 1</button>
-        <button class="bg-gray-700 px-4 py-2 rounded-xl" onclick="loadPlayer('${source2}')">Source 2</button>
+        <button class="src-btn bg-[--accent] text-white px-4 py-2 rounded-xl" data-url="${source1}">Source 1</button>
+        <button class="src-btn bg-gray-700 text-white px-4 py-2 rounded-xl" data-url="${source2}">Source 2</button>
       `;
+      wireSourceButtons();
     }
 
     function renderSeries(data) {
-      document.getElementById('info').innerHTML = `<h1 class="text-3xl">${data.name}</h1>`;
+      const posterURL = data.poster_path ? IMG+data.poster_path : FALLBACK_POSTER;
+      const html = `
+        <div class="flex-shrink-0 w-full md:w-64">
+          <img src="${posterURL}" alt="${escapeHtml(safe(data.name))}" class="rounded-xl shadow-lg poster-img w-full h-auto object-cover" />
+        </div>
+        <div class="flex-1">
+          <h1 class="text-2xl sm:text-3xl font-bold mb-2 break-words">${escapeHtml(safe(data.name))}</h1>
+          <p class="text-sm text-gray-300 mb-3">
+            Series | ${safe(getYear(data.first_air_date))}
+            <span class="mx-2">|</span>
+            <span class="text-white">${safe(data.number_of_seasons)} Seasons</span>
+            <span class="mx-2">|</span>
+            <i class="fa fa-star star"></i> <span class="text-white">${(data.vote_average||0).toFixed(1)}</span>
+          </p>
+          <p class="text-[--muted] mb-6">${escapeHtml(safe(data.overview,'No description available'))}</p>
+        </div>`;
+      document.getElementById('info').innerHTML = html;
+      document.getElementById('player-placeholder')?.remove();
+      document.getElementById('player').innerHTML = `<div class="w-full h-full flex items-center justify-center text-gray-400">Select a season & episode or choose a source below to play.</div>`;
       document.getElementById('episodes').classList.remove('hidden');
     }
 
     function loadPlayer(url){
-      document.getElementById('player').innerHTML =
-        `<iframe src="${url}" class="w-full h-full" allowfullscreen></iframe>`;
+      if(!url)return;
+      const player=document.getElementById('player');
+      player.innerHTML=`<iframe src="${url}" class="w-full h-full rounded-xl" frameborder="0" allowfullscreen></iframe>`;
+      player.scrollIntoView({behavior:'smooth',block:'center'});
     }
 
-    function initSeriesControls() {
-      const seasonSelect = document.getElementById('seasonSelect');
-      const episodeSelect = document.getElementById('episodeSelect');
-      const sourceSelect = document.getElementById('sourceSelect');
-      const playBtn = document.getElementById('playBtn');
+    function initSeriesControls(seriesData) {
+      try {
+        const seasonSelect = document.getElementById('seasonSelect');
+        const episodeSelect = document.getElementById('episodeSelect');
+        const playBtn = document.getElementById('playBtn');
+        const sourceSelect = document.getElementById('sourceSelect'); // ✅ added
 
-      seasonSelect.onchange = () => episodeSelect.disabled = false;
-      episodeSelect.onchange = () => playBtn.disabled = false;
+        (seriesData.seasons || []).forEach(s => {
+          if (s.season_number && s.season_number > 0) {
+            const opt = document.createElement('option');
+            opt.value = s.season_number;
+            opt.textContent = `Season ${s.season_number}`;
+            seasonSelect.appendChild(opt);
+          }
+        });
 
-      playBtn.onclick = () => {
-        const s = seasonSelect.value;
-        const e = episodeSelect.value;
+        seasonSelect.addEventListener('change', async () => {
+          episodeSelect.innerHTML = '<option value="">Select Episode</option>';
+          episodeSelect.disabled = true;
+          playBtn.disabled = true;
+          playBtn.classList.add('opacity-60', 'cursor-not-allowed');
 
-        let url = sourceSelect.value === "1"
-          ? `https://embedmaster.link/tv/${id}/${s}/${e}`
-          : `https://player.embed-api.stream/?id=${id}&s=${s}&e=${e}`;
+          const sn = seasonSelect.value;
+          if (!sn) return;
 
-        loadPlayer(url);
-      };
+          const res = await fetch(`https://api.themoviedb.org/3/tv/${id}/season/${sn}?api_key=${API_KEY}&language=en-US`);
+          const sd = await res.json();
+
+          (sd.episodes || []).forEach(ep => {
+            const o = document.createElement('option');
+            o.value = ep.episode_number;
+            o.textContent = `Episode ${ep.episode_number} — ${ep.name || ''}`;
+            episodeSelect.appendChild(o);
+          });
+
+          episodeSelect.disabled = false;
+        });
+
+        episodeSelect.addEventListener('change', () => {
+          if (episodeSelect.value && seasonSelect.value) {
+            playBtn.disabled = false;
+            playBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+          }
+        });
+
+        // ✅ UPDATED PLAY LOGIC
+        playBtn.addEventListener('click', () => {
+          const s = seasonSelect.value;
+          const e = episodeSelect.value;
+          const src = sourceSelect.value;
+
+          if (s && e) {
+            let url;
+
+            if (src === "1") {
+              url = `https://embedmaster.link/tv/${id}/${s}/${e}`;
+            } else {
+              url = `https://player.embed-api.stream/?id=${id}&s=${s}&e=${e}`;
+            }
+
+            loadPlayer(url);
+          }
+        });
+
+      } catch (err) {
+        console.error('initSeriesControls error', err);
+      }
+    }
+
+    function getYear(dateStr) {
+      if (!dateStr) return '—';
+      return (dateStr.split && dateStr.split('-')[0]) || dateStr;
+    }
+    function escapeHtml(s) {
+      if (s === null || s === undefined) return '';
+      return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
     }
   </script>
 </body>
