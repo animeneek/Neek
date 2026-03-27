@@ -56,7 +56,7 @@
 
       <div id="player" class="w-full aspect-video bg-black rounded-xl overflow-hidden flex items-center justify-center text-center text-gray-400">
         <div id="player-placeholder" class="px-6">
-          <p class="text-lg font-semibold">Select a source or pick a season & episode to begin</p>
+          <p class="text-lg font-semibold">Pick a Season & Episode & Select a Source to begin</p>
           <p class="text-sm text-[--muted] mt-2">Choose a source to stream, or use the dropdowns for series episodes.</p>
         </div>
       </div>
@@ -222,7 +222,24 @@ wireSourceButtons();
         </div>`;
       document.getElementById('info').innerHTML = html;
       document.getElementById('player-placeholder')?.remove();
-      document.getElementById('player').innerHTML = `<div class="w-full h-full flex items-center justify-center text-gray-400">Select a season & episode or choose a source below to play.</div>`;
+document.getElementById('player').innerHTML = `
+  <div class="w-full h-full relative flex items-center justify-center text-center">
+    
+    <!-- Background Image -->
+    <div class="absolute inset-0">
+      <img src="${posterURL}" class="w-full h-full object-cover opacity-40" />
+    </div>
+
+    <!-- Dark Overlay -->
+    <div class="absolute inset-0 bg-black/60"></div>
+
+    <!-- Text -->
+    <div class="relative z-10 px-6 text-gray-300">
+      <p class="text-lg font-semibold">Select a season & episode or choose a source below to play.</p>
+    </div>
+
+  </div>
+`;
       document.getElementById('episodes').classList.remove('hidden');
     }
 
