@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Neek — Info</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    :root {
+      --accent: #ff4444;
+      --bg: #0b0b0b;
+      --muted: #9b9b9b;
+    }
+
+    html, body {
+      background: var(--bg);
+      color: #fff;
+      overflow-x: hidden;
+    }
+
+    a { color: #fff; text-decoration: none !important; }
+    a:hover { color: var(--accent); text-decoration: none !important; }
+
+    .star { color: var(--accent); }
+    .poster-img { max-width: 100%; height: auto; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-[--bg] text-white">
+
+  <div id="header"></div>
+
+  <main class="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-6 py-6 md:pt-28 pb-24">
+
+    <section id="info" class="flex flex-col md:flex-row gap-6 items-start"></section>
+
+    <section id="cast" class="mt-8">
+      <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+        <i class="fa fa-users text-[--accent]"></i> Cast
+      </h2>
+      <div id="cast-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4"></div>
+    </section>
+
+    <section id="watch" class="mt-8">
+      <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+        <i class="fa fa-play-circle text-[--accent]"></i> Watch Now
+      </h2>
+
+      <div id="player" class="w-full aspect-video bg-black rounded-xl overflow-hidden flex items-center justify-center text-center text-gray-400">
+        <div id="player-placeholder" class="px-6">
+          <p class="text-lg font-semibold">Select a source or pick a season & episode to begin</p>
+        </div>
+      </div>
+
+      <div id="sources" class="mt-4 flex flex-wrap justify-center gap-3"></div>
+    </section>
+
+    <section id="episodes" class="mt-8 hidden">
+      <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+        <i class="fa fa-tv text-[--accent]"></i> Episodes
+      </h2>
+
+      <div class="flex flex-col items-center gap-3">
+        <div class="flex gap-3 items-center justify-center w-full">
+
+          <select id="seasonSelect" class="bg-[#1a1a1a] border border-gray-700 rounded-xl px-3 py-2 text-sm w-48">
+            <option value="">Select Season</option>
+          </select>
+
+          <select id="episodeSelect" class="bg-[#1a1a1a] border border-gray-700 rounded-xl px-3 py-2 text-sm w-48" disabled>
+            <option value="">Select Episode</option>
+          </select>
+
+          <!-- NEW SOURCE DROPDOWN -->
+          <select id="sourceSelect" class="bg-[#1a1a1a] border border-gray-700 rounded-xl px-3 py-2 text-sm w-48">
+            <option value="1">Source 1</option>
+            <option value="2">Source 2</option>
+          </select>
+
+          <button id="playBtn" disabled
+                  class="bg-[--accent] text-white px-4 py-2 rounded-xl opacity-60 cursor-not-allowed transition">
+            Play
+          </button>
+        </div>
+
+        <div id="series-sources" class="flex flex-wrap justify-center gap-3"></div>
+      </div>
+    </section>
+
+    <section id="similar" class="mt-8">
+      <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+        <i class="fa fa-clone text-[--accent]"></i> Recommended
+      </h2>
+      <div id="similar-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4"></div>
+    </section>
+  </main>
+
+  <div id="footer"></div>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const id = params.get('id');
+const type = params.get('type');
+const API_KEY = "YOUR_API_KEY";
+const IMG = "https://image.tmdb.org/t/p/w500";
+const FALLBACK_POSTER = "https://github.com/animeneek/Neek/blob/main/assets/images/Poster%20404%20Error.png?raw=true";
+
+(async function init() {
+  if (!id) return;
+
+  if (type === 'movie') {
+    const res = await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${API_KEY}`);
+    const data = await res.json();
+    renderMovie(data);
+  } else {
+    const res = await fetch(`https://api.themoviedb.org/3/tv/${id}?api_key=${API_KEY}`);
+    const data = await res.json();
+    renderSeries(data);
+    initSeriesControls(data);
+  }
+})();
+
+function renderMovie(data) {
+  const playerURL1 = `https://embedmaster.link/movie/${data.id}`;
+  const playerURL2 = `https://player.embed-api.stream/?id=${data.id}&type=movie`;
+
+  document.getElementById('sources').innerHTML = `
+    <button class="bg-[--accent] px-4 py-2 rounded-xl" data-url="${playerURL1}">Source 1</button>
+    <button class="bg-gray-700 px-4 py-2 rounded-xl" data-url="${playerURL2}">Source 2</button>
+  `;
+
+  wireSourceButtons();
+}
+
+function wireSourceButtons() {
+  document.getElementById('sources').addEventListener('click', ev => {
+    const btn = ev.target.closest('button');
+    if (!btn) return;
+
+    document.querySelectorAll('#sources button').forEach(b => {
+      b.classList.remove('bg-[--accent]');
+      b.classList.add('bg-gray-700');
+    });
+
+    btn.classList.remove('bg-gray-700');
+    btn.classList.add('bg-[--accent]');
+
+    loadPlayer(btn.dataset.url);
+  });
+}
+
+function loadPlayer(url) {
+  document.getElementById('player').innerHTML =
+    `<iframe src="${url}" class="w-full h-full"></iframe>`;
+}
+
+function renderSeries(data) {
+  document.getElementById('episodes').classList.remove('hidden');
+}
+
+function initSeriesControls(seriesData) {
+  const seasonSelect = document.getElementById('seasonSelect');
+  const episodeSelect = document.getElementById('episodeSelect');
+  const playBtn = document.getElementById('playBtn');
+
+  (seriesData.seasons || []).forEach(s => {
+    if (s.season_number > 0) {
+      const opt = document.createElement('option');
+      opt.value = s.season_number;
+      opt.textContent = `Season ${s.season_number}`;
+      seasonSelect.appendChild(opt);
+    }
+  });
+
+  seasonSelect.addEventListener('change', async () => {
+    const sn = seasonSelect.value;
+    episodeSelect.innerHTML = '<option>Select Episode</option>';
+
+    const res = await fetch(`https://api.themoviedb.org/3/tv/${id}/season/${sn}?api_key=${API_KEY}`);
+    const data = await res.json();
+
+    data.episodes.forEach(ep => {
+      const opt = document.createElement('option');
+      opt.value = ep.episode_number;
+      opt.textContent = `Episode ${ep.episode_number}`;
+      episodeSelect.appendChild(opt);
+    });
+
+    episodeSelect.disabled = false;
+  });
+
+  episodeSelect.addEventListener('change', () => {
+    playBtn.disabled = false;
+  });
+
+  playBtn.addEventListener('click', () => {
+    const s = seasonSelect.value;
+    const e = episodeSelect.value;
+    const source = document.getElementById('sourceSelect').value;
+
+    let url = '';
+    if (source === '1') {
+      url = `https://embedmaster.link/tv/${id}/${s}/${e}`;
+    } else {
+      url = `https://player.embed-api.stream/?id=${id}&s=${s}&e=${e}`;
+    }
+
+    loadPlayer(url);
+  });
+}
+</script>
+
+</body>
+</html>
