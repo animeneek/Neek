@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Anime</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    :root {
+      --bg: #000000; /* pure black to match GIF */
+    }
+
+    html, body {
+      background: var(--bg);
+      color: #fff;
+      overflow-x: hidden;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-black text-white">
+
+  <!-- Header -->
+  <div id="header"></div>
+
+  <!-- MAIN -->
+  <main class="flex-1 flex items-center justify-center px-4">
+
+    <div class="text-center">
+
+      <!-- YOUR GIF -->
+      <img 
+        src="assets/images/wip.gif"  <!-- 🔁 replace with your GIF path -->
+        alt="Work in progress"
+        class="mx-auto max-w-xs sm:max-w-sm md:max-w-md"
+      />
+
+      <!-- Optional text -->
+      <p class="mt-4 text-gray-400 text-sm">
+        Work in progress...
+      </p>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <div id="footer"></div>
+
+  <!-- Header/Footer Loader (SAME AS YOUR SITE) -->
+  <script>
+    (async function insertHeaderFooterAndInit() {
+      try {
+        const [hHtml, fHtml] = await Promise.all([
+          fetch('header.html').then(r => r.ok ? r.text() : ''),
+          fetch('footer.html').then(r => r.ok ? r.text() : '')
+        ]);
+        if (hHtml) document.getElementById('header').innerHTML = hHtml;
+        if (fHtml) document.getElementById('footer').innerHTML = fHtml;
+      } catch (e) {
+        console.warn('header/footer load failed', e);
+      }
+
+      const tryApplyPadding = () => {
+        const headerEl = document.querySelector('.neek-header');
+        if (!headerEl) return;
+        if (window.matchMedia('(min-width: 768px)').matches) {
+          const h = headerEl.getBoundingClientRect().height || 64;
+          document.body.style.paddingTop = h + 'px';
+        } else {
+          document.body.style.paddingTop = '';
+        }
+      };
+      tryApplyPadding();
+      window.addEventListener('resize', tryApplyPadding);
+    })();
+  </script>
+
+</body>
+</html>
