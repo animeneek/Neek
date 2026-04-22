@@ -130,18 +130,25 @@ let streamMap = null;
 
 async function loadStreamData() {
   try {
-    const res = await fetch(STREAM_JSON_URL);
+    const res = await fetch(STREAM_JSON_URL, { cache: "no-store" });
+
+    if (!res.ok) throw new Error("HTTP " + res.status);
+
     streamData = await res.json();
+
+    console.log("Stream JSON loaded:", streamData.files.length, "files");
   } catch (e) {
     console.error("Stream JSON load failed:", e);
-    streamData = null;
+    streamData = { folders: [], files: [] }; // IMPORTANT fallback
   }
 }
-
+  
 function getAnimeFiles(malId) {
   if (!streamData) return [];
 
-  return streamData.files.filter(f => String(f.mal_id) === String(malId));
+  return (streamData?.files || []).filter(f =>
+  String(f.mal_id) === String(malId)
+);
 }
 
 function groupEpisodes(files) {
@@ -383,7 +390,7 @@ async function renderAnime(media) {
 
   malId = media.idMal;
 
-  const files = getAnimeFiles(malId);
+  const files = streamData?.files ? getAnimeFiles(malId) : [];
 
   isCustomStream = files.length > 0;
 
