@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Neek — Anime Info</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    :root {
+      --accent: #ff4444;
+      --bg: #0b0b0b;
+      --muted: #9b9b9b;
+    }
+    html, body { background: var(--bg); color: #fff; overflow-x: hidden; }
+    a { color: #fff; text-decoration: none !important; }
+    a:hover { color: var(--accent); }
+    .star { color: var(--accent); }
+    .ep-btn.active { background: var(--accent); color: #fff; box-shadow: 0 0 10px rgba(255,68,68,0.7); }
+    .source-btn.active { background: var(--accent); color: #fff; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-[--bg] text-white">
+
+  <div id="header"></div>
+
+  <main class="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-6 py-6 md:pt-28 pb-24">
+    
+    <section id="info" class="flex flex-col md:flex-row gap-6 items-start"></section>
+
+    <section id="watch" class="mt-8">
+      <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+        <i class="fa fa-play-circle text-[--accent]"></i> Watch Now
+      </h2>
+      <div id="player" class="w-full aspect-video bg-black rounded-xl overflow-hidden flex items-center justify-center text-center text-gray-400">
+        <div id="player-placeholder" class="px-6">
+          <p class="text-lg font-semibold">Select an episode to start watching</p>
+        </div>
+      </div>
+
+      <div class="mt-6 bg-gradient-to-br from-[#1a1a1a] to-[#111] rounded-2xl p-6 shadow-lg">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
+          <h3 class="text-xl font-bold flex items-center gap-2">
+            <i class="fa fa-list-ol text-[--accent]"></i> Episodes
+          </h3>
+          <select id="episodeDropdown" class="bg-[#0b0b0b] border border-gray-700 rounded-md px-3 py-2 text-sm">
+            <option value="">Select episode</option>
+          </select>
+        </div>
+
+        <div id="episodes" class="flex gap-2 overflow-x-auto no-scrollbar pb-2"></div>
+
+        <div class="mt-6">
+          <h3 class="text-xl font-bold mb-3 flex items-center gap-2">
+            <i class="fa fa-database text-[--accent]"></i> Source
+          </h3>
+          <div id="sources" class="flex gap-3 flex-wrap"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="characters" class="mt-10">
+      <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+        <i class="fa fa-users text-[--accent]"></i> Characters & Voice Actors
+      </h2>
+      <div id="characters-grid" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>
+    </section>
+
+    <section id="staff" class="mt-10">
+      <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+        <i class="fa fa-user-tie text-[--accent]"></i> Staff
+      </h2>
+      <div id="staff-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4"></div>
+    </section>
+
+    <section id="recommendations" class="mt-10">
+      <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+        <i class="fa fa-clone text-[--accent]"></i> Recommended
+      </h2>
+      <div id="recommendations-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4"></div>
+    </section>
+  </main>
+
+  <div id="footer"></div>
+
+<script>
+(async function insertHeaderFooterAndInit() {
+  try {
+    const [hHtml, fHtml] = await Promise.all([
+      fetch('header.html').then(r => r.ok ? r.text() : ''),
+      fetch('footer.html').then(r => r.ok ? r.text() : '')
+    ]);
+    if (hHtml) document.getElementById('header').innerHTML = hHtml;
+    if (fHtml) document.getElementById('footer').innerHTML = fHtml;
+  } catch {}
+
+  const tryApplyPadding = () => {
+    const headerEl = document.querySelector('.neek-header');
+    if (!headerEl) return;
+    if (window.matchMedia('(min-width: 768px)').matches) {
+      const h = headerEl.getBoundingClientRect().height || 64;
+      document.body.style.paddingTop = h + 'px';
+    } else {
+      document.body.style.paddingTop = '';
+    }
+  };
+  tryApplyPadding();
+  window.addEventListener('resize', tryApplyPadding);
+})();
+</script>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const id = params.get("id");
+
+const ANILIST_API = "https://graphql.anilist.co";
+const FALLBACK_IMG = "https://github.com/animeneek/Neek/blob/main/assets/images/Poster%20404%20Error.png?raw=true";
+
+let currentEpisode = null;
+let malId = null;
+let totalEpisodes = 0;
+
+const query = `
+query($id: Int) {
+  Media(id: $id, type: ANIME) {
+    id
+    idMal
+    title { romaji english }
+    description(asHtml: false)
+    coverImage { large }
+    startDate { year }
+    episodes
+    averageScore
+    genres
+    characters(sort: ROLE, perPage: 12) {
+      edges {
+        role
+        node { id name { full } image { large } }
+        voiceActors(sort: RELEVANCE) {
+          id
+          languageV2
+          name { full }
+          image { large }
+        }
+      }
+    }
+    staff(perPage: 12) {
+      edges {
+        role
+        node { id name { full } image { large } }
+      }
+    }
+    recommendations(perPage: 10) {
+      edges {
+        node {
+          mediaRecommendation {
+            id
+            title { romaji }
+            coverImage { large }
+            averageScore
+            status
+            episodes
+          }
+        }
+      }
+    }
+  }
+}
+`;
+
+async function fetchAnime() {
+  const res = await fetch(ANILIST_API, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ query, variables: { id: Number(id) } })
+  });
+  const json = await res.json();
+  renderAnime(json.data.Media);
+}
+
+function safeImg(src) {
+  return src || FALLBACK_IMG;
+}
+
+function renderEpisodes() {
+  const epContainer = document.getElementById("episodes");
+  const epDropdown = document.getElementById("episodeDropdown");
+
+  epContainer.innerHTML = "";
+  epDropdown.innerHTML = `<option value="">Select episode</option>`;
+
+  for (let i = 1; i <= totalEpisodes; i++) {
+    const btn = document.createElement("button");
+    btn.className = "ep-btn px-4 py-2 rounded-full bg-[#0b0b0b] border border-gray-700 text-sm hover:bg-[--accent]";
+    btn.textContent = `Ep ${i}`;
+    btn.onclick = () => selectEpisode(i);
+    epContainer.appendChild(btn);
+
+    const opt = document.createElement("option");
+    opt.value = i;
+    opt.textContent = `Episode ${i}`;
+    epDropdown.appendChild(opt);
+  }
+
+  epDropdown.onchange = e => {
+    if (e.target.value) selectEpisode(e.target.value);
+  };
+}
+
+function selectEpisode(ep) {
+  currentEpisode = ep;
+
+  document.querySelectorAll(".ep-btn").forEach(b => {
+    b.classList.toggle("active", b.textContent === `Ep ${ep}`);
+  });
+
+  document.getElementById("episodeDropdown").value = ep;
+
+  renderSources();
+}
+
+function renderSources() {
+  const srcContainer = document.getElementById("sources");
+  srcContainer.innerHTML = "";
+
+  ["sub","dub"].forEach(src => {
+    const btn = document.createElement("button");
+    btn.className = "source-btn px-4 py-2 rounded-md bg-[#0b0b0b] border border-gray-700";
+    btn.textContent = src.toUpperCase();
+
+    btn.onclick = () => {
+      document.querySelectorAll(".source-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      const url = `https://megaplay.buzz/stream/mal/${malId}/${currentEpisode}/${src}`;
+      document.getElementById("player").innerHTML =
+        `<iframe src="${url}" allowfullscreen class="w-full h-full"></iframe>`;
+    };
+
+    srcContainer.appendChild(btn);
+  });
+}
+
+async function renderAnime(media) {
+
+  malId = media.idMal;
+  totalEpisodes = media.episodes || 12;
+
+  document.getElementById("info").innerHTML = `
+    <div class="flex-shrink-0 w-full md:w-64">
+      <img src="${safeImg(media.coverImage?.large)}" class="rounded-xl shadow-lg w-full object-cover" />
+    </div>
+    <div class="flex-1">
+      <h1 class="text-2xl sm:text-3xl font-bold mb-2">${media.title.romaji || media.title.english}</h1>
+      <p class="text-sm text-gray-300 mb-3">
+        Anime | ${media.startDate?.year || "—"}
+        <span class="mx-2">|</span>
+        Episodes: ${media.episodes || "?"}
+        <span class="mx-2">|</span>
+        <i class="fa fa-star star"></i> ${(media.averageScore ? (media.averageScore/10).toFixed(1) : "—")}
+      </p>
+      <p class="mb-3 text-sm text-[--accent]">${media.genres?.join(", ") || ""}</p>
+      <p class="text-[--muted] mb-6 line-clamp-6">${media.description || ""}</p>
+    </div>
+  `;
+
+  renderEpisodes();
+
+  document.getElementById("characters-grid").innerHTML = media.characters.edges.map(e => {
+    const c = e.node, va = e.voiceActors?.[0];
+    return `
+      <div class="bg-[#1a1a1a] rounded-xl p-3 flex gap-3">
+        <img src="${safeImg(c.image?.large)}" class="w-20 h-24 rounded-lg object-cover"/>
+        <div>
+          <p class="font-bold">${c.name.full}</p>
+          <p class="text-xs text-gray-400">${e.role}</p>
+          ${va ? `<p class="text-xs text-gray-400 mt-1">${va.name.full} (${va.languageV2})</p>` : ""}
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  document.getElementById("staff-grid").innerHTML = media.staff.edges.map(e => {
+    const s = e.node;
+    return `
+      <div class="text-center">
+        <img src="${safeImg(s.image?.large)}" class="w-16 h-16 rounded-full mx-auto"/>
+        <p class="text-sm mt-2">${s.name.full}</p>
+        <p class="text-xs text-gray-400">${e.role}</p>
+      </div>
+    `;
+  }).join("");
+
+  document.getElementById("recommendations-grid").innerHTML = media.recommendations.edges.map(r => {
+    const rec = r.node.mediaRecommendation;
+    return `
+      <a href="info.html?id=${rec.id}&type=anime">
+        <img src="${safeImg(rec.coverImage?.large)}" class="rounded-xl"/>
+        <p class="text-sm">${rec.title.romaji}</p>
+      </a>
+    `;
+  }).join("");
+}
+
+fetchAnime();
+</script>
+
+</body>
+</html>
