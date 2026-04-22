@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Neek — Anime Info</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    :root {
+      --accent: #ff4444;
+      --bg: #0b0b0b;
+      --muted: #9b9b9b;
+    }
+    html, body { background: var(--bg); color: #fff; overflow-x: hidden; }
+    a { color: #fff; text-decoration: none !important; }
+    a:hover { color: var(--accent); }
+    .star { color: var(--accent); }
+    .ep-btn.active { background: var(--accent); color: #fff; box-shadow: 0 0 10px rgba(255,68,68,0.7); }
+    .source-btn.active { background: var(--accent); color: #fff; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-[--bg] text-white">
+
+<div id="header"></div>
+
+<main class="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-6 py-6 md:pt-28 pb-24">
+<section id="info" class="flex flex-col md:flex-row gap-6 items-start"></section>
+
+<section id="watch" class="mt-8">
+<h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+<i class="fa fa-play-circle text-[--accent]"></i> Watch Now
+</h2>
+
+<div id="player" class="w-full aspect-video bg-black rounded-xl flex items-center justify-center text-gray-400">
+<p>Select an episode</p>
+</div>
+
+<div class="mt-6 bg-gradient-to-br from-[#1a1a1a] to-[#111] rounded-2xl p-6">
+<select id="episodeDropdown" class="bg-black border px-3 py-2 mb-4"></select>
+<div id="episodes" class="flex gap-2 overflow-x-auto no-scrollbar pb-2"></div>
+<div id="sources" class="mt-4 flex gap-2"></div>
+</div>
+</section>
+
+</main>
+
+<div id="footer"></div>
+
+<script>
+const id = new URLSearchParams(location.search).get("id");
+const ANILIST_API = "https://graphql.anilist.co";
+
+let malId, releasedEpisodes = 0, currentEpisode;
+
+const query = `
+query($id: Int){
+Media(id:$id,type:ANIME){
+idMal title{romaji} coverImage{large} startDate{year} episodes averageScore
+}
+}`;
+
+async function fetchAnime(){
+const res = await fetch(ANILIST_API,{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({query,variables:{id:Number(id)}})
+});
+const json = await res.json();
+const media = json.data.Media;
+
+malId = media.idMal;
+
+document.getElementById("info").innerHTML = `
+<img src="${media.coverImage.large}" class="w-40 rounded"/>
+<div>
+<h1 class="text-2xl font-bold">${media.title.romaji}</h1>
+<p>Episodes: ${media.episodes || "?"}</p>
+</div>`;
+
+// 🔥 FIX: get released episodes from Jikan
+await fetchReleasedEpisodes();
+
+renderEpisodes();
+}
+
+async function fetchReleasedEpisodes(){
+try{
+const res = await fetch(`https://api.jikan.moe/v4/anime/${malId}/episodes`);
+const data = await res.json();
+releasedEpisodes = data.pagination.last_visible_page * 25;
+
+// fallback if smaller
+releasedEpisodes = Math.min(releasedEpisodes, data.data.length || 1);
+
+}catch{
+releasedEpisodes = 12; // safe fallback
+}
+}
+
+function renderEpisodes(){
+const epBox = document.getElementById("episodes");
+const dropdown = document.getElementById("episodeDropdown");
+
+epBox.innerHTML="";
+dropdown.innerHTML="";
+
+for(let i=1;i<=releasedEpisodes;i++){
+
+// buttons
+const b=document.createElement("button");
+b.className="ep-btn px-3 py-1 border rounded whitespace-nowrap";
+b.textContent=i;
+b.onclick=()=>selectEpisode(i);
+epBox.appendChild(b);
+
+// dropdown
+const o=document.createElement("option");
+o.value=i;
+o.textContent="Ep "+i;
+dropdown.appendChild(o);
+}
+
+dropdown.onchange=e=>selectEpisode(e.target.value);
+}
+
+function selectEpisode(ep){
+currentEpisode=ep;
+
+document.querySelectorAll(".ep-btn").forEach(b=>{
+b.classList.toggle("active",b.textContent==ep);
+});
+
+renderSources();
+}
+
+function renderSources(){
+const box=document.getElementById("sources");
+box.innerHTML="";
+
+["sub","dub"].forEach(s=>{
+const b=document.createElement("button");
+b.textContent=s.toUpperCase();
+b.className="source-btn border px-3 py-1";
+b.onclick=()=>{
+document.querySelectorAll(".source-btn").forEach(x=>x.classList.remove("active"));
+b.classList.add("active");
+
+document.getElementById("player").innerHTML=
+`<iframe src="https://megaplay.buzz/stream/mal/${malId}/${currentEpisode}/${s}" class="w-full h-full"></iframe>`;
+};
+box.appendChild(b);
+});
+}
+
+fetchAnime();
+</script>
+
+</body>
+</html>
