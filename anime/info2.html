@@ -191,6 +191,8 @@ function safeImg(src) {
   return src || FALLBACK_IMG;
 }
 
+/* ===================== EPISODES (UPDATED GRID) ===================== */
+
 function renderEpisodes() {
   const epContainer = document.getElementById("episodes");
   const epDropdown = document.getElementById("episodeDropdown");
@@ -200,7 +202,7 @@ function renderEpisodes() {
 
   if (totalEpisodes <= 0) return;
 
-  // Populate dropdown (UNCHANGED behavior)
+  // Dropdown (UNCHANGED)
   for (let i = 1; i <= totalEpisodes; i++) {
     const opt = document.createElement("option");
     opt.value = i;
@@ -209,58 +211,43 @@ function renderEpisodes() {
   }
 
   epDropdown.onchange = e => {
-    if (e.target.value) selectEpisode(e.target.value);
+    if (e.target.value) selectEpisode(Number(e.target.value));
   };
 
-  // --- NEW: Windowed episode navigation ---
-  let start = 1;
-  const pageSize = 20;
+  // GRID CONTAINER STYLE
+  epContainer.className = "grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2";
 
-  function renderWindow() {
-    epContainer.innerHTML = "";
+  for (let i = 1; i <= totalEpisodes; i++) {
+    const btn = document.createElement("button");
+    btn.className =
+      "ep-btn px-2 py-2 rounded-md bg-[#0b0b0b] border border-gray-700 text-sm hover:bg-[--accent]";
 
-    // Prev button
-    if (start > 1) {
-      const prev = document.createElement("button");
-      prev.className = "px-3 py-2 rounded-md bg-[#0b0b0b] border border-gray-700";
-      prev.innerHTML = `<i class="fa fa-chevron-left"></i>`;
-      prev.onclick = () => {
-        start = Math.max(1, start - pageSize);
-        renderWindow();
-      };
-      epContainer.appendChild(prev);
+    btn.textContent = i;
+
+    btn.onclick = () => selectEpisode(i);
+
+    if (currentEpisode == i) {
+      btn.classList.add("active");
     }
 
-    // Episode buttons
-    for (let i = start; i < start + pageSize && i <= totalEpisodes; i++) {
-      const btn = document.createElement("button");
-      btn.className = "ep-btn px-4 py-2 rounded-full bg-[#0b0b0b] border border-gray-700 text-sm hover:bg-[--accent]";
-      btn.textContent = `Ep ${i}`;
-      btn.onclick = () => selectEpisode(i);
-
-      if (currentEpisode == i) {
-        btn.classList.add("active");
-      }
-
-      epContainer.appendChild(btn);
-    }
-
-    // Next button
-    if (start + pageSize <= totalEpisodes) {
-      const next = document.createElement("button");
-      next.className = "px-3 py-2 rounded-md bg-[#0b0b0b] border border-gray-700";
-      next.innerHTML = `<i class="fa fa-chevron-right"></i>`;
-      next.onclick = () => {
-        start += pageSize;
-        renderWindow();
-      };
-      epContainer.appendChild(next);
-    }
+    epContainer.appendChild(btn);
   }
-
-  renderWindow();
 }
-  
+
+function selectEpisode(ep) {
+  currentEpisode = Number(ep);
+
+  document.querySelectorAll(".ep-btn").forEach(b => {
+    b.classList.toggle("active", Number(b.textContent) === currentEpisode);
+  });
+
+  document.getElementById("episodeDropdown").value = currentEpisode;
+
+  renderSources();
+}
+
+/* ===================== SOURCES ===================== */
+
 function renderSources() {
   const srcContainer = document.getElementById("sources");
   srcContainer.innerHTML = "";
@@ -282,6 +269,8 @@ function renderSources() {
     srcContainer.appendChild(btn);
   });
 }
+
+/* ===================== MAIN RENDER ===================== */
 
 async function renderAnime(media) {
 
