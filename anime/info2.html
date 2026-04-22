@@ -122,7 +122,7 @@ const JIKAN_API = "https://api.jikan.moe/v4/anime";
 const FALLBACK_IMG = "https://github.com/animeneek/Neek/blob/main/assets/images/Poster%20404%20Error.png?raw=true";
 
 let currentEpisode = null;
-let malId = null;
+let totalEpisodesFromAniList = 0;
 
 // episodes state
 let episodesList = [];
@@ -193,6 +193,7 @@ async function fetchAnime() {
   const media = json.data.Media;
 
   malId = media.idMal;
+totalEpisodesFromAniList = media.episodes || 0;
 
   await fetchEpisodesFromMAL(malId);
 
@@ -217,10 +218,27 @@ async function fetchEpisodesFromMAL(malId) {
       page++;
     }
 
-    episodesList = allEpisodes.map(ep => ({
-      episode: ep.mal_id,
-      title: ep.title
-    }));
+    episodesList = allEpisodes.map((ep, index) => ({
+  episode: index + 1,
+  title: ep.title
+}));
+
+// 🔥 Fallback: extend beyond Jikan limit
+if (totalEpisodesFromAniList > episodesList.length) {
+  const existing = new Set(episodesList.map(e => e.episode));
+
+  for (let i = 1; i <= totalEpisodesFromAniList; i++) {
+    if (!existing.has(i)) {
+      episodesList.push({
+        episode: i,
+        title: `Episode ${i}`
+      });
+    }
+  }
+
+  // sort properly
+  episodesList.sort((a, b) => a.episode - b.episode);
+}
 
   } catch (e) {
     console.warn("Episode fetch failed", e);
