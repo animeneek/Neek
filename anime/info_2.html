@@ -190,6 +190,7 @@ async function fetchStreamtapeData() {
   try {
     const res = await fetch(STREAMTAPE_JSON_URL);
     streamtapeData = await res.json();
+    console.log("Streamtape data loaded:", streamtapeData);
   } catch (e) {
     console.warn("Streamtape JSON fetch failed", e);
     streamtapeData = null;
@@ -197,13 +198,23 @@ async function fetchStreamtapeData() {
 }
 
 function getStreamtapeEpisodesForMalId(malId) {
-  if (!streamtapeData || !streamtapeData.files) return [];
+  if (!streamtapeData || !streamtapeData.files) {
+    console.warn("No streamtape data available");
+    return {};
+  }
   
+  const malIdStr = String(malId);
   const episodes = {};
   
+  console.log("Looking for MAL ID:", malIdStr);
+  
   streamtapeData.files.forEach(file => {
-    if (file.mal_id && String(file.mal_id) === String(malId)) {
-      const titleMatch = file.title.match(/\[(\d+)\]/);
+    const fileMalId = String(file.mal_id);
+    
+    if (fileMalId === malIdStr) {
+      console.log("Found matching file:", file.title);
+      
+      const titleMatch = file.title.match(/\-(\d+)\]/);
       if (titleMatch) {
         const epNum = parseInt(titleMatch[1]);
         if (!episodes[epNum]) {
@@ -222,6 +233,7 @@ function getStreamtapeEpisodesForMalId(malId) {
     }
   });
   
+  console.log("Found episodes:", episodes);
   return episodes;
 }
 
@@ -240,6 +252,8 @@ async function fetchAnime() {
   malId = media.idMal;
   totalEpisodesFromAniList = media.episodes || 0;
 
+  console.log("Anime MAL ID:", malId);
+
   const streamtapeEpisodes = getStreamtapeEpisodesForMalId(malId);
   
   if (Object.keys(streamtapeEpisodes).length > 0) {
@@ -252,8 +266,10 @@ async function fetchAnime() {
         title: `Episode ${ep}`,
         sources: streamtapeEpisodes[ep]
       }));
+    console.log("Using Streamtape episodes:", episodesList);
   } else {
     hasStreamtapeEpisodes = false;
+    console.log("No Streamtape episodes found, using MAL data");
     await fetchEpisodesFromMAL(malId);
   }
 
