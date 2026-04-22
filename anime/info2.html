@@ -118,16 +118,11 @@ const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
 
 const ANILIST_API = "https://graphql.anilist.co";
-const JIKAN_API = "https://api.jikan.moe/v4/anime";
 const FALLBACK_IMG = "https://github.com/animeneek/Neek/blob/main/assets/images/Poster%20404%20Error.png?raw=true";
 
 let currentEpisode = null;
 let malId = null;
-let totalEpisodesFromAniList = 0;
-
-let episodesList = [];
-let currentPage = 0;
-const EPISODES_PER_PAGE = 100;
+let totalEpisodes = 0;
 
 const query = `
 query($id: Int) {
@@ -188,151 +183,89 @@ async function fetchAnime() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ query, variables: { id: Number(id) } })
   });
-
   const json = await res.json();
-  const media = json.data.Media;
-
-  malId = media.idMal;
-  totalEpisodesFromAniList = media.episodes || 0;
-
-  await fetchEpisodesFromMAL(malId);
-
-  renderAnime(media);
-}
-
-/* ✅ CLEAN EPISODE LOGIC */
-async function fetchEpisodesFromMAL(malId) {
-  try {
-    let allEpisodes = [];
-    let page = 1;
-    let hasNextPage = true;
-
-    while (hasNextPage) {
-      const res = await fetch(`${JIKAN_API}/${malId}/episodes?page=${page}`);
-      const data = await res.json();
-
-      if (!data?.data) break;
-
-      allEpisodes.push(...data.data);
-      hasNextPage = data.pagination?.has_next_page;
-      page++;
-    }
-
-    // normalize
-    episodesList = allEpisodes.map((ep, i) => ({
-      episode: i + 1,
-      title: ep.title || `Episode ${i + 1}`
-    }));
-
-    // ✅ FIX: small anime fallback (like 2 episodes case)
-    if (totalEpisodesFromAniList > episodesList.length && totalEpisodesFromAniList <= 100) {
-      for (let i = episodesList.length + 1; i <= totalEpisodesFromAniList; i++) {
-        episodesList.push({
-          episode: i,
-          title: `Episode ${i}`
-        });
-      }
-    }
-
-  } catch (e) {
-    console.warn("Episode fetch failed", e);
-    episodesList = [];
-  }
+  renderAnime(json.data.Media);
 }
 
 function safeImg(src) {
   return src || FALLBACK_IMG;
 }
 
-/* ✅ EPISODE UI */
 function renderEpisodes() {
-  const container = document.getElementById("episodes");
-  const dropdown = document.getElementById("episodeDropdown");
+  const epContainer = document.getElementById("episodes");
+  const epDropdown = document.getElementById("episodeDropdown");
 
-  container.replaceChildren();
-  dropdown.innerHTML = `<option value="">Select episode</option>`;
+  epContainer.innerHTML = "";
+  epDropdown.innerHTML = `<option value="">Select episode</option>`;
 
-  if (!episodesList.length) {
-    container.innerHTML = `<p class="text-gray-400 text-sm">Episodes not available yet</p>`;
-    return;
+  if (totalEpisodes <= 0) return;
+
+  // Populate dropdown (UNCHANGED behavior)
+  for (let i = 1; i <= totalEpisodes; i++) {
+    const opt = document.createElement("option");
+    opt.value = i;
+    opt.textContent = `Episode ${i}`;
+    epDropdown.appendChild(opt);
   }
 
-  const start = currentPage * EPISODES_PER_PAGE;
-  const end = start + EPISODES_PER_PAGE;
-  const pageItems = episodesList.slice(start, end);
-
-  container.className = "grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2";
-
-  pageItems.forEach(ep => {
-    const btn = document.createElement("button");
-    btn.className = "ep-btn px-2 py-2 rounded-md bg-[#0b0b0b] border border-gray-700 text-xs hover:bg-[--accent]";
-    btn.textContent = ep.episode;
-    btn.onclick = () => selectEpisode(ep.episode);
-    container.appendChild(btn);
-  });
-
-  // dropdown = full list
-  episodesList.forEach(ep => {
-    const opt = document.createElement("option");
-    opt.value = ep.episode;
-    opt.textContent = `Episode ${ep.episode}`;
-    dropdown.appendChild(opt);
-  });
-
-  dropdown.onchange = e => {
+  epDropdown.onchange = e => {
     if (e.target.value) selectEpisode(e.target.value);
   };
 
-  // nav
-  const oldNav = document.getElementById("episodes-nav");
-  if (oldNav) oldNav.remove();
+  // --- NEW: Windowed episode navigation ---
+  let start = 1;
+  const pageSize = 20;
 
-  const nav = document.createElement("div");
-  nav.id = "episodes-nav";
-  nav.className = "flex justify-between mt-3 w-full col-span-full";
+  function renderWindow() {
+    epContainer.innerHTML = "";
 
-  nav.innerHTML = `
-    <button class="px-3 py-1 bg-[#1a1a1a] rounded text-sm" ${currentPage === 0 ? "disabled" : ""}>Prev</button>
-    <button class="px-3 py-1 bg-[#1a1a1a] rounded text-sm" ${(end >= episodesList.length) ? "disabled" : ""}>Next</button>
-  `;
-
-  const [prevBtn, nextBtn] = nav.querySelectorAll("button");
-
-  prevBtn.onclick = () => {
-    if (currentPage > 0) {
-      currentPage--;
-      renderEpisodes();
+    // Prev button
+    if (start > 1) {
+      const prev = document.createElement("button");
+      prev.className = "px-3 py-2 rounded-md bg-[#0b0b0b] border border-gray-700";
+      prev.innerHTML = `<i class="fa fa-chevron-left"></i>`;
+      prev.onclick = () => {
+        start = Math.max(1, start - pageSize);
+        renderWindow();
+      };
+      epContainer.appendChild(prev);
     }
-  };
 
-  nextBtn.onclick = () => {
-    if (end < episodesList.length) {
-      currentPage++;
-      renderEpisodes();
+    // Episode buttons
+    for (let i = start; i < start + pageSize && i <= totalEpisodes; i++) {
+      const btn = document.createElement("button");
+      btn.className = "ep-btn px-4 py-2 rounded-full bg-[#0b0b0b] border border-gray-700 text-sm hover:bg-[--accent]";
+      btn.textContent = `Ep ${i}`;
+      btn.onclick = () => selectEpisode(i);
+
+      if (currentEpisode == i) {
+        btn.classList.add("active");
+      }
+
+      epContainer.appendChild(btn);
     }
-  };
 
-  container.appendChild(nav);
+    // Next button
+    if (start + pageSize <= totalEpisodes) {
+      const next = document.createElement("button");
+      next.className = "px-3 py-2 rounded-md bg-[#0b0b0b] border border-gray-700";
+      next.innerHTML = `<i class="fa fa-chevron-right"></i>`;
+      next.onclick = () => {
+        start += pageSize;
+        renderWindow();
+      };
+      epContainer.appendChild(next);
+    }
+  }
+
+  renderWindow();
 }
-
-function selectEpisode(ep) {
-  currentEpisode = ep;
-
-  document.querySelectorAll(".ep-btn").forEach(b => {
-    b.classList.toggle("active", b.textContent == ep);
-  });
-
-  document.getElementById("episodeDropdown").value = ep;
-
-  renderSources();
-}
-
-/* unchanged */
+  
 function renderSources() {
   const srcContainer = document.getElementById("sources");
   srcContainer.innerHTML = "";
 
-  ["sub", "dub"].forEach(src => {
+  ["sub","dub"].forEach(src => {
     const btn = document.createElement("button");
     btn.className = "source-btn px-4 py-2 rounded-md bg-[#0b0b0b] border border-gray-700";
     btn.textContent = src.toUpperCase();
@@ -342,7 +275,6 @@ function renderSources() {
       btn.classList.add("active");
 
       const url = `https://megaplay.buzz/stream/mal/${malId}/${currentEpisode}/${src}`;
-
       document.getElementById("player").innerHTML =
         `<iframe src="${url}" allowfullscreen class="w-full h-full"></iframe>`;
     };
@@ -351,11 +283,19 @@ function renderSources() {
   });
 }
 
-/* ✅ FIXED COUNTDOWN BACK */
 async function renderAnime(media) {
 
-  let airingText = "";
+  malId = media.idMal;
 
+  if (media.status === "NOT_YET_RELEASED") {
+    totalEpisodes = 0;
+  } else if (media.status === "RELEASING") {
+    totalEpisodes = (media.nextAiringEpisode?.episode || 1) - 1;
+  } else {
+    totalEpisodes = media.episodes || 0;
+  }
+
+  let airingText = "";
   if (media.status === "RELEASING" && media.nextAiringEpisode) {
     const ep = media.nextAiringEpisode.episode;
     const sec = media.nextAiringEpisode.timeUntilAiring;
@@ -376,7 +316,7 @@ async function renderAnime(media) {
       <p class="text-sm text-gray-300 mb-1">
         Anime | ${media.startDate?.year || "—"}
         <span class="mx-2">|</span>
-        Episodes: ${episodesList.length || "?"}
+        Episodes: ${media.episodes || "?"}
         <span class="mx-2">|</span>
         <i class="fa fa-star star"></i> ${(media.averageScore ? (media.averageScore/10).toFixed(1) : "—")}
       </p>
@@ -388,7 +328,40 @@ async function renderAnime(media) {
 
   renderEpisodes();
 
-  // rest unchanged
+  document.getElementById("characters-grid").innerHTML = media.characters.edges.map(e => {
+    const c = e.node, va = e.voiceActors?.[0];
+    return `
+      <div class="bg-[#1a1a1a] rounded-xl p-3 flex gap-3">
+        <img src="${safeImg(c.image?.large)}" class="w-20 h-24 rounded-lg object-cover"/>
+        <div>
+          <p class="font-bold">${c.name.full}</p>
+          <p class="text-xs text-gray-400">${e.role}</p>
+          ${va ? `<p class="text-xs text-gray-400 mt-1">${va.name.full} (${va.languageV2})</p>` : ""}
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  document.getElementById("staff-grid").innerHTML = media.staff.edges.map(e => {
+    const s = e.node;
+    return `
+      <div class="text-center">
+        <img src="${safeImg(s.image?.large)}" class="w-16 h-16 rounded-full mx-auto"/>
+        <p class="text-sm mt-2">${s.name.full}</p>
+        <p class="text-xs text-gray-400">${e.role}</p>
+      </div>
+    `;
+  }).join("");
+
+  document.getElementById("recommendations-grid").innerHTML = media.recommendations.edges.map(r => {
+    const rec = r.node.mediaRecommendation;
+    return `
+      <a href="info.html?id=${rec.id}&type=anime">
+        <img src="${safeImg(rec.coverImage?.large)}" class="rounded-xl"/>
+        <p class="text-sm">${rec.title.romaji}</p>
+      </a>
+    `;
+  }).join("");
 }
 
 fetchAnime();
