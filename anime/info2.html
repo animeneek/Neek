@@ -124,7 +124,7 @@ const FALLBACK_IMG = "https://github.com/animeneek/Neek/blob/main/assets/images/
 let currentEpisode = null;
 let malId = null;
 
-// episodes state (REAL RELEASED ONLY)
+// episodes state
 let episodesList = [];
 let currentPage = 0;
 const EPISODES_PER_PAGE = 100;
@@ -199,9 +199,7 @@ async function fetchAnime() {
   renderAnime(media);
 }
 
-/* -------------------------
-   REAL EPISODES (JIKAN)
---------------------------*/
+/* ✅ FIXED: fetch ALL pages */
 async function fetchEpisodesFromMAL(malId) {
   try {
     let allEpisodes = [];
@@ -215,12 +213,10 @@ async function fetchEpisodesFromMAL(malId) {
       if (!data?.data) break;
 
       allEpisodes.push(...data.data);
-
       hasNextPage = data.pagination?.has_next_page;
       page++;
     }
 
-    // ONLY RELEASED EPISODES
     episodesList = allEpisodes.map(ep => ({
       episode: ep.mal_id,
       title: ep.title
@@ -236,14 +232,13 @@ function safeImg(src) {
   return src || FALLBACK_IMG;
 }
 
-/* -------------------------
-   EPISODE GRID + PAGINATION
---------------------------*/
+/* ✅ FIXED EPISODE RENDER */
 function renderEpisodes() {
   const container = document.getElementById("episodes");
   const dropdown = document.getElementById("episodeDropdown");
 
-  container.innerHTML = "";
+  // CLEAN RESET (smooth)
+  container.replaceChildren();
   dropdown.innerHTML = `<option value="">Select episode</option>`;
 
   if (!episodesList.length) {
@@ -255,9 +250,9 @@ function renderEpisodes() {
   const end = start + EPISODES_PER_PAGE;
   const pageItems = episodesList.slice(start, end);
 
-  // GRID
-  container.classList.add("grid", "grid-cols-5", "sm:grid-cols-8", "md:grid-cols-10", "gap-2");
+  container.className = "grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2";
 
+  // BUTTONS (paginated)
   pageItems.forEach(ep => {
     const btn = document.createElement("button");
     btn.className = "ep-btn px-2 py-2 rounded-md bg-[#0b0b0b] border border-gray-700 text-xs hover:bg-[--accent]";
@@ -266,15 +261,26 @@ function renderEpisodes() {
     btn.onclick = () => selectEpisode(ep.episode);
 
     container.appendChild(btn);
+  });
 
+  // ✅ FULL DROPDOWN (ALL EPISODES)
+  episodesList.forEach(ep => {
     const opt = document.createElement("option");
     opt.value = ep.episode;
     opt.textContent = `Episode ${ep.episode}`;
     dropdown.appendChild(opt);
   });
 
-  // pagination controls
+  dropdown.onchange = e => {
+    if (e.target.value) selectEpisode(e.target.value);
+  };
+
+  /* ✅ FIXED NAV (no duplicates, correct position) */
+  const oldNav = document.getElementById("episodes-nav");
+  if (oldNav) oldNav.remove();
+
   const nav = document.createElement("div");
+  nav.id = "episodes-nav";
   nav.className = "flex justify-between mt-3 w-full col-span-full";
 
   nav.innerHTML = `
@@ -289,26 +295,20 @@ function renderEpisodes() {
   const [prevBtn, nextBtn] = nav.querySelectorAll("button");
 
   prevBtn.onclick = () => {
-  if (currentPage > 0) {
-    currentPage--;
-    container.innerHTML = "";
-    renderEpisodes();
-  }
-};
+    if (currentPage > 0) {
+      currentPage--;
+      renderEpisodes();
+    }
+  };
 
   nextBtn.onclick = () => {
-  if (end < episodesList.length) {
-    currentPage++;
-    container.innerHTML = "";
-    renderEpisodes();
-  }
-};
-
-  container.parentElement.appendChild(nav);
-
-  dropdown.onchange = e => {
-    if (e.target.value) selectEpisode(e.target.value);
+    if (end < episodesList.length) {
+      currentPage++;
+      renderEpisodes();
+    }
   };
+
+  container.appendChild(nav);
 }
 
 function selectEpisode(ep) {
@@ -323,9 +323,7 @@ function selectEpisode(ep) {
   renderSources();
 }
 
-/* -------------------------
-   SOURCES (UNCHANGED)
---------------------------*/
+/* unchanged */
 function renderSources() {
   const srcContainer = document.getElementById("sources");
   srcContainer.innerHTML = "";
@@ -349,9 +347,7 @@ function renderSources() {
   });
 }
 
-/* -------------------------
-   MAIN RENDER (UNCHANGED)
---------------------------*/
+/* unchanged */
 async function renderAnime(media) {
 
   document.getElementById("info").innerHTML = `
@@ -419,7 +415,6 @@ async function renderAnime(media) {
 
 fetchAnime();
 </script>
-
 
 </body>
 </html>
