@@ -122,7 +122,7 @@ const JIKAN_API = "https://api.jikan.moe/v4/anime";
 const FALLBACK_IMG = "https://github.com/animeneek/Neek/blob/main/assets/images/Poster%20404%20Error.png?raw=true";
 
 let currentEpisode = null;
-let totalEpisodesFromAniList = 0;
+let malId = null;
 
 // episodes state
 let episodesList = [];
@@ -193,14 +193,13 @@ async function fetchAnime() {
   const media = json.data.Media;
 
   malId = media.idMal;
-totalEpisodesFromAniList = media.episodes || 0;
 
   await fetchEpisodesFromMAL(malId);
 
   renderAnime(media);
 }
 
-/* ✅ FIXED: fetch ALL pages */
+/* ✅ FIXED: fetch ALL pages + extend beyond 300 */
 async function fetchEpisodesFromMAL(malId) {
   try {
     let allEpisodes = [];
@@ -218,27 +217,23 @@ async function fetchEpisodesFromMAL(malId) {
       page++;
     }
 
-    episodesList = allEpisodes.map((ep, index) => ({
-  episode: index + 1,
-  title: ep.title
-}));
+    // normalize numbering (important)
+    episodesList = allEpisodes.map((ep, i) => ({
+      episode: i + 1,
+      title: ep.title || `Episode ${i + 1}`
+    }));
 
-// 🔥 Fallback: extend beyond Jikan limit
-if (totalEpisodesFromAniList > episodesList.length) {
-  const existing = new Set(episodesList.map(e => e.episode));
+    // 🔥 EXTEND beyond Jikan limit (works for One Piece etc.)
+    if (episodesList.length >= 100) {
+      const MAX_EPISODES = 2000;
 
-  for (let i = 1; i <= totalEpisodesFromAniList; i++) {
-    if (!existing.has(i)) {
-      episodesList.push({
-        episode: i,
-        title: `Episode ${i}`
-      });
+      for (let i = episodesList.length + 1; i <= MAX_EPISODES; i++) {
+        episodesList.push({
+          episode: i,
+          title: `Episode ${i}`
+        });
+      }
     }
-  }
-
-  // sort properly
-  episodesList.sort((a, b) => a.episode - b.episode);
-}
 
   } catch (e) {
     console.warn("Episode fetch failed", e);
@@ -250,12 +245,11 @@ function safeImg(src) {
   return src || FALLBACK_IMG;
 }
 
-/* ✅ FIXED EPISODE RENDER */
+/* ✅ EPISODE RENDER */
 function renderEpisodes() {
   const container = document.getElementById("episodes");
   const dropdown = document.getElementById("episodeDropdown");
 
-  // CLEAN RESET (smooth)
   container.replaceChildren();
   dropdown.innerHTML = `<option value="">Select episode</option>`;
 
@@ -270,7 +264,7 @@ function renderEpisodes() {
 
   container.className = "grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2";
 
-  // BUTTONS (paginated)
+  // buttons (paginated)
   pageItems.forEach(ep => {
     const btn = document.createElement("button");
     btn.className = "ep-btn px-2 py-2 rounded-md bg-[#0b0b0b] border border-gray-700 text-xs hover:bg-[--accent]";
@@ -281,7 +275,7 @@ function renderEpisodes() {
     container.appendChild(btn);
   });
 
-  // ✅ FULL DROPDOWN (ALL EPISODES)
+  // FULL dropdown (all episodes)
   episodesList.forEach(ep => {
     const opt = document.createElement("option");
     opt.value = ep.episode;
@@ -293,7 +287,7 @@ function renderEpisodes() {
     if (e.target.value) selectEpisode(e.target.value);
   };
 
-  /* ✅ FIXED NAV (no duplicates, correct position) */
+  // NAV FIX
   const oldNav = document.getElementById("episodes-nav");
   if (oldNav) oldNav.remove();
 
