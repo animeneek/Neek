@@ -204,16 +204,24 @@ async function fetchAnime() {
 --------------------------*/
 async function fetchEpisodesFromMAL(malId) {
   try {
-    const res = await fetch(`${JIKAN_API}/${malId}/episodes`);
-    const data = await res.json();
+    let allEpisodes = [];
+    let page = 1;
+    let hasNextPage = true;
 
-    if (!data?.data) {
-      episodesList = [];
-      return;
+    while (hasNextPage) {
+      const res = await fetch(`${JIKAN_API}/${malId}/episodes?page=${page}`);
+      const data = await res.json();
+
+      if (!data?.data) break;
+
+      allEpisodes.push(...data.data);
+
+      hasNextPage = data.pagination?.has_next_page;
+      page++;
     }
 
     // ONLY RELEASED EPISODES
-    episodesList = data.data.map(ep => ({
+    episodesList = allEpisodes.map(ep => ({
       episode: ep.mal_id,
       title: ep.title
     }));
