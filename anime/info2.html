@@ -248,7 +248,7 @@ function renderEpisodes() {
   const pageItems = episodesList.slice(start, end);
 
   // GRID
-  container.className = "grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2";
+  container.classList.add("grid", "grid-cols-5", "sm:grid-cols-8", "md:grid-cols-10", "gap-2");
 
   pageItems.forEach(ep => {
     const btn = document.createElement("button");
@@ -281,20 +281,22 @@ function renderEpisodes() {
   const [prevBtn, nextBtn] = nav.querySelectorAll("button");
 
   prevBtn.onclick = () => {
-    if (currentPage > 0) {
-      currentPage--;
-      renderEpisodes();
-    }
-  };
+  if (currentPage > 0) {
+    currentPage--;
+    container.innerHTML = "";
+    renderEpisodes();
+  }
+};
 
   nextBtn.onclick = () => {
-    if (end < episodesList.length) {
-      currentPage++;
-      renderEpisodes();
-    }
-  };
+  if (end < episodesList.length) {
+    currentPage++;
+    container.innerHTML = "";
+    renderEpisodes();
+  }
+};
 
-  container.appendChild(nav);
+  container.parentElement.appendChild(nav);
 
   dropdown.onchange = e => {
     if (e.target.value) selectEpisode(e.target.value);
