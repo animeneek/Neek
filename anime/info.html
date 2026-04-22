@@ -190,7 +190,6 @@ async function fetchStreamtapeData() {
   try {
     const res = await fetch(STREAMTAPE_JSON_URL);
     streamtapeData = await res.json();
-    console.log("Streamtape data loaded:", streamtapeData);
   } catch (e) {
     console.warn("Streamtape JSON fetch failed", e);
     streamtapeData = null;
@@ -198,22 +197,15 @@ async function fetchStreamtapeData() {
 }
 
 function getStreamtapeEpisodesForMalId(malId) {
-  if (!streamtapeData || !streamtapeData.files) {
-    console.warn("No streamtape data available");
-    return {};
-  }
+  if (!streamtapeData || !streamtapeData.files) return null;
   
   const malIdStr = String(malId);
   const episodes = {};
-  
-  console.log("Looking for MAL ID:", malIdStr);
   
   streamtapeData.files.forEach(file => {
     const fileMalId = String(file.mal_id);
     
     if (fileMalId === malIdStr) {
-      console.log("Found matching file:", file.title);
-      
       const titleMatch = file.title.match(/\-(\d+)\]/);
       if (titleMatch) {
         const epNum = parseInt(titleMatch[1]);
@@ -233,8 +225,7 @@ function getStreamtapeEpisodesForMalId(malId) {
     }
   });
   
-  console.log("Found episodes:", episodes);
-  return episodes;
+  return Object.keys(episodes).length > 0 ? episodes : null;
 }
 
 async function fetchAnime() {
@@ -252,11 +243,9 @@ async function fetchAnime() {
   malId = media.idMal;
   totalEpisodesFromAniList = media.episodes || 0;
 
-  console.log("Anime MAL ID:", malId);
-
   const streamtapeEpisodes = getStreamtapeEpisodesForMalId(malId);
   
-  if (Object.keys(streamtapeEpisodes).length > 0) {
+  if (streamtapeEpisodes) {
     hasStreamtapeEpisodes = true;
     episodesList = Object.keys(streamtapeEpisodes)
       .map(Number)
@@ -266,16 +255,15 @@ async function fetchAnime() {
         title: `Episode ${ep}`,
         sources: streamtapeEpisodes[ep]
       }));
-    console.log("Using Streamtape episodes:", episodesList);
   } else {
     hasStreamtapeEpisodes = false;
-    console.log("No Streamtape episodes found, using MAL data");
     await fetchEpisodesFromMAL(malId);
   }
 
   renderAnime(media);
 }
 
+/* ✅ CLEAN EPISODE LOGIC */
 async function fetchEpisodesFromMAL(malId) {
   try {
     let allEpisodes = [];
@@ -293,11 +281,13 @@ async function fetchEpisodesFromMAL(malId) {
       page++;
     }
 
+    // normalize
     episodesList = allEpisodes.map((ep, i) => ({
       episode: i + 1,
       title: ep.title || `Episode ${i + 1}`
     }));
 
+    // ✅ FIX: small anime fallback (like 2 episodes case)
     if (totalEpisodesFromAniList > episodesList.length && totalEpisodesFromAniList <= 100) {
       for (let i = episodesList.length + 1; i <= totalEpisodesFromAniList; i++) {
         episodesList.push({
@@ -317,6 +307,7 @@ function safeImg(src) {
   return src || FALLBACK_IMG;
 }
 
+/* ✅ EPISODE UI */
 function renderEpisodes() {
   const container = document.getElementById("episodes");
   const dropdown = document.getElementById("episodeDropdown");
@@ -343,6 +334,7 @@ function renderEpisodes() {
     container.appendChild(btn);
   });
 
+  // dropdown = full list
   episodesList.forEach(ep => {
     const opt = document.createElement("option");
     opt.value = ep.episode;
@@ -354,6 +346,7 @@ function renderEpisodes() {
     if (e.target.value) selectEpisode(e.target.value);
   };
 
+  // nav
   const oldNav = document.getElementById("episodes-nav");
   if (oldNav) oldNav.remove();
 
@@ -433,6 +426,7 @@ function renderSources() {
         btn.classList.add("active");
 
         const url = `https://megaplay.buzz/stream/mal/${malId}/${currentEpisode}/${src}`;
+
         document.getElementById("player").innerHTML =
           `<iframe src="${url}" allowfullscreen class="w-full h-full"></iframe>`;
       };
@@ -442,6 +436,7 @@ function renderSources() {
   }
 }
 
+/* ✅ FIXED COUNTDOWN BACK */
 async function renderAnime(media) {
 
   let airingText = "";
