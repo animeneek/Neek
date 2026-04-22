@@ -118,64 +118,20 @@ const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
 
 const ANILIST_API = "https://graphql.anilist.co";
+const JIKAN_API = "https://api.jikan.moe/v4/anime";
+const FALLBACK_IMG = "https://github.com/animeneek/Neek/blob/main/assets/images/Poster%20404%20Error.png?raw=true";
+const STREAMTAPE_JSON_URL = "https://raw.githubusercontent.com/18otaku/streamtape-json/main/streamtape_videos.json";
 
-const STREAM_JSON_URL =
-  "https://raw.githubusercontent.com/18otaku/streamtape-json/main/streamtape_videos.json";
-
-const FALLBACK_IMG =
-  "https://github.com/animeneek/Neek/blob/main/assets/images/Poster%20404%20Error.png?raw=true";
-
-/* ================= SAFE GLOBAL STATE ================= */
-
-let streamData = { files: [] };
-let isCustomStream = false;
-let streamMap = {};
 let currentEpisode = null;
 let malId = null;
-let totalEpisodes = 0;
+let totalEpisodesFromAniList = 0;
 
-/* ================= LOAD STREAM JSON (SAFE) ================= */
+let episodesList = [];
+let currentPage = 0;
+const EPISODES_PER_PAGE = 100;
 
-async function loadStreamData() {
-  try {
-    const res = await fetch(STREAM_JSON_URL);
-    if (!res.ok) throw new Error("Failed JSON load");
-
-    streamData = await res.json();
-
-    if (!streamData.files) streamData.files = [];
-
-  } catch (e) {
-    console.error("Stream JSON failed:", e);
-    streamData = { files: [] }; // NEVER null
-  }
-}
-
-/* ================= STREAM HELPERS ================= */
-
-function getAnimeFiles(malId) {
-  return (streamData?.files || []).filter(
-    f => String(f.mal_id) === String(malId)
-  );
-}
-
-function groupEpisodes(files) {
-  const map = {};
-
-  files.forEach(f => {
-    const match = f.title.match(/\[(\d+)-(\d+)\]/);
-    if (!match) return;
-
-    const ep = Number(match[2]);
-
-    if (!map[ep]) map[ep] = [];
-    map[ep].push(f);
-  });
-
-  return map;
-}
-
-/* ================= GRAPHQL ================= */
+let streamtapeData = null;
+let hasStreamtapeEpisodes = false;
 
 const query = `
 query($id: Int) {
@@ -194,221 +150,352 @@ query($id: Int) {
       episode
       timeUntilAiring
     }
+    characters(sort: ROLE, perPage: 12) {
+      edges {
+        role
+        node { id name { full } image { large } }
+        voiceActors(sort: RELEVANCE) {
+          id
+          languageV2
+          name { full }
+          image { large }
+        }
+      }
+    }
+    staff(perPage: 12) {
+      edges {
+        role
+        node { id name { full } image { large } }
+      }
+    }
+    recommendations(perPage: 10) {
+      edges {
+        node {
+          mediaRecommendation {
+            id
+            title { romaji }
+            coverImage { large }
+            averageScore
+            status
+            episodes
+          }
+        }
+      }
+    }
   }
 }
 `;
 
-/* ================= FETCH ================= */
-
-async function fetchAnime() {
-  await loadStreamData();
-
+async function fetchStreamtapeData() {
   try {
-    const res = await fetch(ANILIST_API, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query, variables: { id: Number(id) } })
-    });
-
-    const json = await res.json();
-
-    if (!json?.data?.Media) {
-      throw new Error("Invalid AniList response");
-    }
-
-    renderAnime(json.data.Media);
-
+    const res = await fetch(STREAMTAPE_JSON_URL);
+    streamtapeData = await res.json();
   } catch (e) {
-    console.error("AniList error:", e);
+    console.warn("Streamtape JSON fetch failed", e);
+    streamtapeData = null;
   }
 }
 
-/* ================= SAFE IMAGE ================= */
+function getStreamtapeEpisodesForMalId(malId) {
+  if (!streamtapeData || !streamtapeData.files) return [];
+  
+  const episodes = {};
+  
+  streamtapeData.files.forEach(file => {
+    if (file.mal_id && String(file.mal_id) === String(malId)) {
+      const titleMatch = file.title.match(/\[(\d+)\]/);
+      if (titleMatch) {
+        const epNum = parseInt(titleMatch[1]);
+        if (!episodes[epNum]) {
+          episodes[epNum] = [];
+        }
+        
+        const isCensored = !file.title.includes("[Uncen]");
+        const label = isCensored ? "Sub" : "Sub [Uncen]";
+        
+        episodes[epNum].push({
+          vidcode: file.vidcode,
+          label: label,
+          isCensored: isCensored
+        });
+      }
+    }
+  });
+  
+  return episodes;
+}
+
+async function fetchAnime() {
+  await fetchStreamtapeData();
+  
+  const res = await fetch(ANILIST_API, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ query, variables: { id: Number(id) } })
+  });
+
+  const json = await res.json();
+  const media = json.data.Media;
+
+  malId = media.idMal;
+  totalEpisodesFromAniList = media.episodes || 0;
+
+  const streamtapeEpisodes = getStreamtapeEpisodesForMalId(malId);
+  
+  if (Object.keys(streamtapeEpisodes).length > 0) {
+    hasStreamtapeEpisodes = true;
+    episodesList = Object.keys(streamtapeEpisodes)
+      .map(Number)
+      .sort((a, b) => a - b)
+      .map(ep => ({
+        episode: ep,
+        title: `Episode ${ep}`,
+        sources: streamtapeEpisodes[ep]
+      }));
+  } else {
+    hasStreamtapeEpisodes = false;
+    await fetchEpisodesFromMAL(malId);
+  }
+
+  renderAnime(media);
+}
+
+async function fetchEpisodesFromMAL(malId) {
+  try {
+    let allEpisodes = [];
+    let page = 1;
+    let hasNextPage = true;
+
+    while (hasNextPage) {
+      const res = await fetch(`${JIKAN_API}/${malId}/episodes?page=${page}`);
+      const data = await res.json();
+
+      if (!data?.data) break;
+
+      allEpisodes.push(...data.data);
+      hasNextPage = data.pagination?.has_next_page;
+      page++;
+    }
+
+    episodesList = allEpisodes.map((ep, i) => ({
+      episode: i + 1,
+      title: ep.title || `Episode ${i + 1}`
+    }));
+
+    if (totalEpisodesFromAniList > episodesList.length && totalEpisodesFromAniList <= 100) {
+      for (let i = episodesList.length + 1; i <= totalEpisodesFromAniList; i++) {
+        episodesList.push({
+          episode: i,
+          title: `Episode ${i}`
+        });
+      }
+    }
+
+  } catch (e) {
+    console.warn("Episode fetch failed", e);
+    episodesList = [];
+  }
+}
 
 function safeImg(src) {
   return src || FALLBACK_IMG;
 }
 
-/* ================= EPISODES ================= */
-
 function renderEpisodes() {
-  const epContainer = document.getElementById("episodes");
-  const epDropdown = document.getElementById("episodeDropdown");
+  const container = document.getElementById("episodes");
+  const dropdown = document.getElementById("episodeDropdown");
 
-  if (!epContainer || !epDropdown) return;
+  container.replaceChildren();
+  dropdown.innerHTML = `<option value="">Select episode</option>`;
 
-  epContainer.innerHTML = "";
-  epDropdown.innerHTML = `<option value="">Select episode</option>`;
-
-  if (totalEpisodes <= 0) return;
-
-  /* ================= CUSTOM STREAM ================= */
-
-  if (isCustomStream) {
-    const eps = Object.keys(streamMap).map(Number).sort((a,b)=>a-b);
-
-    epContainer.className =
-      "grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2";
-
-    eps.forEach(ep => {
-      const btn = document.createElement("button");
-      btn.className =
-        "ep-btn px-2 py-2 rounded-md bg-[#0b0b0b] border border-gray-700 text-sm";
-      btn.textContent = ep;
-
-      btn.onclick = () => selectEpisode(ep);
-
-      epContainer.appendChild(btn);
-
-      const opt = document.createElement("option");
-      opt.value = ep;
-      opt.textContent = `Episode ${ep}`;
-      epDropdown.appendChild(opt);
-    });
-
-    epDropdown.onchange = e => {
-      if (e.target.value) selectEpisode(Number(e.target.value));
-    };
-
+  if (!episodesList.length) {
+    container.innerHTML = `<p class="text-gray-400 text-sm">Episodes not available yet</p>`;
     return;
   }
 
-  /* ================= NORMAL ================= */
+  const start = currentPage * EPISODES_PER_PAGE;
+  const end = start + EPISODES_PER_PAGE;
+  const pageItems = episodesList.slice(start, end);
 
-  epContainer.className =
-    "grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2";
+  container.className = "grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2";
 
-  for (let i = 1; i <= totalEpisodes; i++) {
+  pageItems.forEach(ep => {
     const btn = document.createElement("button");
-    btn.className =
-      "ep-btn px-2 py-2 rounded-md bg-[#0b0b0b] border border-gray-700 text-sm";
-    btn.textContent = i;
-
-    btn.onclick = () => selectEpisode(i);
-
-    epContainer.appendChild(btn);
-
-    const opt = document.createElement("option");
-    opt.value = i;
-    opt.textContent = `Episode ${i}`;
-    epDropdown.appendChild(opt);
-  }
-
-  epDropdown.onchange = e => {
-    if (e.target.value) selectEpisode(Number(e.target.value));
-  };
-}
-
-/* ================= SELECT EP ================= */
-
-function selectEpisode(ep) {
-  currentEpisode = Number(ep);
-
-  document.querySelectorAll(".ep-btn").forEach(b => {
-    b.classList.toggle("active", Number(b.textContent) === currentEpisode);
+    btn.className = "ep-btn px-2 py-2 rounded-md bg-[#0b0b0b] border border-gray-700 text-xs hover:bg-[--accent]";
+    btn.textContent = ep.episode;
+    btn.onclick = () => selectEpisode(ep.episode);
+    container.appendChild(btn);
   });
 
-  document.getElementById("episodeDropdown").value = currentEpisode;
+  episodesList.forEach(ep => {
+    const opt = document.createElement("option");
+    opt.value = ep.episode;
+    opt.textContent = `Episode ${ep.episode}`;
+    dropdown.appendChild(opt);
+  });
+
+  dropdown.onchange = e => {
+    if (e.target.value) selectEpisode(e.target.value);
+  };
+
+  const oldNav = document.getElementById("episodes-nav");
+  if (oldNav) oldNav.remove();
+
+  const nav = document.createElement("div");
+  nav.id = "episodes-nav";
+  nav.className = "flex justify-between mt-3 w-full col-span-full";
+
+  nav.innerHTML = `
+    <button class="px-3 py-1 bg-[#1a1a1a] rounded text-sm" ${currentPage === 0 ? "disabled" : ""}>Prev</button>
+    <button class="px-3 py-1 bg-[#1a1a1a] rounded text-sm" ${(end >= episodesList.length) ? "disabled" : ""}>Next</button>
+  `;
+
+  const [prevBtn, nextBtn] = nav.querySelectorAll("button");
+
+  prevBtn.onclick = () => {
+    if (currentPage > 0) {
+      currentPage--;
+      renderEpisodes();
+    }
+  };
+
+  nextBtn.onclick = () => {
+    if (end < episodesList.length) {
+      currentPage++;
+      renderEpisodes();
+    }
+  };
+
+  container.appendChild(nav);
+}
+
+function selectEpisode(ep) {
+  currentEpisode = ep;
+
+  document.querySelectorAll(".ep-btn").forEach(b => {
+    b.classList.toggle("active", b.textContent == ep);
+  });
+
+  document.getElementById("episodeDropdown").value = ep;
 
   renderSources();
 }
 
-/* ================= SOURCES ================= */
-
 function renderSources() {
   const srcContainer = document.getElementById("sources");
-  if (!srcContainer) return;
-
   srcContainer.innerHTML = "";
 
-  if (isCustomStream) {
-    const files = streamMap[currentEpisode] || [];
+  if (hasStreamtapeEpisodes) {
+    const episodeData = episodesList.find(e => e.episode == currentEpisode);
+    
+    if (episodeData && episodeData.sources) {
+      episodeData.sources.forEach((source, idx) => {
+        const btn = document.createElement("button");
+        btn.className = "source-btn px-4 py-2 rounded-md bg-[#0b0b0b] border border-gray-700";
+        btn.textContent = source.label;
 
-    files.forEach(f => {
-      const isUncen = f.title.includes("[Uncen]");
-      const label = isUncen ? "Sub [Uncen]" : "Sub";
+        btn.onclick = () => {
+          document.querySelectorAll(".source-btn").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
 
+          const url = `https://streamtape.to/e/${source.vidcode}?color=255,68,68`;
+          document.getElementById("player").innerHTML =
+            `<iframe src="${url}" allowfullscreen class="w-full h-full"></iframe>`;
+        };
+
+        srcContainer.appendChild(btn);
+      });
+    }
+  } else {
+    ["sub", "dub"].forEach(src => {
       const btn = document.createElement("button");
-      btn.className =
-        "source-btn px-4 py-2 rounded-md bg-[#0b0b0b] border border-gray-700";
-      btn.textContent = label;
+      btn.className = "source-btn px-4 py-2 rounded-md bg-[#0b0b0b] border border-gray-700";
+      btn.textContent = src.toUpperCase();
 
       btn.onclick = () => {
+        document.querySelectorAll(".source-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+
+        const url = `https://megaplay.buzz/stream/mal/${malId}/${currentEpisode}/${src}`;
         document.getElementById("player").innerHTML =
-          `<iframe src="https://streamtape.com/e/${f.vidcode}?color=255,68,68"
-          class="w-full h-full" allowfullscreen></iframe>`;
+          `<iframe src="${url}" allowfullscreen class="w-full h-full"></iframe>`;
       };
 
       srcContainer.appendChild(btn);
     });
-
-    return;
   }
-
-  ["sub", "dub"].forEach(src => {
-    const btn = document.createElement("button");
-    btn.className =
-      "source-btn px-4 py-2 rounded-md bg-[#0b0b0b] border border-gray-700";
-    btn.textContent = src.toUpperCase();
-
-    btn.onclick = () => {
-      const url =
-        `https://megaplay.buzz/stream/mal/${malId}/${currentEpisode}/${src}`;
-
-      document.getElementById("player").innerHTML =
-        `<iframe src="${url}" class="w-full h-full" allowfullscreen></iframe>`;
-    };
-
-    srcContainer.appendChild(btn);
-  });
 }
-
-/* ================= MAIN RENDER (SAFE ALWAYS) ================= */
 
 async function renderAnime(media) {
 
-  if (!media) return;
+  let airingText = "";
 
-  malId = media.idMal;
+  if (media.status === "RELEASING" && media.nextAiringEpisode) {
+    const ep = media.nextAiringEpisode.episode;
+    const sec = media.nextAiringEpisode.timeUntilAiring;
 
-  const files = getAnimeFiles(malId);
+    const d = Math.floor(sec / 86400);
+    const h = Math.floor((sec % 86400) / 3600);
+    const m = Math.floor((sec % 3600) / 60);
 
-  isCustomStream = files.length > 0;
-
-  if (isCustomStream) {
-    streamMap = groupEpisodes(files);
-    totalEpisodes = Object.keys(streamMap).length;
-  } else {
-    streamMap = {};
-
-    if (media.status === "RELEASING") {
-      totalEpisodes = (media.nextAiringEpisode?.episode || 1) - 1;
-    } else {
-      totalEpisodes = media.episodes || 0;
-    }
+    airingText = `<p class="text-xs text-green-400 mt-1">Ep ${ep}: ${d}d ${h}h ${m}m</p>`;
   }
 
-  /* ================= UI SAFE ================= */
-
-  const info = document.getElementById("info");
-  if (info) {
-    info.innerHTML = `
-      <div class="flex-shrink-0 w-full md:w-64">
-        <img src="${safeImg(media.coverImage?.large)}"
-        class="rounded-xl w-full object-cover"/>
-      </div>
-      <div class="flex-1">
-        <h1 class="text-2xl font-bold mb-2">
-          ${media.title.romaji || media.title.english}
-        </h1>
-        <p class="text-sm text-gray-300">
-          ${media.startDate?.year || "—"} | ${media.episodes || "?"} eps
-        </p>
-      </div>
-    `;
-  }
+  document.getElementById("info").innerHTML = `
+    <div class="flex-shrink-0 w-full md:w-64">
+      <img src="${safeImg(media.coverImage?.large)}" class="rounded-xl shadow-lg w-full object-cover" />
+    </div>
+    <div class="flex-1">
+      <h1 class="text-2xl sm:text-3xl font-bold mb-2">${media.title.romaji || media.title.english}</h1>
+      <p class="text-sm text-gray-300 mb-1">
+        Anime | ${media.startDate?.year || "—"}
+        <span class="mx-2">|</span>
+        Episodes: ${episodesList.length || "?"}
+        <span class="mx-2">|</span>
+        <i class="fa fa-star star"></i> ${(media.averageScore ? (media.averageScore/10).toFixed(1) : "—")}
+      </p>
+      ${airingText}
+      <p class="mb-3 text-sm text-[--accent]">${media.genres?.join(", ") || ""}</p>
+      <p class="text-[--muted] mb-6 line-clamp-6">${media.description || ""}</p>
+    </div>
+  `;
 
   renderEpisodes();
+
+  document.getElementById("characters-grid").innerHTML = media.characters.edges.map(e => {
+    const c = e.node, va = e.voiceActors?.[0];
+    return `
+      <div class="bg-[#1a1a1a] rounded-xl p-3 flex gap-3">
+        <img src="${safeImg(c.image?.large)}" class="w-20 h-24 rounded-lg object-cover"/>
+        <div>
+          <p class="font-bold">${c.name.full}</p>
+          <p class="text-xs text-gray-400">${e.role}</p>
+          ${va ? `<p class="text-xs text-gray-400 mt-1">${va.name.full} (${va.languageV2})</p>` : ""}
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  document.getElementById("staff-grid").innerHTML = media.staff.edges.map(e => {
+    const s = e.node;
+    return `
+      <div class="text-center">
+        <img src="${safeImg(s.image?.large)}" class="w-16 h-16 rounded-full mx-auto"/>
+        <p class="text-sm mt-2">${s.name.full}</p>
+        <p class="text-xs text-gray-400">${e.role}</p>
+      </div>
+    `;
+  }).join("");
+
+  document.getElementById("recommendations-grid").innerHTML = media.recommendations.edges.map(r => {
+    const rec = r.node.mediaRecommendation;
+    return `
+      <a href="info.html?id=${rec.id}&type=anime">
+        <img src="${safeImg(rec.coverImage?.large)}" class="rounded-xl"/>
+        <p class="text-sm">${rec.title.romaji}</p>
+      </a>
+    `;
+  }).join("");
 }
 
 fetchAnime();
