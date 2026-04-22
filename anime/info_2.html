@@ -118,37 +118,45 @@ const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
 
 const ANILIST_API = "https://graphql.anilist.co";
-const FALLBACK_IMG = "https://github.com/animeneek/Neek/blob/main/assets/images/Poster%20404%20Error.png?raw=true";
-
-/* ===================== STREAM DATA ===================== */
 
 const STREAM_JSON_URL =
   "https://raw.githubusercontent.com/18otaku/streamtape-json/main/streamtape_videos.json";
 
-let streamData = null;
-let streamMap = null;
+const FALLBACK_IMG =
+  "https://github.com/animeneek/Neek/blob/main/assets/images/Poster%20404%20Error.png?raw=true";
+
+/* ================= SAFE GLOBAL STATE ================= */
+
+let streamData = { files: [] };
+let isCustomStream = false;
+let streamMap = {};
+let currentEpisode = null;
+let malId = null;
+let totalEpisodes = 0;
+
+/* ================= LOAD STREAM JSON (SAFE) ================= */
 
 async function loadStreamData() {
   try {
-    const res = await fetch(STREAM_JSON_URL, { cache: "no-store" });
-
-    if (!res.ok) throw new Error("HTTP " + res.status);
+    const res = await fetch(STREAM_JSON_URL);
+    if (!res.ok) throw new Error("Failed JSON load");
 
     streamData = await res.json();
 
-    console.log("Stream JSON loaded:", streamData.files.length, "files");
+    if (!streamData.files) streamData.files = [];
+
   } catch (e) {
-    console.error("Stream JSON load failed:", e);
-    streamData = { folders: [], files: [] }; // IMPORTANT fallback
+    console.error("Stream JSON failed:", e);
+    streamData = { files: [] }; // NEVER null
   }
 }
-  
-function getAnimeFiles(malId) {
-  if (!streamData) return [];
 
-  return (streamData?.files || []).filter(f =>
-  String(f.mal_id) === String(malId)
-);
+/* ================= STREAM HELPERS ================= */
+
+function getAnimeFiles(malId) {
+  return (streamData?.files || []).filter(
+    f => String(f.mal_id) === String(malId)
+  );
 }
 
 function groupEpisodes(files) {
@@ -158,7 +166,7 @@ function groupEpisodes(files) {
     const match = f.title.match(/\[(\d+)-(\d+)\]/);
     if (!match) return;
 
-    const ep = parseInt(match[2], 10);
+    const ep = Number(match[2]);
 
     if (!map[ep]) map[ep] = [];
     map[ep].push(f);
@@ -167,12 +175,7 @@ function groupEpisodes(files) {
   return map;
 }
 
-/* ===================== MAIN VARS ===================== */
-
-let currentEpisode = null;
-let malId = null;
-let totalEpisodes = 0;
-let isCustomStream = false;
+/* ================= GRAPHQL ================= */
 
 const query = `
 query($id: Int) {
@@ -191,70 +194,56 @@ query($id: Int) {
       episode
       timeUntilAiring
     }
-    characters(sort: ROLE, perPage: 12) {
-      edges {
-        role
-        node { id name { full } image { large } }
-        voiceActors(sort: RELEVANCE) {
-          id
-          languageV2
-          name { full }
-          image { large }
-        }
-      }
-    }
-    staff(perPage: 12) {
-      edges {
-        role
-        node { id name { full } image { large } }
-      }
-    }
-    recommendations(perPage: 10) {
-      edges {
-        node {
-          mediaRecommendation {
-            id
-            title { romaji }
-            coverImage { large }
-            averageScore
-            status
-            episodes
-          }
-        }
-      }
-    }
   }
+}
 `;
+
+/* ================= FETCH ================= */
 
 async function fetchAnime() {
   await loadStreamData();
 
-  const res = await fetch(ANILIST_API, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query, variables: { id: Number(id) } })
-  });
+  try {
+    const res = await fetch(ANILIST_API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query, variables: { id: Number(id) } })
+    });
 
-  const json = await res.json();
-  renderAnime(json.data.Media);
+    const json = await res.json();
+
+    if (!json?.data?.Media) {
+      throw new Error("Invalid AniList response");
+    }
+
+    renderAnime(json.data.Media);
+
+  } catch (e) {
+    console.error("AniList error:", e);
+  }
 }
+
+/* ================= SAFE IMAGE ================= */
 
 function safeImg(src) {
   return src || FALLBACK_IMG;
 }
 
-/* ===================== EPISODES ===================== */
+/* ================= EPISODES ================= */
 
 function renderEpisodes() {
   const epContainer = document.getElementById("episodes");
   const epDropdown = document.getElementById("episodeDropdown");
+
+  if (!epContainer || !epDropdown) return;
 
   epContainer.innerHTML = "";
   epDropdown.innerHTML = `<option value="">Select episode</option>`;
 
   if (totalEpisodes <= 0) return;
 
-  /* ================= CUSTOM STREAM MODE ================= */
+  /* ================= CUSTOM STREAM ================= */
+
   if (isCustomStream) {
     const eps = Object.keys(streamMap).map(Number).sort((a,b)=>a-b);
 
@@ -264,7 +253,7 @@ function renderEpisodes() {
     eps.forEach(ep => {
       const btn = document.createElement("button");
       btn.className =
-        "ep-btn px-2 py-2 rounded-md bg-[#0b0b0b] border border-gray-700 text-sm hover:bg-[--accent]";
+        "ep-btn px-2 py-2 rounded-md bg-[#0b0b0b] border border-gray-700 text-sm";
       btn.textContent = ep;
 
       btn.onclick = () => selectEpisode(ep);
@@ -284,7 +273,7 @@ function renderEpisodes() {
     return;
   }
 
-  /* ================= NORMAL MODE ================= */
+  /* ================= NORMAL ================= */
 
   epContainer.className =
     "grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2";
@@ -292,7 +281,7 @@ function renderEpisodes() {
   for (let i = 1; i <= totalEpisodes; i++) {
     const btn = document.createElement("button");
     btn.className =
-      "ep-btn px-2 py-2 rounded-md bg-[#0b0b0b] border border-gray-700 text-sm hover:bg-[--accent]";
+      "ep-btn px-2 py-2 rounded-md bg-[#0b0b0b] border border-gray-700 text-sm";
     btn.textContent = i;
 
     btn.onclick = () => selectEpisode(i);
@@ -310,6 +299,8 @@ function renderEpisodes() {
   };
 }
 
+/* ================= SELECT EP ================= */
+
 function selectEpisode(ep) {
   currentEpisode = Number(ep);
 
@@ -322,13 +313,14 @@ function selectEpisode(ep) {
   renderSources();
 }
 
-/* ===================== SOURCES ===================== */
+/* ================= SOURCES ================= */
 
 function renderSources() {
   const srcContainer = document.getElementById("sources");
+  if (!srcContainer) return;
+
   srcContainer.innerHTML = "";
 
-  /* ================= CUSTOM STREAM ================= */
   if (isCustomStream) {
     const files = streamMap[currentEpisode] || [];
 
@@ -342,15 +334,9 @@ function renderSources() {
       btn.textContent = label;
 
       btn.onclick = () => {
-        document.querySelectorAll(".source-btn")
-          .forEach(b => b.classList.remove("active"));
-
-        btn.classList.add("active");
-
-        const url = `https://streamtape.com/e/${f.vidcode}?color=255,68,68`;
-
         document.getElementById("player").innerHTML =
-          `<iframe src="${url}" allowfullscreen class="w-full h-full"></iframe>`;
+          `<iframe src="https://streamtape.com/e/${f.vidcode}?color=255,68,68"
+          class="w-full h-full" allowfullscreen></iframe>`;
       };
 
       srcContainer.appendChild(btn);
@@ -359,8 +345,6 @@ function renderSources() {
     return;
   }
 
-  /* ================= NORMAL MODE ================= */
-
   ["sub", "dub"].forEach(src => {
     const btn = document.createElement("button");
     btn.className =
@@ -368,29 +352,26 @@ function renderSources() {
     btn.textContent = src.toUpperCase();
 
     btn.onclick = () => {
-      document.querySelectorAll(".source-btn")
-        .forEach(b => b.classList.remove("active"));
-
-      btn.classList.add("active");
-
       const url =
         `https://megaplay.buzz/stream/mal/${malId}/${currentEpisode}/${src}`;
 
       document.getElementById("player").innerHTML =
-        `<iframe src="${url}" allowfullscreen class="w-full h-full"></iframe>`;
+        `<iframe src="${url}" class="w-full h-full" allowfullscreen></iframe>`;
     };
 
     srcContainer.appendChild(btn);
   });
 }
 
-/* ===================== RENDER ANIME ===================== */
+/* ================= MAIN RENDER (SAFE ALWAYS) ================= */
 
 async function renderAnime(media) {
 
+  if (!media) return;
+
   malId = media.idMal;
 
-  const files = streamData?.files ? getAnimeFiles(malId) : [];
+  const files = getAnimeFiles(malId);
 
   isCustomStream = files.length > 0;
 
@@ -398,57 +379,36 @@ async function renderAnime(media) {
     streamMap = groupEpisodes(files);
     totalEpisodes = Object.keys(streamMap).length;
   } else {
-    streamMap = null;
+    streamMap = {};
 
-    if (media.status === "NOT_YET_RELEASED") {
-      totalEpisodes = 0;
-    } else if (media.status === "RELEASING") {
+    if (media.status === "RELEASING") {
       totalEpisodes = (media.nextAiringEpisode?.episode || 1) - 1;
     } else {
       totalEpisodes = media.episodes || 0;
     }
   }
 
-  let airingText = "";
-  if (media.status === "RELEASING" && media.nextAiringEpisode) {
-    const ep = media.nextAiringEpisode.episode;
-    const sec = media.nextAiringEpisode.timeUntilAiring;
+  /* ================= UI SAFE ================= */
 
-    const d = Math.floor(sec / 86400);
-    const h = Math.floor((sec % 86400) / 3600);
-    const m = Math.floor((sec % 3600) / 60);
-
-    airingText = `<p class="text-xs text-green-400 mt-1">Ep ${ep}: ${d}d ${h}h ${m}m</p>`;
+  const info = document.getElementById("info");
+  if (info) {
+    info.innerHTML = `
+      <div class="flex-shrink-0 w-full md:w-64">
+        <img src="${safeImg(media.coverImage?.large)}"
+        class="rounded-xl w-full object-cover"/>
+      </div>
+      <div class="flex-1">
+        <h1 class="text-2xl font-bold mb-2">
+          ${media.title.romaji || media.title.english}
+        </h1>
+        <p class="text-sm text-gray-300">
+          ${media.startDate?.year || "—"} | ${media.episodes || "?"} eps
+        </p>
+      </div>
+    `;
   }
 
-  document.getElementById("info").innerHTML = `
-    <div class="flex-shrink-0 w-full md:w-64">
-      <img src="${safeImg(media.coverImage?.large)}" class="rounded-xl shadow-lg w-full object-cover" />
-    </div>
-    <div class="flex-1">
-      <h1 class="text-2xl sm:text-3xl font-bold mb-2">
-        ${media.title.romaji || media.title.english}
-      </h1>
-      <p class="text-sm text-gray-300 mb-1">
-        Anime | ${media.startDate?.year || "—"}
-        <span class="mx-2">|</span>
-        Episodes: ${media.episodes || "?"}
-        <span class="mx-2">|</span>
-        <i class="fa fa-star star"></i>
-        ${(media.averageScore ? (media.averageScore/10).toFixed(1) : "—")}
-      </p>
-      ${airingText}
-      <p class="mb-3 text-sm text-[--accent]">
-        ${media.genres?.join(", ") || ""}
-      </p>
-      <p class="text-[--muted] mb-6">
-        ${media.description || ""}
-      </p>
-    </div>
-  `;
-
   renderEpisodes();
-  renderSources();
 }
 
 fetchAnime();
