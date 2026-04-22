@@ -147,7 +147,12 @@
       return `
         <a href="info.html?id=${id}&type=anime" 
            class="card rounded-xl overflow-hidden hover:scale-105 transition block max-w-full">
-          <img src="${poster}" alt="${title}" class="w-full h-72 object-cover">
+          <img 
+  src="${poster}" 
+  alt="${title}" 
+  class="w-full h-72 object-cover"
+  onerror="this.onerror=null;this.src='${FALLBACK_POSTER}'"
+/>
           <div class="p-3">
             <h3 class="text-sm font-medium line-clamp-2 hover:text-[--accent] transition">${title}</h3>
             <p class="text-xs text-gray-400 mt-1">${infoLine}</p>
