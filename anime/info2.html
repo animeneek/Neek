@@ -124,11 +124,12 @@ const FALLBACK_IMG = "https://github.com/animeneek/Neek/blob/main/assets/images/
 
 let currentEpisode = null;
 let malId = null;
+let aniId = null;
 let totalEpisodes = 0;
 
-/* ===================== NEW JSON SYSTEM ===================== */
+/* ===================== JSON SYSTEM ===================== */
 
-let jsonEpisodesMap = {}; // { episode: [ {vidcode, uncensored} ] }
+let jsonEpisodesMap = {};
 let isJsonAnime = false;
 
 async function loadJSONEpisodes() {
@@ -141,21 +142,18 @@ async function loadJSONEpisodes() {
 
     data.files.forEach(file => {
       const fileId = file.mal_id || file.anilist_id;
-      if (String(fileId) !== String(malId)) return;
+
+      if (String(fileId) !== String(malId) && String(fileId) !== String(aniId)) return;
 
       isJsonAnime = true;
 
-      // Extract episode number
       const match = file.title.match(/\[(\d+)-(\d+)\]/);
       if (!match) return;
 
       const epNum = Number(match[2]);
-
       const isUncensored = file.title.toLowerCase().includes("uncen");
 
-      if (!jsonEpisodesMap[epNum]) {
-        jsonEpisodesMap[epNum] = [];
-      }
+      if (!jsonEpisodesMap[epNum]) jsonEpisodesMap[epNum] = [];
 
       jsonEpisodesMap[epNum].push({
         vidcode: file.vidcode,
@@ -163,12 +161,8 @@ async function loadJSONEpisodes() {
       });
     });
 
-    if (isJsonAnime) {
-      totalEpisodes = Object.keys(jsonEpisodesMap).length;
-    }
-
   } catch (e) {
-    console.error("JSON load failed", e);
+    console.error("JSON failed", e);
   }
 }
 
@@ -181,6 +175,7 @@ function renderEpisodes() {
   epContainer.innerHTML = "";
   epDropdown.innerHTML = `<option value="">Select episode</option>`;
 
+  // ✅ JSON OVERRIDE
   if (isJsonAnime) {
     const eps = Object.keys(jsonEpisodesMap).map(Number).sort((a,b)=>a-b);
 
@@ -201,7 +196,6 @@ function renderEpisodes() {
       const btn = document.createElement("button");
       btn.className =
         "ep-btn px-2 py-2 rounded-md bg-[#0b0b0b] border border-gray-700 text-sm hover:bg-[--accent]";
-
       btn.textContent = i;
       btn.onclick = () => selectEpisode(i);
 
@@ -233,13 +227,10 @@ function renderEpisodes() {
     const btn = document.createElement("button");
     btn.className =
       "ep-btn px-2 py-2 rounded-md bg-[#0b0b0b] border border-gray-700 text-sm hover:bg-[--accent]";
-
     btn.textContent = i;
     btn.onclick = () => selectEpisode(i);
 
-    if (currentEpisode == i) {
-      btn.classList.add("active");
-    }
+    if (currentEpisode == i) btn.classList.add("active");
 
     epContainer.appendChild(btn);
   }
@@ -263,9 +254,9 @@ function renderSources() {
   const srcContainer = document.getElementById("sources");
   srcContainer.innerHTML = "";
 
+  // ✅ JSON SOURCES
   if (isJsonAnime && jsonEpisodesMap[currentEpisode]) {
-
-    jsonEpisodesMap[currentEpisode].forEach((srcData, index) => {
+    jsonEpisodesMap[currentEpisode].forEach(srcData => {
       const btn = document.createElement("button");
       btn.className = "source-btn px-4 py-2 rounded-md bg-[#0b0b0b] border border-gray-700";
 
@@ -277,7 +268,7 @@ function renderSources() {
         document.querySelectorAll(".source-btn").forEach(b => b.classList.remove("active"));
         btn.classList.add("active");
 
-        const url = `https://streamtape.to/e/${srcData.vidcode}`;
+        const url = `https://streamtape.com/e/${srcData.vidcode}`;
         document.getElementById("player").innerHTML =
           `<iframe src="${url}" allowfullscreen class="w-full h-full"></iframe>`;
       };
@@ -307,11 +298,12 @@ function renderSources() {
   });
 }
 
-/* ===================== MAIN RENDER ===================== */
+/* ===================== MAIN ===================== */
 
 async function renderAnime(media) {
 
   malId = media.idMal;
+  aniId = media.id;
 
   if (media.status === "NOT_YET_RELEASED") {
     totalEpisodes = 0;
@@ -321,8 +313,7 @@ async function renderAnime(media) {
     totalEpisodes = media.episodes || 0;
   }
 
-  await loadJSONEpisodes(); // 🔥 IMPORTANT
-  if (!media) return;
+  await loadJSONEpisodes(); // SAFE
 
   let airingText = "";
   if (media.status === "RELEASING" && media.nextAiringEpisode) {
