@@ -245,7 +245,23 @@ async function fetchAnime() {
 }
 
 function safeImg(src) {
-  return src || FALLBACK_IMG;
+  // Check for null, undefined, empty string
+  if (!src) return FALLBACK_IMG;
+  
+  // Check for AniList default/placeholder URLs
+  const invalidPatterns = [
+    'default.jpg',
+    'placeholder',
+    'no-image',
+    'missing'
+  ];
+  
+  const lowerSrc = src.toLowerCase();
+  if (invalidPatterns.some(pattern => lowerSrc.includes(pattern))) {
+    return FALLBACK_IMG;
+  }
+  
+  return src;
 }
 
 /* ===================== EPISODES (UPDATED GRID) ===================== */
