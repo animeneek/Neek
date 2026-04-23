@@ -277,7 +277,7 @@ function renderSources() {
         document.querySelectorAll(".source-btn").forEach(b => b.classList.remove("active"));
         btn.classList.add("active");
 
-        const url = `https://streamtape.com/e/${srcData.vidcode}`;
+        const url = `https://streamtape.to/e/${srcData.vidcode}`;
         document.getElementById("player").innerHTML =
           `<iframe src="${url}" allowfullscreen class="w-full h-full"></iframe>`;
       };
@@ -311,7 +311,7 @@ function renderSources() {
 
 async function renderAnime(media) {
 
-  malId = media.idMal || media.id;
+  malId = media.idMal;
 
   if (media.status === "NOT_YET_RELEASED") {
     totalEpisodes = 0;
@@ -322,6 +322,7 @@ async function renderAnime(media) {
   }
 
   await loadJSONEpisodes(); // 🔥 IMPORTANT
+  if (!media) return;
 
   let airingText = "";
   if (media.status === "RELEASING" && media.nextAiringEpisode) {
