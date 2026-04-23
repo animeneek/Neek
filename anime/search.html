@@ -66,6 +66,16 @@
       font-size: 0.875rem;
       display: inline-block;
     }
+    /* Adult warning badge */
+    .adult-warning {
+      background: rgba(255,68,68,0.2);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-left: 8px;
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col bg-[--bg] text-white">
@@ -125,8 +135,9 @@
       <div class="mb-6">
         <label class="flex items-center gap-2 cursor-pointer">
           <input id="adultToggle" type="checkbox" class="w-4 h-4 accent-[--accent]">
-          <span>Include Adult</span>
+          <span>Include Adult (Erotica/Hentai)</span>
         </label>
+        <p class="text-xs text-gray-500 mt-1"><i class="fa fa-info-circle"></i> Enables R-18 content from AniList</p>
       </div>
       
       <!-- Fetch limit indicator -->
@@ -169,6 +180,9 @@
     </section>
   </main>
   
+  <!-- Footer -->
+  <div id="footer"></div>
+  
   <!-- Scroll to top button -->
   <div id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">
     <i class="fas fa-arrow-up"></i>
@@ -177,8 +191,9 @@
   <script>
     const FALLBACK_POSTER = "https://github.com/animeneek/Neek/blob/main/assets/images/Poster%20404%20Error.png?raw=true";
     
-    // CONFIGURATION - FETCH UP TO 1000 ANIME FOR COMPLETE FILTERING
-    const MAX_PAGES_TO_FETCH = 20; // 20 pages × 50 per page = 1000 anime max
+    // CONFIGURATION
+    const MAX_PAGES_TO_FETCH_NORMAL = 20; // 20 pages × 50 per page = 1000 anime max for normal
+    const MAX_PAGES_TO_FETCH_ADULT = 15;   // 15 pages for adult content (enough for erotica/hentai)
     const ITEMS_PER_PAGE_API = 50;
     
     let allResults = [];
@@ -190,7 +205,6 @@
     let currentQuery = "";
     let includeAdult = false;
     let isLoading = false;
-    let currentFetchController = null; // To cancel ongoing fetches if needed
     
     // Load header/footer
     Promise.all([
@@ -201,7 +215,7 @@
       document.getElementById("footer").innerHTML=f;
     }).catch(e=>console.warn("Header/footer loading issue:", e));
     
-    // Genre list
+    // Genre list - includes adult genres
     const GENRES = [
       "Action","Adventure","Comedy","Drama","Fantasy","Horror","Mecha","Music",
       "Mystery","Romance","Sci-Fi","Slice of Life","Sports","Supernatural","Thriller",
@@ -216,30 +230,19 @@
       });
     });
     
-    // Fetch ALL pages (unlimited until max pages)
-    async function fetchAllAnimePages(searchTerm, isAdult, maxPages = MAX_PAGES_TO_FETCH) {
+    // Fetch anime pages with proper adult handling
+    async function fetchAnimePages(searchTerm, isAdult, maxPages) {
       let allMedia = [];
       let currentPageNum = 1;
       let hasNextPage = true;
       const useEmptySearch = !searchTerm || searchTerm.trim() === "";
       
-      const progressDiv = document.getElementById("fetchProgress");
-      const progressBar = document.getElementById("progressBar");
-      const progressText = document.getElementById("progressText");
-      
-      progressDiv.style.display = "block";
-      
       while (hasNextPage && currentPageNum <= maxPages) {
         try {
-          // Update progress
-          const percent = (currentPageNum / maxPages) * 100;
-          progressBar.style.width = `${percent}%`;
-          progressText.innerText = `Fetching page ${currentPageNum}/${maxPages}... (${allMedia.length} anime loaded so far)`;
-          
           let queryStr, variables;
           
           if (useEmptySearch) {
-            // For blank search: fetch by popularity to get diverse results
+            // For blank search: fetch by popularity/trending
             queryStr = `
               query ($page: Int, $perPage: Int, $isAdult: Boolean) {
                 Page(page: $page, perPage: $perPage) {
@@ -254,18 +257,19 @@
                     status
                     episodes
                     averageScore
+                    isAdult
                   }
                 }
               }
             `;
-            variables = { page: currentPageNum, perPage: ITEMS_PER_PAGE_API, isAdult };
+            variables = { page: currentPageNum, perPage: ITEMS_PER_PAGE_API, isAdult: isAdult };
           } else {
-            // Search with keyword - keep fetching all matching results
+            // Search with keyword
             queryStr = `
               query ($search: String, $page: Int, $perPage: Int, $isAdult: Boolean) {
                 Page(page: $page, perPage: $perPage) {
                   pageInfo { hasNextPage }
-                  media(search: $search, type: ANIME, isAdult: $isAdult) {
+                  media(search: $search, type: ANIME, isAdult: $isAdult, sort: [POPULARITY_DESC, SEARCH_MATCH]) {
                     id
                     title { romaji english }
                     coverImage { large }
@@ -275,11 +279,12 @@
                     status
                     episodes
                     averageScore
+                    isAdult
                   }
                 }
               }
             `;
-            variables = { search: searchTerm, page: currentPageNum, perPage: ITEMS_PER_PAGE_API, isAdult };
+            variables = { search: searchTerm, page: currentPageNum, perPage: ITEMS_PER_PAGE_API, isAdult: isAdult };
           }
           
           const res = await fetch("https://graphql.anilist.co", {
@@ -308,15 +313,13 @@
           currentPageNum++;
           
           // Small delay to avoid rate limiting
-          await new Promise(resolve => setTimeout(resolve, 100));
+          await new Promise(resolve => setTimeout(resolve, 150));
           
         } catch (err) {
           console.error(`Error fetching page ${currentPageNum}:`, err);
           break;
         }
       }
-      
-      progressDiv.style.display = "none";
       
       // Remove duplicates by ID
       const unique = [];
@@ -331,31 +334,45 @@
       return unique;
     }
     
-    // Main fetch function
+    // Main fetch function with proper adult content handling
     async function fetchAllResults(query) {
       if (isLoading) return;
       isLoading = true;
       
-      // Cancel previous fetch if any
-      if (currentFetchController) {
-        // Note: Can't truly cancel fetch, but we can ignore results
-      }
-      
       const spinner = document.getElementById("loadingSpinner");
       const grid = document.getElementById("resultsGrid");
+      const progressDiv = document.getElementById("fetchProgress");
+      const progressBar = document.getElementById("progressBar");
+      const progressText = document.getElementById("progressText");
+      
       if (spinner) spinner.style.display = "flex";
-      if (grid) grid.innerHTML = '<div class="col-span-full text-center text-gray-400 py-10">Loading up to 1000 anime for complete filtering...</div>';
+      if (grid) grid.innerHTML = '<div class="col-span-full text-center text-gray-400 py-10">Loading anime...</div>';
       
       try {
         const searchTerm = (query && query.trim() !== "") ? query.trim() : "";
         
-        // Fetch normal results (unlimited pages)
-        let normalResults = await fetchAllAnimePages(searchTerm, false, MAX_PAGES_TO_FETCH);
+        // Show progress for adult fetch if enabled
+        if (includeAdult) {
+          progressDiv.style.display = "block";
+          progressBar.style.width = "30%";
+          progressText.innerText = "Fetching adult content (Erotica/Hentai)... This may take a moment";
+        }
         
-        // Fetch adult results if enabled
+        // Fetch normal results (always fetch these)
+        let normalResults = await fetchAnimePages(searchTerm, false, MAX_PAGES_TO_FETCH_NORMAL);
+        
         let adultResults = [];
-        if (includeAdult && (!searchTerm || searchTerm.length > 0)) {
-          adultResults = await fetchAllAnimePages(searchTerm, true, Math.min(MAX_PAGES_TO_FETCH, 10));
+        if (includeAdult) {
+          progressBar.style.width = "60%";
+          progressText.innerText = "Fetching adult content (Erotica/Hentai)...";
+          
+          // Fetch adult content separately with isAdult=true
+          // For blank search, fetch adult content properly
+          // For specific searches, also fetch adult content
+          adultResults = await fetchAnimePages(searchTerm, true, MAX_PAGES_TO_FETCH_ADULT);
+          
+          progressBar.style.width = "90%";
+          progressText.innerText = "Merging results...";
         }
         
         // Combine and deduplicate
@@ -370,12 +387,21 @@
         
         allResults = combined;
         
+        // Log for debugging
+        console.log(`Total results: ${allResults.length} (Normal: ${normalResults.length}, Adult: ${adultResults.length})`);
+        if (includeAdult) {
+          const adultGenreCount = allResults.filter(r => r.genres && (r.genres.includes("Hentai") || r.genres.includes("Erotica"))).length;
+          console.log(`Adult genre anime found: ${adultGenreCount}`);
+        }
+        
         // Update stats display
-        document.getElementById("resultCount").innerText = allResults.length;
-        document.getElementById("fetchLimitDisplay").innerText = MAX_PAGES_TO_FETCH * ITEMS_PER_PAGE_API;
+        document.getElementById("resultCount").innerHTML = `${allResults.length} <span class="text-gray-400 text-xs">total</span>`;
+        document.getElementById("fetchLimitDisplay").innerHTML = includeAdult ? 
+          `${MAX_PAGES_TO_FETCH_NORMAL * ITEMS_PER_PAGE_API + MAX_PAGES_TO_FETCH_ADULT * ITEMS_PER_PAGE_API}` : 
+          `${MAX_PAGES_TO_FETCH_NORMAL * ITEMS_PER_PAGE_API}`;
         
         if (allResults.length === 0) {
-          grid.innerHTML = '<div class="col-span-full text-center text-gray-400 py-10">No anime found. Try a different search term or adjust filters.</div>';
+          grid.innerHTML = '<div class="col-span-full text-center text-gray-400 py-10">No anime found. Try a different search term or enable "Include Adult" for mature content.</div>';
           document.getElementById("pagination").style.display = "none";
           return;
         }
@@ -387,6 +413,8 @@
         if (grid) grid.innerHTML = '<div class="col-span-full text-center text-red-500 py-10">Failed to load anime. Please try again.</div>';
       } finally {
         if (spinner) spinner.style.display = "none";
+        const progressDivElem = document.getElementById("fetchProgress");
+        if (progressDivElem) progressDivElem.style.display = "none";
         isLoading = false;
       }
     }
@@ -434,7 +462,8 @@
       }
       
       filteredResults = working;
-      document.getElementById("resultCount").innerHTML = `${filteredResults.length} <span class="text-gray-400 text-xs">(filtered from ${allResults.length})</span>`;
+      const adultFilteredCount = filteredResults.filter(r => r.genres && (r.genres.includes("Hentai") || r.genres.includes("Erotica"))).length;
+      document.getElementById("resultCount").innerHTML = `${filteredResults.length} <span class="text-gray-400 text-xs">(filtered from ${allResults.length}${includeAdult && adultFilteredCount > 0 ? `, ${adultFilteredCount} adult` : ""})</span>`;
       renderResults(page);
     }
     
@@ -446,7 +475,7 @@
       const grid = document.getElementById("resultsGrid");
       
       if (filteredResults.length === 0) {
-        grid.innerHTML = '<div class="col-span-full text-center text-gray-400 py-10">No anime match the selected filters. Try adjusting your criteria.</div>';
+        grid.innerHTML = '<div class="col-span-full text-center text-gray-400 py-10">No anime match the selected filters. Try adjusting your criteria or enable "Include Adult".</div>';
         document.getElementById("pagination").style.display = "none";
         return;
       }
@@ -459,6 +488,8 @@
         const status = r.status ? r.status.toLowerCase().replace(/_/g, " ") : "";
         const epCount = r.episodes ? `${r.episodes} eps` : "";
         const format = r.format || "";
+        const isAdultContent = r.genres && (r.genres.includes("Hentai") || r.genres.includes("Erotica"));
+        const adultBadge = isAdultContent ? '<span class="adult-warning"><i class="fa fa-exclamation-triangle"></i> R-18</span>' : '';
         
         return `
           <a href="info.html?id=${r.id}" class="bg-[#1a1a1a] rounded-xl overflow-hidden hover:scale-105 transition block group">
@@ -466,7 +497,10 @@
               <img src="${poster}" class="w-full h-72 object-cover" alt="${title}" loading="lazy" onerror="this.src='${FALLBACK_POSTER}'">
             </div>
             <div class="p-2">
-              <h3 class="text-sm font-semibold text-white line-clamp-1 group-hover:text-[--accent] transition">${escapeHtml(title)}</h3>
+              <div class="flex items-center justify-between flex-wrap gap-1">
+                <h3 class="text-sm font-semibold text-white line-clamp-1 group-hover:text-[--accent] transition">${escapeHtml(title)}</h3>
+                ${adultBadge}
+              </div>
               <p class="text-xs text-gray-400">
                 ${format} | ${year} | ${status} ${epCount ? `| ${epCount}` : ""} | <i class="fa fa-star star"></i> ${rating}
               </p>
@@ -541,11 +575,8 @@
     
     document.getElementById("adultToggle").addEventListener("change", (e) => {
       includeAdult = e.target.checked;
-      if (currentQuery !== undefined) {
-        fetchAllResults(currentQuery);
-      } else {
-        fetchAllResults("");
-      }
+      // Refetch everything with new adult setting
+      fetchAllResults(currentQuery);
     });
     
     document.getElementById("searchBtn").addEventListener("click", () => {
