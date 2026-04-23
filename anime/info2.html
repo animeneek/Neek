@@ -124,9 +124,9 @@ let currentEpisode = null;
 let malId = null;
 let totalEpisodes = 0;
 
-/* ===== NEW ===== */
+/* ===== CUSTOM JSON ===== */
 let customFiles = [];
-let useCustom = false;
+let episodeMap = {};
 
 async function fetchCustomJSON() {
   try {
@@ -135,35 +135,12 @@ async function fetchCustomJSON() {
     customFiles = data.files || [];
   } catch {}
 }
-/* ===== END NEW ===== */
 
-const query = `...same as before...`;
-
-async function fetchAnime() {
-  await fetchCustomJSON(); // NEW
-
-  const res = await fetch(ANILIST_API, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query, variables: { id: Number(id) } })
-  });
-  const json = await res.json();
-  renderAnime(json.data.Media);
-}
-
-function safeImg(src) {
-  return src || FALLBACK_IMG;
-}
-
-/* ===== UPDATED EPISODES ===== */
-
-function getEpisodeMap() {
+function buildEpisodeMap() {
   const map = {};
 
   customFiles.forEach(f => {
     if ((f.mal_id && f.mal_id == malId) || (f.anilist_id && f.anilist_id == id)) {
-
-      useCustom = true;
 
       const match = f.title.match(/\[(\d+)-(\d+)\]/);
       if (!match) return;
@@ -183,9 +160,28 @@ function getEpisodeMap() {
 
   return map;
 }
+/* ===== END ===== */
 
-let episodeMap = {};
+const query = `YOUR ORIGINAL QUERY HERE (UNCHANGED)`;
 
+/* ========= FETCH ========= */
+async function fetchAnime() {
+  await fetchCustomJSON();
+
+  const res = await fetch(ANILIST_API, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ query, variables: { id: Number(id) } })
+  });
+  const json = await res.json();
+  renderAnime(json.data.Media);
+}
+
+function safeImg(src) {
+  return src || FALLBACK_IMG;
+}
+
+/* ========= EPISODES ========= */
 function renderEpisodes() {
   const epContainer = document.getElementById("episodes");
   const epDropdown = document.getElementById("episodeDropdown");
@@ -193,7 +189,7 @@ function renderEpisodes() {
   epContainer.innerHTML = "";
   epDropdown.innerHTML = `<option value="">Select episode</option>`;
 
-  if (useCustom) {
+  if (Object.keys(episodeMap).length > 0) {
     const eps = Object.keys(episodeMap).map(Number).sort((a,b)=>a-b);
 
     eps.forEach(i => {
@@ -214,7 +210,6 @@ function renderEpisodes() {
     });
 
   } else {
-    // ORIGINAL LOGIC UNTOUCHED
     if (totalEpisodes <= 0) return;
 
     for (let i = 1; i <= totalEpisodes; i++) {
@@ -241,13 +236,12 @@ function renderEpisodes() {
   };
 }
 
-/* ===== UPDATED SOURCES ===== */
-
+/* ========= SOURCES ========= */
 function renderSources() {
   const srcContainer = document.getElementById("sources");
   srcContainer.innerHTML = "";
 
-  if (useCustom) {
+  if (Object.keys(episodeMap).length > 0) {
     const sources = episodeMap[currentEpisode] || [];
 
     sources.forEach(s => {
@@ -267,7 +261,6 @@ function renderSources() {
     });
 
   } else {
-    // ORIGINAL UNTOUCHED
     ["sub","dub"].forEach(src => {
       const btn = document.createElement("button");
       btn.className = "source-btn px-4 py-2 rounded-md bg-[#0b0b0b] border border-gray-700";
@@ -287,15 +280,13 @@ function renderSources() {
   }
 }
 
-/* ===== MAIN ===== */
-
+/* ========= MAIN ========= */
 async function renderAnime(media) {
 
   malId = media.idMal;
+  episodeMap = buildEpisodeMap();
 
-  episodeMap = getEpisodeMap(); // NEW
-
-  if (!useCustom) {
+  if (Object.keys(episodeMap).length === 0) {
     if (media.status === "NOT_YET_RELEASED") {
       totalEpisodes = 0;
     } else if (media.status === "RELEASING") {
@@ -305,7 +296,24 @@ async function renderAnime(media) {
     }
   }
 
-  document.getElementById("info").innerHTML = `...UNCHANGED...`;
+  /* ===== YOUR ORIGINAL UI RENDER (UNCHANGED) ===== */
+  document.getElementById("info").innerHTML = `
+    <div class="flex-shrink-0 w-full md:w-64">
+      <img src="${safeImg(media.coverImage?.large)}" class="rounded-xl shadow-lg w-full object-cover" />
+    </div>
+    <div class="flex-1">
+      <h1 class="text-2xl sm:text-3xl font-bold mb-2">${media.title.romaji || media.title.english}</h1>
+      <p class="text-sm text-gray-300 mb-1">
+        Anime | ${media.startDate?.year || "—"}
+        <span class="mx-2">|</span>
+        Episodes: ${media.episodes || "?"}
+        <span class="mx-2">|</span>
+        <i class="fa fa-star star"></i> ${(media.averageScore ? (media.averageScore/10).toFixed(1) : "—")}
+      </p>
+      <p class="mb-3 text-sm text-[--accent]">${media.genres?.join(", ") || ""}</p>
+      <p class="text-[--muted] mb-6 line-clamp-6">${media.description || ""}</p>
+    </div>
+  `;
 
   renderEpisodes();
 }
