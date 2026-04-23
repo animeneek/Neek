@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Neek — Anime Search</title>
+  <title>Neek — Anime Search (Unlimited)</title>
 
   <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -40,6 +40,32 @@
       box-shadow: 0 0 0 2px var(--accent) !important;
       outline: none !important;
     }
+    /* Scroll to top button */
+    #scrollTop {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: var(--accent);
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 1000;
+    }
+    #scrollTop.visible { opacity: 1; }
+    #scrollTop:hover { transform: scale(1.1); }
+    .result-count-badge {
+      background: var(--accent);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.875rem;
+      display: inline-block;
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col bg-[--bg] text-white">
@@ -53,7 +79,7 @@
     <aside class="w-full md:w-64 shrink-0 bg-[#111] p-4 rounded-xl h-fit mb-6 md:mb-0">
       <!-- Search -->
       <div class="mb-6">
-        <input id="searchInput" type="text" placeholder="Search Anime..." 
+        <input id="searchInput" type="text" placeholder="Search Anime... (blank = all anime)" 
           class="w-full bg-[#1a1a1a] border border-gray-700 rounded-xl px-4 py-2">
         <button id="searchBtn" class="mt-2 w-full bg-[--accent] py-2 rounded-xl font-semibold hover:opacity-90 transition">
           <i class="fa fa-search"></i> Search
@@ -102,17 +128,36 @@
           <span>Include Adult</span>
         </label>
       </div>
+      
+      <!-- Fetch limit indicator -->
+      <div class="text-xs text-gray-500 mt-4 pt-4 border-t border-gray-800">
+        <i class="fa fa-database"></i> Fetching up to <span id="fetchLimitDisplay">1000</span> anime for complete filtering
+      </div>
     </aside>
 
     <!-- Results section -->
     <section class="flex-1">
-      <h2 class="text-2xl font-bold mb-6">Results</h2>
+      <div class="flex justify-between items-center mb-6 flex-wrap gap-3">
+        <h2 class="text-2xl font-bold">Results</h2>
+        <div id="resultStats" class="result-count-badge bg-gray-800 text-white">
+          <span id="resultCount">0</span> anime loaded
+        </div>
+      </div>
+      
       <div id="resultsGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4"></div>
 
       <!-- Loading indicator -->
       <div id="loadingSpinner" class="flex justify-center items-center py-12" style="display: none;">
         <i class="fa-solid fa-spinner fa-spin text-3xl text-[--accent]"></i>
-        <span class="ml-3 text-gray-400">Loading anime...</span>
+        <span class="ml-3 text-gray-400">Fetching anime pages... This ensures you don't miss any!</span>
+      </div>
+      
+      <!-- Progress bar for fetching -->
+      <div id="fetchProgress" class="mt-4" style="display: none;">
+        <div class="bg-gray-800 rounded-full h-2 overflow-hidden">
+          <div id="progressBar" class="bg-[--accent] h-2 transition-all duration-300" style="width: 0%"></div>
+        </div>
+        <p id="progressText" class="text-xs text-gray-500 text-center mt-2"></p>
       </div>
 
       <!-- Pagination -->
@@ -126,20 +171,30 @@
 
   <!-- Footer -->
   <div id="footer"></div>
+  
+  <!-- Scroll to top button -->
+  <div id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+    <i class="fas fa-arrow-up"></i>
+  </div>
 
   <script>
     const FALLBACK_POSTER = "https://github.com/animeneek/Neek/blob/main/assets/images/Poster%20404%20Error.png?raw=true";
-
+    
+    // CONFIGURATION - FETCH UP TO 1000 ANIME FOR COMPLETE FILTERING
+    const MAX_PAGES_TO_FETCH = 20; // 20 pages × 50 per page = 1000 anime max
+    const ITEMS_PER_PAGE_API = 50;
+    
     let allResults = [];
     let filteredResults = [];
     let currentPage = 1;
-    const pageSize = 20;
+    const pageSizeDisplay = 20;
     let activeGenres = [];
     let activeFormat = "all";
     let currentQuery = "";
     let includeAdult = false;
-    let isLoading = false; // prevent multiple simultaneous fetches
-
+    let isLoading = false;
+    let currentFetchController = null; // To cancel ongoing fetches if needed
+    
     // Load header/footer
     Promise.all([
       fetch("header.html").then(r=>r.text()),
@@ -148,8 +203,8 @@
       document.getElementById("header").innerHTML=h;
       document.getElementById("footer").innerHTML=f;
     }).catch(e=>console.warn("Header/footer loading issue:", e));
-
-    // Genre list (added Ecchi, Erotica, Hentai)
+    
+    // Genre list
     const GENRES = [
       "Action","Adventure","Comedy","Drama","Fantasy","Horror","Mecha","Music",
       "Mystery","Romance","Sci-Fi","Slice of Life","Sports","Supernatural","Thriller",
@@ -163,26 +218,31 @@
         applyFilters(1);
       });
     });
-
-    // Enhanced fetchAniList - supports empty search (returns popular anime)
-    async function fetchAniList(search, isAdult, pageLimit = 3) {
-      let results = [];
-      let page = 1;
-      let hasNext = true;
-      let attempts = 0;
+    
+    // Fetch ALL pages (unlimited until max pages)
+    async function fetchAllAnimePages(searchTerm, isAdult, maxPages = MAX_PAGES_TO_FETCH) {
+      let allMedia = [];
+      let currentPageNum = 1;
+      let hasNextPage = true;
+      const useEmptySearch = !searchTerm || searchTerm.trim() === "";
       
-      // For empty search, we use a different query that returns popular/trending anime
-      // This ensures the page shows results even when search is blank
-      const useEmptySearchFallback = !search || search.trim() === "";
+      const progressDiv = document.getElementById("fetchProgress");
+      const progressBar = document.getElementById("progressBar");
+      const progressText = document.getElementById("progressText");
       
-      while (hasNext && page <= pageLimit) {
+      progressDiv.style.display = "block";
+      
+      while (hasNextPage && currentPageNum <= maxPages) {
         try {
-          let queryStr;
-          let variables;
+          // Update progress
+          const percent = (currentPageNum / maxPages) * 100;
+          progressBar.style.width = `${percent}%`;
+          progressText.innerText = `Fetching page ${currentPageNum}/${maxPages}... (${allMedia.length} anime loaded so far)`;
           
-          if (useEmptySearchFallback) {
-            // For blank search: fetch trending/popular anime with pagination
-            // This guarantees we get a rich set of anime to display and filter
+          let queryStr, variables;
+          
+          if (useEmptySearch) {
+            // For blank search: fetch by popularity to get diverse results
             queryStr = `
               query ($page: Int, $perPage: Int, $isAdult: Boolean) {
                 Page(page: $page, perPage: $perPage) {
@@ -201,9 +261,9 @@
                 }
               }
             `;
-            variables = { page, perPage: 50, isAdult };
+            variables = { page: currentPageNum, perPage: ITEMS_PER_PAGE_API, isAdult };
           } else {
-            // Normal search with keyword
+            // Search with keyword - keep fetching all matching results
             queryStr = `
               query ($search: String, $page: Int, $perPage: Int, $isAdult: Boolean) {
                 Page(page: $page, perPage: $perPage) {
@@ -222,7 +282,7 @@
                 }
               }
             `;
-            variables = { search, page, perPage: 50, isAdult };
+            variables = { search: searchTerm, page: currentPageNum, perPage: ITEMS_PER_PAGE_API, isAdult };
           }
           
           const res = await fetch("https://graphql.anilist.co", {
@@ -232,7 +292,7 @@
           });
           
           if (!res.ok) {
-            console.warn(`API responded with status ${res.status}`);
+            console.warn(`API error on page ${currentPageNum}: ${res.status}`);
             break;
           }
           
@@ -242,59 +302,66 @@
             break;
           }
           
-          if (data.data?.Page?.media?.length) {
-            results = results.concat(data.data.Page.media);
+          const media = data.data?.Page?.media || [];
+          if (media.length > 0) {
+            allMedia = [...allMedia, ...media];
           }
           
-          hasNext = data.data?.Page?.pageInfo?.hasNextPage;
-          page++;
-          attempts++;
+          hasNextPage = data.data?.Page?.pageInfo?.hasNextPage || false;
+          currentPageNum++;
+          
+          // Small delay to avoid rate limiting
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
         } catch (err) {
-          console.error("Fetch error:", err);
+          console.error(`Error fetching page ${currentPageNum}:`, err);
           break;
         }
       }
       
-      // Remove duplicates just in case (by id)
-      const uniqueResults = [];
-      const ids = new Set();
-      for (const item of results) {
-        if (!ids.has(item.id)) {
-          ids.add(item.id);
-          uniqueResults.push(item);
+      progressDiv.style.display = "none";
+      
+      // Remove duplicates by ID
+      const unique = [];
+      const seenIds = new Set();
+      for (const item of allMedia) {
+        if (!seenIds.has(item.id)) {
+          seenIds.add(item.id);
+          unique.push(item);
         }
       }
       
-      return uniqueResults;
+      return unique;
     }
-
-    // Fetch all results (normal + optional adult)
+    
+    // Main fetch function
     async function fetchAllResults(query) {
       if (isLoading) return;
       isLoading = true;
       
-      // Show loading spinner
+      // Cancel previous fetch if any
+      if (currentFetchController) {
+        // Note: Can't truly cancel fetch, but we can ignore results
+      }
+      
       const spinner = document.getElementById("loadingSpinner");
       const grid = document.getElementById("resultsGrid");
       if (spinner) spinner.style.display = "flex";
-      if (grid) grid.innerHTML = '<div class="col-span-full text-center text-gray-400 py-10">Loading anime...</div>';
+      if (grid) grid.innerHTML = '<div class="col-span-full text-center text-gray-400 py-10">Loading up to 1000 anime for complete filtering...</div>';
       
       try {
-        let normalResults = [];
-        let adultResults = [];
-        
-        // For empty query, we treat as undefined to trigger the fallback query
         const searchTerm = (query && query.trim() !== "") ? query.trim() : "";
         
-        // Fetch normal results (even empty search works now)
-        normalResults = await fetchAniList(searchTerm, false, 3);
+        // Fetch normal results (unlimited pages)
+        let normalResults = await fetchAllAnimePages(searchTerm, false, MAX_PAGES_TO_FETCH);
         
-        // Fetch adult results if checkbox is checked
-        if (includeAdult) {
-          adultResults = await fetchAniList(searchTerm, true, 2);
+        // Fetch adult results if enabled
+        let adultResults = [];
+        if (includeAdult && (!searchTerm || searchTerm.length > 0)) {
+          adultResults = await fetchAllAnimePages(searchTerm, true, Math.min(MAX_PAGES_TO_FETCH, 10));
         }
         
-        // Combine results, prioritizing uniqueness
+        // Combine and deduplicate
         const combined = [...normalResults];
         const existingIds = new Set(normalResults.map(a => a.id));
         for (const adult of adultResults) {
@@ -306,7 +373,10 @@
         
         allResults = combined;
         
-        // If no results at all, show a helpful message
+        // Update stats display
+        document.getElementById("resultCount").innerText = allResults.length;
+        document.getElementById("fetchLimitDisplay").innerText = MAX_PAGES_TO_FETCH * ITEMS_PER_PAGE_API;
+        
         if (allResults.length === 0) {
           grid.innerHTML = '<div class="col-span-full text-center text-gray-400 py-10">No anime found. Try a different search term or adjust filters.</div>';
           document.getElementById("pagination").style.display = "none";
@@ -314,6 +384,7 @@
         }
         
         applyFilters(1);
+        
       } catch (err) {
         console.error("Failed to fetch anime:", err);
         if (grid) grid.innerHTML = '<div class="col-span-full text-center text-red-500 py-10">Failed to load anime. Please try again.</div>';
@@ -322,8 +393,8 @@
         isLoading = false;
       }
     }
-
-    // Apply filters (format, genres, year, sort)
+    
+    // Apply all filters
     function applyFilters(page=1) {
       const yearInput = document.getElementById("yearFilter").value.trim();
       const sort = document.getElementById("sortFilter").value;
@@ -335,7 +406,7 @@
         working = working.filter(r => r.format === activeFormat);
       }
       
-      // Genres filter (AND logic: all selected genres must be present)
+      // Genres filter (AND logic)
       if (activeGenres.length > 0) {
         working = working.filter(r => {
           if (!r.genres || r.genres.length === 0) return false;
@@ -343,7 +414,7 @@
         });
       }
       
-      // Year filter (exact match on startDate.year)
+      // Year filter
       if (yearInput && !isNaN(parseInt(yearInput))) {
         const targetYear = parseInt(yearInput);
         working = working.filter(r => {
@@ -366,13 +437,14 @@
       }
       
       filteredResults = working;
+      document.getElementById("resultCount").innerHTML = `${filteredResults.length} <span class="text-gray-400 text-xs">(filtered from ${allResults.length})</span>`;
       renderResults(page);
     }
     
     function renderResults(page) {
       currentPage = page;
-      const start = (page - 1) * pageSize;
-      const end = start + pageSize;
+      const start = (page - 1) * pageSizeDisplay;
+      const end = start + pageSizeDisplay;
       const pageResults = filteredResults.slice(start, end);
       const grid = document.getElementById("resultsGrid");
       
@@ -406,7 +478,7 @@
         `;
       }).join("");
       
-      const totalPages = Math.ceil(filteredResults.length / pageSize);
+      const totalPages = Math.ceil(filteredResults.length / pageSizeDisplay);
       const paginationDiv = document.getElementById("pagination");
       if (totalPages > 1) {
         paginationDiv.style.display = "flex";
@@ -419,9 +491,11 @@
       const nextBtn = document.getElementById("nextPage");
       if (prevBtn) prevBtn.disabled = page <= 1;
       if (nextBtn) nextBtn.disabled = page >= totalPages;
+      
+      // Scroll to top smoothly on page change
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     
-    // Simple escape to prevent XSS
     function escapeHtml(str) {
       if (!str) return "";
       return str.replace(/[&<>]/g, function(m) {
@@ -432,16 +506,25 @@
       });
     }
     
-    // Pagination listeners
+    // Scroll to top button visibility
+    window.addEventListener('scroll', () => {
+      const scrollBtn = document.getElementById('scrollTop');
+      if (window.scrollY > 300) {
+        scrollBtn.classList.add('visible');
+      } else {
+        scrollBtn.classList.remove('visible');
+      }
+    });
+    
+    // Event listeners
     document.getElementById("prevPage").addEventListener("click", () => {
       if (currentPage > 1) renderResults(currentPage - 1);
     });
     document.getElementById("nextPage").addEventListener("click", () => {
-      const totalPages = Math.ceil(filteredResults.length / pageSize);
+      const totalPages = Math.ceil(filteredResults.length / pageSizeDisplay);
       if (currentPage < totalPages) renderResults(currentPage + 1);
     });
     
-    // Format filter chips
     document.querySelectorAll("#formatFilters .chip").forEach(chip => {
       chip.addEventListener("click", () => {
         document.querySelectorAll("#formatFilters .chip").forEach(c => c.classList.remove("active"));
@@ -451,39 +534,29 @@
       });
     });
     
-    // Year and sort filters with debounce for year input
     let yearDebounceTimer;
     document.getElementById("yearFilter").addEventListener("input", (e) => {
       clearTimeout(yearDebounceTimer);
-      yearDebounceTimer = setTimeout(() => {
-        applyFilters(1);
-      }, 400);
+      yearDebounceTimer = setTimeout(() => applyFilters(1), 400);
     });
     
     document.getElementById("sortFilter").addEventListener("change", () => applyFilters(1));
     
-    // Adult toggle
     document.getElementById("adultToggle").addEventListener("change", (e) => {
       includeAdult = e.target.checked;
-      // Refetch with new adult setting, preserving current query
       if (currentQuery !== undefined) {
         fetchAllResults(currentQuery);
       } else {
-        // If no query set, fetch popular anime
         fetchAllResults("");
       }
     });
     
-    // Search button and enter key
     document.getElementById("searchBtn").addEventListener("click", () => {
       const query = document.getElementById("searchInput").value;
       currentQuery = query;
-      // Update URL without reload
       const params = new URLSearchParams();
       if (query && query.trim() !== "") {
         params.set("q", query);
-      } else {
-        params.delete("q");
       }
       const newUrl = window.location.pathname + (params.toString() ? "?" + params.toString() : "");
       window.history.replaceState({}, "", newUrl);
@@ -496,26 +569,22 @@
       }
     });
     
-    // Initial load: handle URL parameter or default to popular anime
+    // Initialize
     function initialize() {
       const urlParams = new URLSearchParams(window.location.search);
       const queryParam = urlParams.get("q");
       
       if (queryParam !== null && queryParam !== undefined) {
-        // If there's a q parameter (including empty string), use it
-        const searchValue = queryParam;
-        document.getElementById("searchInput").value = searchValue;
-        currentQuery = searchValue;
-        fetchAllResults(searchValue);
+        document.getElementById("searchInput").value = queryParam;
+        currentQuery = queryParam;
+        fetchAllResults(queryParam);
       } else {
-        // No query parameter - load popular/trending anime by default
         currentQuery = "";
         document.getElementById("searchInput").value = "";
-        fetchAllResults(""); // empty string triggers popular anime query
+        fetchAllResults("");
       }
     }
     
-    // Start the app
     initialize();
   </script>
 </body>
