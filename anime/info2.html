@@ -140,22 +140,25 @@ function buildEpisodeMap() {
   const map = {};
 
   customFiles.forEach(f => {
-    if ((f.mal_id && f.mal_id == malId) || (f.anilist_id && f.anilist_id == id)) {
 
-      const match = f.title.match(/\[(\d+)-(\d+)\]/);
-      if (!match) return;
+    const malMatch = f.mal_id && String(f.mal_id) === String(malId);
+    const aniMatch = f.anilist_id && String(f.anilist_id) === String(id);
 
-      const ep = Number(match[2]);
+    if (!malMatch && !aniMatch) return;
 
-      if (!map[ep]) map[ep] = [];
+    const match = f.title.match(/\[(\d+)-(\d+)\]/);
+    if (!match) return;
 
-      const isUncen = f.title.toLowerCase().includes("uncen");
+    const ep = Number(match[2]);
 
-      map[ep].push({
-        vidcode: f.vidcode,
-        label: isUncen ? "SUB [Uncensored]" : "SUB [Censored]"
-      });
-    }
+    if (!map[ep]) map[ep] = [];
+
+    const isUncen = f.title.toLowerCase().includes("uncen");
+
+    map[ep].push({
+      vidcode: f.vidcode,
+      label: isUncen ? "SUB [Uncensored]" : "SUB [Censored]"
+    });
   });
 
   return map;
