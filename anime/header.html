@@ -1,8 +1,8 @@
 <!-- /anime/header.html -->
 <header class="neek-header w-full bg-[#0b0b0b] border-b border-gray-800 md:fixed md:top-0 md:left-0 md:right-0 z-50">
   <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between min-h-[56px]">
-    <!-- Logo -->
-    <a href="../index.html" class="flex items-center gap-3" aria-label="Home">
+    <!-- Logo - Centered on mobile, left on desktop -->
+    <a href="../index.html" class="flex items-center gap-3 mx-auto md:mx-0" aria-label="Home">
       <img src="https://github.com/animeneek/Neek/blob/main/assets/images/Neek_haiyku.png?raw=true"
            alt="Neek logo" class="h-10 object-contain max-h-11" />
     </a>
@@ -47,7 +47,7 @@
     </div>
   </div>
 
-  <!-- Mobile Bottom Navigation - Fixed to bottom, never floats -->
+  <!-- Mobile Bottom Navigation - Hidden on desktop, fixed to bottom on mobile only -->
   <nav class="neek-mobile-nav md:hidden fixed bottom-0 left-0 right-0 bg-black/90 backdrop-blur-xl border-t border-gray-700 flex justify-around text-xs py-1.5 z-50 shadow-[0_-2px_12px_rgba(0,0,0,0.4)]"
        aria-label="Mobile navigation"
        style="padding-bottom: max(0.5rem, env(safe-area-inset-bottom)); padding-top: 0.5rem;">
@@ -143,7 +143,20 @@
     }
   }
 
-  /* Mobile Bottom Navigation - Stays at bottom even when address bar hides */
+  /* Mobile specific styles */
+  @media (max-width: 767px) {
+    /* Center logo on mobile */
+    .neek-header .max-w-6xl {
+      position: relative;
+    }
+    
+    /* Hide desktop search on mobile */
+    .neek-header .hidden.md\\:flex {
+      display: none !important;
+    }
+  }
+
+  /* Mobile Bottom Navigation - Only visible on mobile, hidden on desktop */
   .neek-mobile-nav {
     bottom: 0;
     left: 0;
@@ -161,6 +174,13 @@
     padding-bottom: max(0.45rem, env(safe-area-inset-bottom));
     padding-top: 0.5rem;
     box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Ensure mobile nav is hidden on desktop */
+  @media (min-width: 768px) {
+    .neek-mobile-nav {
+      display: none !important;
+    }
   }
 
   .neek-mobile-nav a {
