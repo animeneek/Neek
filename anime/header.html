@@ -1,56 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
-  <title>Neek Header Demo (Mobile Optimized)</title>
-  <!-- Font Awesome 6 (free icons) -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <style>
-    /* reset & base for demo */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    body {
-      background: #0a0a0a;
-      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif;
-      color: #eee;
-      padding-bottom: 70px;  /* give space for fixed bottom nav on all pages */
-      min-height: 200vh;     /* for scrolling demo */
-    }
-    /* demo content filler */
-    .demo-content {
-      max-width: 700px;
-      margin: 1rem auto;
-      padding: 2rem 1.5rem;
-      background: #111;
-      border-radius: 28px;
-      text-align: center;
-    }
-    .demo-content p {
-      margin: 1rem 0;
-      line-height: 1.5;
-      color: #ccc;
-    }
-    hr {
-      border-color: #2a2a2a;
-      margin: 2rem 0;
-    }
-    .badge {
-      background: #ff4444;
-      display: inline-block;
-      padding: 0.2rem 0.8rem;
-      border-radius: 30px;
-      font-size: 0.8rem;
-      font-weight: bold;
-    }
-  </style>
-  <!-- ========== UPDATED HEADER CODE (FIXED BOTTOM MENU + NEW ITEMS) ========== -->
-</head>
-<body>
-
 <!-- /anime/header.html -->
 <header class="neek-header w-full bg-[#0b0b0b] border-b border-gray-800 md:fixed md:top-0 md:left-0 md:right-0 z-50">
   <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between min-h-[56px]">
@@ -60,7 +7,7 @@
            alt="Neek logo" class="h-10 object-contain max-h-11" />
     </a>
 
-    <!-- Desktop Navigation (exactly as requested for desktop) -->
+    <!-- Desktop Navigation -->
     <nav class="hidden md:flex gap-6 text-sm font-medium" aria-label="Main navigation">
       <a class="neek-link" href="../movies/index.html">Switch to Movies</a>
       <a class="neek-link" href="trending.html">Trending</a>
@@ -81,55 +28,48 @@
     </div>
   </div>
 
-  <!-- ========== UPDATED MOBILE BOTTOM NAVIGATION ========== -->
-  <!--
-    FIX: Use position fixed with bottom: env(safe-area-inset-bottom, 0px) + padding-bottom
-    ensures menu stays at the very bottom of the screen even when browser hides address bar.
-    Also added will-change and background enhancement to prevent floating / awkward gaps.
-    Menu items exactly as required: Anime Home, Trending, Latest, Ongoing, Coming Soon, Switch to Movies
-    All icons preserved: home icon for Anime Home, keep existing icons for rest.
-  -->
+  <!-- Mobile Bottom Navigation - Fixed to bottom, never floats -->
   <nav class="neek-mobile-nav md:hidden fixed bottom-0 left-0 right-0 bg-black/90 backdrop-blur-xl border-t border-gray-700 flex justify-around text-xs py-1.5 z-50 shadow-[0_-2px_12px_rgba(0,0,0,0.4)]"
        aria-label="Mobile navigation"
        style="padding-bottom: max(0.5rem, env(safe-area-inset-bottom)); padding-top: 0.5rem;">
 
-    <!-- Anime Home (with home icon) -->
+    <!-- Anime Home (home icon) -->
     <a class="neek-link flex flex-col items-center" href="../index.html" title="Anime Home">
       <i class="fa-solid fa-house"></i>
       <span class="mt-1 text-[10px]">Home</span>
     </a>
 
-    <!-- Trending (fire icon) -->
+    <!-- Trending -->
     <a class="neek-link flex flex-col items-center" href="trending.html" title="Trending">
       <i class="fa-solid fa-fire"></i>
       <span class="mt-1 text-[10px]">Trending</span>
     </a>
 
-    <!-- Latest (clock icon) -->
+    <!-- Latest -->
     <a class="neek-link flex flex-col items-center" href="latest.html" title="Latest">
       <i class="fa-solid fa-clock"></i>
       <span class="mt-1 text-[10px]">Latest</span>
     </a>
 
-    <!-- Ongoing (play-circle icon) -->
+    <!-- Ongoing -->
     <a class="neek-link flex flex-col items-center" href="ongoing.html" title="Ongoing">
       <i class="fa-solid fa-play-circle"></i>
       <span class="mt-1 text-[10px]">Ongoing</span>
     </a>
 
-    <!-- Coming Soon (calendar icon) -->
+    <!-- Coming Soon -->
     <a class="neek-link flex flex-col items-center" href="comingsoon.html" title="Coming Soon">
       <i class="fa-solid fa-calendar"></i>
       <span class="mt-1 text-[10px]">Coming</span>
     </a>
 
-    <!-- Switch to Movies (exchange / switch icon – keeps original style) -->
+    <!-- Switch to Movies -->
     <a class="neek-link flex flex-col items-center" href="../movies/index.html" title="Switch to Movies">
       <i class="fa-solid fa-exchange-alt"></i>
       <span class="mt-1 text-[10px]">Movies</span>
     </a>
 
-    <!-- Search trigger (separate from nav menu but stays functional) -->
+    <!-- Search -->
     <a class="neek-link flex flex-col items-center" href="#mobileSearchOverlay" title="Search">
       <i class="fa-solid fa-magnifying-glass"></i>
       <span class="mt-1 text-[10px]">Search</span>
@@ -137,7 +77,7 @@
   </nav>
 </header>
 
-<!-- Mobile Search Overlay (unchanged functionality, improved accessibility) -->
+<!-- Mobile Search Overlay -->
 <div id="mobileSearchOverlay" class="mobile-search-overlay" aria-hidden="true">
   <div class="mobile-search-panel">
     <form action="search.html" method="get" class="w-full max-w-md mx-auto" role="search" aria-label="Mobile search">
@@ -157,7 +97,7 @@
 
 <style>
   :root { --accent: #ff4444; }
-  html, body { overflow-x: hidden; box-sizing: border-box; scroll-behavior: smooth; }
+  html, body { overflow-x: hidden; box-sizing: border-box; }
 
   .neek-link {
     color: #fff;
@@ -169,9 +109,8 @@
   }
   .neek-link:hover { color: var(--accent) !important; text-decoration: none !important; }
 
-  /* Mobile bottom navigation — FIXED and fully sticky at bottom even when address bar hides */
+  /* Mobile Bottom Navigation - Stays at bottom even when address bar hides */
   .neek-mobile-nav {
-    /* critical: ensures it sits at the very bottom edge of the viewport */
     bottom: 0;
     left: 0;
     right: 0;
@@ -184,17 +123,12 @@
     justify-content: space-around;
     align-items: center;
     z-index: 9999;
-    /* smooth animation optional */
-    transition: background 0.2s;
-    /* prevent any floating gap: no margin, no extra spacing issues */
     margin: 0;
-    /* respect iPhone notch / bottom safe area */
     padding-bottom: max(0.45rem, env(safe-area-inset-bottom));
     padding-top: 0.5rem;
     box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
   }
 
-  /* each mobile nav item */
   .neek-mobile-nav a {
     flex: 1 1 0;
     min-width: 0;
@@ -212,15 +146,18 @@
     transition: color 0.2s, transform 0.1s;
     border-radius: 12px;
   }
+
   .neek-mobile-nav a:active {
     transform: scale(0.96);
   }
+
   .neek-mobile-nav i { 
     display: block; 
     font-size: 20px; 
     line-height: 1.2;
     margin-bottom: 2px;
   }
+
   .neek-mobile-nav span { 
     display: block; 
     white-space: nowrap; 
@@ -231,10 +168,9 @@
     letter-spacing: 0.3px;
   }
 
-  /* desktop style links */
   .neek-header img { max-height: 44px; max-width: 100%; height: auto; }
 
-  /* mobile search overlay (unchanged, but keep responsive) */
+  /* Mobile Search Overlay */
   .mobile-search-overlay {
     display: none;
     position: fixed;
@@ -246,6 +182,7 @@
     justify-content: center;
     padding: 24px;
   }
+
   .mobile-search-overlay:target { display: flex; }
 
   .mobile-search-panel { 
@@ -253,6 +190,7 @@
     max-width: 720px; 
     animation: fadeSlideUp 0.2s ease;
   }
+
   .mobile-search-panel form { margin-top: 6px; }
 
   @keyframes fadeSlideUp {
@@ -260,71 +198,34 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  /* extra adjustment for very narrow screens */
   @media (max-width: 480px) {
     .neek-mobile-nav i { font-size: 18px; }
     .neek-mobile-nav span { font-size: 9px; }
     .neek-mobile-nav a { padding: 4px 2px; }
   }
 
-  /* medium devices, keep bottom spacing consistent */
   @media (max-width: 768px) {
     body {
-      padding-bottom: 72px;   /* reserve space for bottom nav, avoid content overlap */
+      padding-bottom: 72px;
     }
-    /* ensure fixed nav doesn't overlap weird on dynamic toolbar */
     .neek-mobile-nav {
       will-change: transform;
     }
   }
 
-  /* For older iOS & Android, ensure no white gap at bottom */
-  .neek-mobile-nav::after {
-    display: none;
-  }
-
-  /* adjust desktop link hover */
-  .neek-link i {
-    font-size: 0.9rem;
-  }
-
-  /* search input on desktop fine-tune */
-  @media (min-width: 769px) {
-    .neek-header {
-      position: sticky;
-      top: 0;
-    }
-  }
-
-  /* optional active/hover states for mobile menu consistency */
-  .neek-mobile-nav a:active,
-  .neek-mobile-nav a:focus-visible {
-    color: #ff6666;
-    outline: none;
-  }
-  .neek-mobile-nav a:hover {
-    color: #ff6666;
-  }
-  
-  /* Scroll margin to avoid bottom nav covering page anchors when clicking links */
   html {
     scroll-padding-bottom: 70px;
   }
 </style>
 
-<!-- small extra JS to ensure bottom bar never "floats" when address bar hides on mobile -->
 <script>
   (function() {
-    // This small script ensures that whenever the viewport size changes (e.g., address bar hides/shows on scroll),
-    // the bottom nav remains correctly at the visual bottom edge. Browsers automatically reposition fixed elements,
-    // but we also handle any weird iOS quirks by forcing a tiny repaint if needed.
-    // Additionally, ensures that the mobile bottom nav stays stable on orientation change.
+    // Ensures bottom nav stays at bottom when address bar hides/shows on mobile
     if ('visualViewport' in window) {
       let resizeTimer;
       const mobileNav = document.querySelector('.neek-mobile-nav');
       function refreshPosition() {
         if (!mobileNav) return;
-        // force reflow if needed – but just reading offsetHeight triggers style recalculation
         void mobileNav.offsetHeight;
       }
       window.visualViewport.addEventListener('resize', function() {
@@ -334,7 +235,6 @@
         }, 30);
       });
       window.visualViewport.addEventListener('scroll', function() {
-        // On mobile, when scrolling and address bar changes, fixed elements follow but we ensure no flashing.
         if (mobileNav) {
           mobileNav.style.transform = 'translateZ(0)';
           setTimeout(() => {
@@ -343,20 +243,21 @@
         }
       });
     }
-    // Additional: ensure overlay closing from anchor link works smoothly & doesn't conflict
+    
+    // Handle search overlay close
     const closeOverlayLink = document.querySelector('#mobileSearchOverlay .text-center a');
     if (closeOverlayLink) {
       closeOverlayLink.addEventListener('click', function(e) {
         e.preventDefault();
         const overlay = document.getElementById('mobileSearchOverlay');
         if (overlay) overlay.style.display = 'none';
-        // remove the # from URL to cleanly exit overlay
         if (window.location.hash === '#mobileSearchOverlay') {
           history.replaceState(null, null, ' ');
         }
       });
     }
-    // also re-open overlay if hash changes? keep native :target but also handle manual removal
+    
+    // Handle hash changes for overlay
     window.addEventListener('hashchange', function() {
       const overlay = document.getElementById('mobileSearchOverlay');
       if (overlay && window.location.hash === '#mobileSearchOverlay') {
@@ -365,45 +266,11 @@
         overlay.style.display = 'none';
       }
     });
-    // initial check for overlay display in case page loads with hash
+    
+    // Initial check for overlay
     if (window.location.hash === '#mobileSearchOverlay') {
       const overlay = document.getElementById('mobileSearchOverlay');
       if (overlay) overlay.style.display = 'flex';
     }
   })();
 </script>
-
-<!-- DEMO CONTENT TO SHOW SCROLL BEHAVIOR & MENU VISIBILITY (just for testing) -->
-<div class="demo-content" style="margin-top: 20px;">
-  <span class="badge">✨ Updated Mobile Menu</span>
-  <h2 style="margin: 16px 0 8px;">Scroll down → bottom menu stays at the very bottom</h2>
-  <p>✅ <strong>Fixed bottom nav</strong> – never floats awkwardly even when mobile browser hides address bar.<br>
-  ✅ <strong>Required menu items:</strong> Anime Home 🏠, Trending 🔥, Latest 🕒, Ongoing ▶️, Coming Soon 📅, Switch to Movies 🔁<br>
-  ✅ Icons preserved: Home icon for Anime Home, existing icons for others (Fire, Clock, Play, Calendar, Exchange).<br>
-  ✅ "Switch to Movies" label shortened to "Movies" on mobile for cleaner UI — but full text on desktop remains "Switch to Movies".<br>
-  ✅ Mobile bottom navigation uses <code>env(safe-area-inset-bottom)</code> for notched devices.</p>
-  <hr>
-  <p><strong>Scroll the page</strong> — notice the bottom menu stays perfectly anchored to the screen bottom, never floating in the middle. On iOS/Android, when address bar shrinks, the nav remains correctly at the bottom edge.</p>
-  <p>👆 Try clicking "Search" to open overlay, then close it. Works smoothly.</p>
-  <p style="font-size: 0.85rem; background: #1e1e1e; padding: 12px; border-radius: 20px;">
-    🧪 <strong>Tech notes:</strong> backdrop-blur, safe-area-inset, visualViewport event listeners ensure robustness.
-  </p>
-  <div style="height: 80vh; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 1rem;">
-    <span>👇 Keep scrolling more 👇</span>
-    <i class="fa-solid fa-arrow-down" style="font-size: 28px; color: #ff4444;"></i>
-    <div style="height: 300px;"></div>
-    <span>✓ Menu remains locked at bottom</span>
-  </div>
-</div>
-
-<div class="demo-content">
-  <h3>Footer-like demo space</h3>
-  <p>Bottom navigation is always accessible. Desktop view (≥768px) hides the mobile bar and shows top navigation.</p>
-  <p><strong>Desktop navigation includes:</strong> Switch to Movies, Trending, Latest, Ongoing, Coming Soon + search bar.</p>
-  <p><strong>Mobile nav has 7 items:</strong> Home (Anime Home), Trending, Latest, Ongoing, Coming Soon, Movies (Switch label), Search.</p>
-</div>
-
-<!-- Ensure that when you click on "Anime Home" link, the demo works (href="../index.html" is relative but we preserve) -->
-<!-- All links are functional for demo structure, no broken behavior. All classes and IDs exactly matching original plus enhancements -->
-</body>
-</html>
