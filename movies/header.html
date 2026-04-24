@@ -1,0 +1,319 @@
+<!-- /movies/header.html -->
+<header class="neek-header w-full bg-[#0b0b0b] border-b border-gray-800 md:fixed md:top-0 md:left-0 md:right-0 z-50">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between min-h-[56px]">
+    <!-- Logo -->
+    <a href="../index.html" class="flex items-center gap-3" aria-label="Home">
+      <img src="https://github.com/animeneek/Neek/blob/main/assets/images/Neek_haiyku.png?raw=true"
+           alt="Neek logo" class="h-10 object-contain max-h-11" />
+    </a>
+
+    <!-- Desktop Navigation - Same menu items as mobile -->
+    <nav class="hidden md:flex gap-5 text-sm font-medium" aria-label="Main navigation">
+      <a class="neek-link" href="../movies/index.html">
+        <i class="fa-solid fa-film"></i>
+        <span>Movies Home</span>
+      </a>
+      <a class="neek-link" href="trending.html">
+        <i class="fa-solid fa-fire"></i>
+        <span>Trending</span>
+      </a>
+      <a class="neek-link" href="latest.html">
+        <i class="fa-solid fa-clock"></i>
+        <span>Latest</span>
+      </a>
+      <a class="neek-link" href="ongoing.html">
+        <i class="fa-solid fa-play-circle"></i>
+        <span>Ongoing</span>
+      </a>
+      <a class="neek-link" href="comingsoon.html">
+        <i class="fa-solid fa-calendar"></i>
+        <span>Coming Soon</span>
+      </a>
+      <a class="neek-link" href="../anime/index.html">
+        <i class="fa-solid fa-exchange-alt"></i>
+        <span>Switch to Anime</span>
+      </a>
+    </nav>
+
+    <!-- Desktop Search -->
+    <div class="hidden md:flex">
+      <form action="search.html" method="get" class="relative w-72" role="search" aria-label="Search movies">
+        <input name="q" type="text" placeholder="Search movies..."
+               class="w-full rounded-xl bg-[#1a1a1a] border border-gray-700 px-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#ff4444]" />
+        <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white" aria-label="Search">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Mobile Bottom Navigation - Fixed to bottom, never floats -->
+  <nav class="neek-mobile-nav md:hidden fixed bottom-0 left-0 right-0 bg-black/90 backdrop-blur-xl border-t border-gray-700 flex justify-around text-xs py-1.5 z-50 shadow-[0_-2px_12px_rgba(0,0,0,0.4)]"
+       aria-label="Mobile navigation"
+       style="padding-bottom: max(0.5rem, env(safe-area-inset-bottom)); padding-top: 0.5rem;">
+
+    <!-- Movies Home -->
+    <a class="neek-link flex flex-col items-center" href="../movies/index.html" title="Movies Home">
+      <i class="fa-solid fa-film"></i>
+      <span class="mt-1 text-[10px]">Movies</span>
+    </a>
+
+    <!-- Trending -->
+    <a class="neek-link flex flex-col items-center" href="trending.html" title="Trending">
+      <i class="fa-solid fa-fire"></i>
+      <span class="mt-1 text-[10px]">Trending</span>
+    </a>
+
+    <!-- Latest -->
+    <a class="neek-link flex flex-col items-center" href="latest.html" title="Latest">
+      <i class="fa-solid fa-clock"></i>
+      <span class="mt-1 text-[10px]">Latest</span>
+    </a>
+
+    <!-- Ongoing -->
+    <a class="neek-link flex flex-col items-center" href="ongoing.html" title="Ongoing">
+      <i class="fa-solid fa-play-circle"></i>
+      <span class="mt-1 text-[10px]">Ongoing</span>
+    </a>
+
+    <!-- Coming Soon -->
+    <a class="neek-link flex flex-col items-center" href="comingsoon.html" title="Coming Soon">
+      <i class="fa-solid fa-calendar"></i>
+      <span class="mt-1 text-[10px]">Coming</span>
+    </a>
+
+    <!-- Switch to Anime -->
+    <a class="neek-link flex flex-col items-center" href="../anime/index.html" title="Switch to Anime">
+      <i class="fa-solid fa-exchange-alt"></i>
+      <span class="mt-1 text-[10px]">Anime</span>
+    </a>
+
+    <!-- Search -->
+    <a class="neek-link flex flex-col items-center" href="#mobileSearchOverlay" title="Search">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <span class="mt-1 text-[10px]">Search</span>
+    </a>
+  </nav>
+</header>
+
+<!-- Mobile Search Overlay -->
+<div id="mobileSearchOverlay" class="mobile-search-overlay" aria-hidden="true">
+  <div class="mobile-search-panel">
+    <form action="search.html" method="get" class="w-full max-w-md mx-auto" role="search" aria-label="Mobile search">
+      <div class="relative">
+        <input name="q" id="mobileSearchInput" type="text" placeholder="Search movies..."
+               class="w-full rounded-xl bg-[#1a1a1a] border border-gray-700 px-4 py-3 text-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#ff4444]" />
+        <button type="submit" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 hover:text-white" aria-label="Search">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+      </div>
+    </form>
+    <div class="text-center mt-5">
+      <a href="#" class="text-sm text-gray-300 hover:text-white">Close <i class="fa-solid fa-times ml-2"></i></a>
+    </div>
+  </div>
+</div>
+
+<style>
+  :root { --accent: #ff4444; }
+  html, body { overflow-x: hidden; box-sizing: border-box; }
+
+  .neek-link {
+    color: #fff;
+    text-decoration: none !important;
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    transition: color 0.2s ease;
+  }
+  
+  .neek-link:hover { color: var(--accent) !important; text-decoration: none !important; }
+
+  /* Desktop navigation specific styles */
+  @media (min-width: 768px) {
+    .neek-header .neek-link {
+      padding: 0.5rem 0;
+      border-bottom: 2px solid transparent;
+    }
+    .neek-header .neek-link:hover {
+      border-bottom-color: var(--accent);
+    }
+    .neek-header .neek-link i {
+      font-size: 0.9rem;
+    }
+  }
+
+  /* Mobile Bottom Navigation - Stays at bottom even when address bar hides */
+  .neek-mobile-nav {
+    bottom: 0;
+    left: 0;
+    right: 0;
+    position: fixed;
+    background: rgba(0, 0, 0, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(75, 75, 85, 0.6);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 9999;
+    margin: 0;
+    padding-bottom: max(0.45rem, env(safe-area-inset-bottom));
+    padding-top: 0.5rem;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  .neek-mobile-nav a {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 4px 4px;
+    color: #fff;
+    background: none;
+    border: none;
+    outline: none;
+    text-decoration: none !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    transition: color 0.2s, transform 0.1s;
+    border-radius: 12px;
+  }
+
+  .neek-mobile-nav a:active {
+    transform: scale(0.96);
+  }
+
+  .neek-mobile-nav i { 
+    display: block; 
+    font-size: 20px; 
+    line-height: 1.2;
+    margin-bottom: 2px;
+  }
+
+  .neek-mobile-nav span { 
+    display: block; 
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+  }
+
+  .neek-header img { max-height: 44px; max-width: 100%; height: auto; }
+
+  /* Mobile Search Overlay */
+  .mobile-search-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: rgba(0,0,0,0.96);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .mobile-search-overlay:target { display: flex; }
+
+  .mobile-search-panel { 
+    width: 100%; 
+    max-width: 720px; 
+    animation: fadeSlideUp 0.2s ease;
+  }
+
+  .mobile-search-panel form { margin-top: 6px; }
+
+  @keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    body {
+      padding-bottom: 72px;
+    }
+    .neek-mobile-nav {
+      will-change: transform;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .neek-mobile-nav i { font-size: 18px; }
+    .neek-mobile-nav span { font-size: 9px; }
+    .neek-mobile-nav a { padding: 4px 2px; }
+  }
+
+  /* For very large screens, keep nav centered */
+  @media (min-width: 1280px) {
+    .neek-header .max-w-6xl {
+      max-width: 1280px;
+    }
+  }
+
+  html {
+    scroll-padding-bottom: 70px;
+  }
+</style>
+
+<script>
+  (function() {
+    // Ensures bottom nav stays at bottom when address bar hides/shows on mobile
+    if ('visualViewport' in window) {
+      let resizeTimer;
+      const mobileNav = document.querySelector('.neek-mobile-nav');
+      function refreshPosition() {
+        if (!mobileNav) return;
+        void mobileNav.offsetHeight;
+      }
+      window.visualViewport.addEventListener('resize', function() {
+        if (resizeTimer) clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+          refreshPosition();
+        }, 30);
+      });
+      window.visualViewport.addEventListener('scroll', function() {
+        if (mobileNav) {
+          mobileNav.style.transform = 'translateZ(0)';
+          setTimeout(() => {
+            if (mobileNav) mobileNav.style.transform = '';
+          }, 100);
+        }
+      });
+    }
+    
+    // Handle search overlay close
+    const closeOverlayLink = document.querySelector('#mobileSearchOverlay .text-center a');
+    if (closeOverlayLink) {
+      closeOverlayLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        const overlay = document.getElementById('mobileSearchOverlay');
+        if (overlay) overlay.style.display = 'none';
+        if (window.location.hash === '#mobileSearchOverlay') {
+          history.replaceState(null, null, ' ');
+        }
+      });
+    }
+    
+    // Handle hash changes for overlay
+    window.addEventListener('hashchange', function() {
+      const overlay = document.getElementById('mobileSearchOverlay');
+      if (overlay && window.location.hash === '#mobileSearchOverlay') {
+        overlay.style.display = 'flex';
+      } else if (overlay && window.location.hash !== '#mobileSearchOverlay') {
+        overlay.style.display = 'none';
+      }
+    });
+    
+    // Initial check for overlay
+    if (window.location.hash === '#mobileSearchOverlay') {
+      const overlay = document.getElementById('mobileSearchOverlay');
+      if (overlay) overlay.style.display = 'flex';
+    }
+  })();
+</script>
