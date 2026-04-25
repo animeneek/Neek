@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Neek — Trending Anime</title>
+  <title>Neek — Trending Anime (Infinite)</title>
 
   <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -20,30 +20,57 @@
     a:hover { color:var(--accent); text-decoration:none !important; }
     .chip {
       border:1px solid #333;
+      background:#111;
       border-radius:9999px;
-      padding:4px 10px;
-      font-size:0.875rem;
+      padding:6px 14px;
+      font-size:0.8rem;
+      font-weight:500;
       cursor:pointer;
       transition:all 0.2s;
       white-space:nowrap;
     }
-    .chip.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+    .chip.active { background:var(--accent); border-color:var(--accent); color:#fff; box-shadow:0 4px 12px rgba(255,68,68,0.3); }
     .star { color:var(--accent); }
     input, select {
       outline: none !important;
       box-shadow: none !important;
       border: 1px solid #333;
       transition: border-color 0.2s, box-shadow 0.2s;
+      background:#111 !important;
+      color:#fff !important;
     }
     input:focus, input:focus-visible,
     select:focus, select:focus-visible {
       border-color: var(--accent) !important;
-      box-shadow: 0 0 0 2px var(--accent) !important;
+      box-shadow: 0 0 0 2px rgba(255,68,68,0.2) !important;
       outline: none !important;
     }
     input[type=number]::-webkit-inner-spin-button,
     input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     input[type=number] { -moz-appearance:textfield; }
+    
+    /* Infinite scroll sentinel */
+    .sentinel { height: 20px; }
+    
+    /* Skeleton loader */
+    .skeleton {
+      background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
+      background-size: 200% 100%;
+      animation: loading 1.5s infinite;
+    }
+    @keyframes loading {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #1a1a1a; }
+    ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
+    
+    /* Genre container scroll */
+    .genre-container { max-height: 200px; overflow-y: auto; }
+    .genre-container::-webkit-scrollbar { width: 4px; }
   </style>
 </head>
 <body class="min-h-screen flex flex-col bg-[--bg] text-white">
@@ -51,220 +78,418 @@
   <!-- Header -->
   <div id="header"></div>
 
-  <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-6 md:pt-28 pb-24 flex flex-col md:flex-row gap-6">
+  <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-6 md:pt-28 pb-24">
+    
+    <!-- Search & infinite scroll indicator -->
+    <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-8">
+      <div class="relative w-full sm:w-96">
+        <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+        <input type="text" id="searchInput" placeholder="Search trending anime..." class="w-full pl-10 pr-4 py-2 rounded-full bg-[#111] border border-gray-700 focus:border-[--accent] transition">
+      </div>
+      <div class="text-xs text-gray-400 bg-black/40 px-3 py-1 rounded-full">✨ Infinite Scroll (No Limits)</div>
+    </div>
 
-    <!-- Sidebar filters -->
-    <aside class="w-full md:w-64 shrink-0 bg-[#111] p-4 rounded-xl h-fit mb-6 md:mb-0">
+    <!-- Filters + Results: column on mobile, row on desktop -->
+    <div class="flex flex-col lg:flex-row gap-6">
 
-      <!-- Type filter -->
-      <div class="mb-6">
-        <h3 class="font-semibold mb-2">Type</h3>
-        <div id="typeFilters" class="flex gap-2 flex-wrap">
-          <span class="chip active" data-type="">All</span>
-          <span class="chip" data-type="TV">TV</span>
-          <span class="chip" data-type="MOVIE">Movie</span>
-          <span class="chip" data-type="OVA">OVA</span>
-          <span class="chip" data-type="ONA">ONA</span>
-          <span class="chip" data-type="SPECIAL">Special</span>
-          <span class="chip" data-type="MUSIC">Music</span>
+      <!-- Sidebar filters - full width on mobile -->
+      <aside class="w-full lg:w-72 shrink-0 bg-[#111] p-5 rounded-xl border border-gray-800 space-y-6">
+        
+        <!-- Type filter -->
+        <div>
+          <h3 class="font-bold mb-3 flex items-center gap-2"><i class="fa-solid fa-layer-group text-red-500 text-sm"></i> Type</h3>
+          <div id="typeFilters" class="flex gap-2 flex-wrap">
+            <span class="chip active" data-type="">All</span>
+            <span class="chip" data-type="TV">TV</span>
+            <span class="chip" data-type="MOVIE">Movie</span>
+            <span class="chip" data-type="OVA">OVA</span>
+            <span class="chip" data-type="ONA">ONA</span>
+            <span class="chip" data-type="SPECIAL">Special</span>
+            <span class="chip" data-type="MUSIC">Music</span>
+          </div>
         </div>
-      </div>
 
-      <!-- Genres -->
-      <div class="mb-6">
-        <h3 class="font-semibold mb-2">Genres</h3>
-        <div id="genreFilters" class="flex gap-2 flex-wrap"></div>
-      </div>
+        <!-- Genres -->
+        <div>
+          <h3 class="font-bold mb-3 flex items-center gap-2"><i class="fa-solid fa-tags text-red-500 text-sm"></i> Genres</h3>
+          <div id="genreFilters" class="flex gap-2 flex-wrap genre-container"></div>
+        </div>
 
-      <!-- Year & Sort -->
-      <div class="mb-6">
-        <h3 class="font-semibold mb-2">Year</h3>
-        <input id="yearFilter" type="number" placeholder="e.g. 2025" 
-          class="w-full bg-[#1a1a1a] border border-gray-700 rounded-xl px-3 py-2">
-      </div>
-      <div class="mb-6">
-        <h3 class="font-semibold mb-2">Sort By</h3>
-        <select id="sortFilter" 
-          class="w-full bg-[#1a1a1a] border border-gray-700 rounded-xl px-3 py-2">
-          <option value="date">Start Date (Latest)</option>
-          <option value="rating">Rating (Highest)</option>
-          <option value="title">Title (A–Z)</option>
-        </select>
-      </div>
+        <!-- Year & Sort -->
+        <div>
+          <h3 class="font-bold mb-3 flex items-center gap-2"><i class="fa-regular fa-calendar text-red-500 text-sm"></i> Year</h3>
+          <input id="yearFilter" type="number" placeholder="e.g. 2025" class="w-full bg-[#1a1a1a] border border-gray-700 rounded-xl px-3 py-2">
+        </div>
+        
+        <div>
+          <h3 class="font-bold mb-3 flex items-center gap-2"><i class="fa-solid fa-arrow-down-wide-short text-red-500 text-sm"></i> Sort By</h3>
+          <select id="sortFilter" class="w-full bg-[#1a1a1a] border border-gray-700 rounded-xl px-3 py-2">
+            <option value="TRENDING_DESC">🔥 Trending (Default)</option>
+            <option value="POPULARITY_DESC">⭐ Most Popular</option>
+            <option value="SCORE_DESC">🏆 Top Rated</option>
+            <option value="START_DATE_DESC">📅 Latest Release</option>
+            <option value="TITLE_ROMAJI">🔤 Title A–Z</option>
+          </select>
+        </div>
 
-      <!-- Adult toggle -->
-      <div class="mb-6">
-        <label class="flex items-center gap-2 cursor-pointer">
-          <input id="adultToggle" type="checkbox" class="w-4 h-4 accent-[--accent]">
-          <span>Include Adult</span>
-        </label>
-      </div>
+        <!-- Adult toggle -->
+        <div>
+          <label class="flex items-center gap-3 cursor-pointer bg-[#1a1a1a] p-3 rounded-xl">
+            <input id="adultToggle" type="checkbox" class="w-4 h-4 accent-[--accent]">
+            <span class="text-sm">Include Adult (Hentai/Erotica)</span>
+          </label>
+        </div>
 
-    </aside>
+        <!-- Reset button -->
+        <button id="resetFiltersBtn" class="w-full mt-4 bg-red-600/20 border border-red-600/50 text-red-400 py-2 rounded-xl hover:bg-red-600 hover:text-white transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-arrows-rotate"></i> Reset Filters
+        </button>
+      </aside>
 
-    <!-- Results -->
-    <section class="flex-1">
-      <h2 class="text-2xl font-bold mb-6">Trending Anime</h2>
-      <div id="resultsGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4"></div>
-
-      <!-- Pagination -->
-      <div class="flex justify-center items-center gap-4 mt-8" id="pagination" style="display:none;">
-        <button id="prevPage" class="px-4 py-2 bg-[#1a1a1a] rounded-lg hover:bg-[--accent] hover:text-white disabled:opacity-40">Prev</button>
-        <span id="pageInfo" class="text-sm text-gray-400"></span>
-        <button id="nextPage" class="px-4 py-2 bg-[#1a1a1a] rounded-lg hover:bg-[--accent] hover:text-white disabled:opacity-40">Next</button>
-      </div>
-    </section>
+      <!-- Results -->
+      <section class="flex-1">
+        <div class="flex justify-between items-center mb-5 flex-wrap gap-2">
+          <h2 class="text-2xl font-bold"><span id="resultCount">0</span> Trending Anime</h2>
+        </div>
+        <div id="resultsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>
+        
+        <!-- Infinite scroll sentinel -->
+        <div id="sentinel" class="flex justify-center py-10"></div>
+        
+        <!-- End message -->
+        <div id="endMessage" class="text-center text-gray-500 py-10 hidden flex-col items-center gap-2">
+          <i class="fa-regular fa-compass text-3xl"></i>
+          <p>You've reached the end of trending anime.</p>
+        </div>
+      </section>
+    </div>
   </main>
 
   <script>
-    const FALLBACK_POSTER = "https://github.com/animeneek/Neek/blob/main/assets/images/Poster%20404%20Error.png?raw=true";
-
-    let allResults = [];
-    let filteredResults = [];
+    // ========== CONFIGURATION ==========
+    const PER_PAGE = 24;           // Items per API request
     let currentPage = 1;
-    const pageSize = 20;
-    let activeGenres = [];
-    let activeType = "";
-    let includeAdult = false;
-
-    // Load header/footer
-    Promise.all([
-      fetch("header.html").then(r=>r.text()),
-      fetch("footer.html").then(r=>r.text())
-    ]).then(([h,f])=>{
-      document.getElementById("header").innerHTML=h;
-      document.getElementById("footer").innerHTML=f;
-    });
-
-    // Genres (alphabetical)
-    const GENRES = [
+    let isLoading = false;
+    let hasNextPage = true;
+    let allMedia = [];              // Stores all loaded anime
+    
+    // Filter state
+    let activeFilters = {
+      search: '',
+      type: '',
+      genres: [],
+      year: '',
+      sort: 'TRENDING_DESC',
+      isAdult: false
+    };
+    
+    // DOM Elements
+    const grid = document.getElementById('resultsGrid');
+    const sentinel = document.getElementById('sentinel');
+    const endMessage = document.getElementById('endMessage');
+    const resultCountSpan = document.getElementById('resultCount');
+    const searchInput = document.getElementById('searchInput');
+    const yearFilter = document.getElementById('yearFilter');
+    const sortFilter = document.getElementById('sortFilter');
+    const adultToggle = document.getElementById('adultToggle');
+    const resetBtn = document.getElementById('resetFiltersBtn');
+    
+    // Fallback image
+    const FALLBACK_POSTER = "https://github.com/animeneek/Neek/blob/main/assets/images/Poster%20404%20Error.png?raw=true";
+    
+    // Load header (no footer as requested)
+    fetch("header.html")
+      .then(r => r.text())
+      .then(html => document.getElementById("header").innerHTML = html)
+      .catch(err => console.warn("Header not found"));
+    
+    // Full genre list including Hentai, Erotica, Mahou Shoujo
+    const GENRES_LIST = [
       "Action","Adventure","Comedy","Drama","Ecchi","Erotica","Fantasy","Hentai",
       "Horror","Mahou Shoujo","Mecha","Music","Mystery","Psychological",
       "Romance","Sci-Fi","Slice of Life","Sports","Supernatural","Thriller"
     ].sort();
-    document.getElementById("genreFilters").innerHTML = GENRES.map(g=>`<span class="chip" data-genre="${g}">${g}</span>`).join("");
-    document.querySelectorAll("#genreFilters .chip").forEach(chip=>{
-      chip.addEventListener("click",()=>{
-        chip.classList.toggle("active");
-        activeGenres = Array.from(document.querySelectorAll("#genreFilters .chip.active")).map(c=>c.dataset.genre);
-        applyFilters(1);
-      });
-    });
-
-    // Type filter chips
-    document.querySelectorAll("#typeFilters .chip").forEach(chip=>{
-      chip.addEventListener("click",()=>{
-        document.querySelectorAll("#typeFilters .chip").forEach(c=>c.classList.remove("active"));
-        chip.classList.add("active");
-        activeType = chip.dataset.type;
-        applyFilters(1);
-      });
-    });
-
-    // Fetch AniList trending (sorted by TRENDING_DESC)
-    async function fetchTrending() {
-      allResults = [];
-      let page = 1;
-      let hasNext = true;
-      while(hasNext && page <= 3){
-        const query = `
-          query ($page:Int,$perPage:Int,$isAdult:Boolean){
-            Page(page:$page,perPage:$perPage){
-              pageInfo{hasNextPage}
-              media(type:ANIME, sort:TRENDING_DESC, isAdult:$isAdult){
-                id
-                title { romaji english }
-                coverImage { large }
-                format
-                startDate { year month day }
-                averageScore
-                genres
-                status
-              }
+    
+    // ========== GRAPHQL QUERY BUILDER ==========
+    function buildQuery(page, perPage, filters) {
+      let genreFilter = filters.genres.length ? `, genre_in: ${JSON.stringify(filters.genres)}` : '';
+      let yearFilter = filters.year ? `, startDate_like: "${filters.year}%"` : '';
+      let typeFilter = filters.type ? `, format: ${filters.type}` : '';
+      let searchFilter = filters.search ? `, search: "${filters.search.replace(/"/g, '\\"')}"` : '';
+      
+      return `
+        query ($page: Int, $perPage: Int) {
+          Page(page: $page, perPage: $perPage) {
+            pageInfo { hasNextPage }
+            media(type: ANIME${typeFilter}${searchFilter}${genreFilter}${yearFilter}, sort: ${filters.sort}, isAdult: ${filters.isAdult}) {
+              id
+              title { romaji english }
+              coverImage { large }
+              format
+              startDate { year month day }
+              averageScore
+              genres
+              status
             }
           }
-        `;
-        const variables = { page, perPage:50, isAdult: includeAdult };
-        const res = await fetch("https://graphql.anilist.co",{
-          method:"POST",
-          headers:{ "Content-Type":"application/json" },
-          body:JSON.stringify({ query, variables })
+        }
+      `;
+    }
+    
+    // ========== API FETCH ==========
+    async function fetchAnime(page) {
+      if (isLoading) return [];
+      isLoading = true;
+      showSkeleton(true);
+      
+      const query = buildQuery(page, PER_PAGE, activeFilters);
+      try {
+        const res = await fetch("https://graphql.anilist.co", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query, variables: { page, perPage: PER_PAGE } })
         });
         const data = await res.json();
-        if(data.data?.Page?.media) {
-          allResults = allResults.concat(data.data.Page.media);
-        }
-        hasNext = data.data?.Page?.pageInfo?.hasNextPage || false;
-        page++;
+        if (data.errors) throw new Error(data.errors[0].message);
+        
+        const media = data.data?.Page?.media || [];
+        hasNextPage = data.data?.Page?.pageInfo?.hasNextPage || false;
+        return media;
+      } catch (err) {
+        console.error("API error:", err);
+        return [];
+      } finally {
+        isLoading = false;
+        showSkeleton(false);
       }
-      applyFilters(1);
     }
-
-    function applyFilters(page=1){
-      const year=document.getElementById("yearFilter").value.trim();
-      const sort=document.getElementById("sortFilter").value;
-
-      filteredResults = allResults.slice();
-      if(activeType) filteredResults = filteredResults.filter(r=>r.format===activeType);
-      if(activeGenres.length) filteredResults = filteredResults.filter(r=>activeGenres.every(g=>r.genres.includes(g)));
-      if(year) filteredResults = filteredResults.filter(r=>(r.startDate?.year||"").toString()===year);
-
-      if(sort==="date") filteredResults.sort((a,b)=>{
-        const ad=new Date(a.startDate?.year||0,a.startDate?.month||1,a.startDate?.day||1);
-        const bd=new Date(b.startDate?.year||0,b.startDate?.month||1,b.startDate?.day||1);
-        return bd-ad; // latest first
-      });
-      if(sort==="rating") filteredResults.sort((a,b)=>(b.averageScore||0)-(a.averageScore||0));
-      if(sort==="title") filteredResults.sort((a,b)=>(a.title.romaji||"").localeCompare(b.title.romaji||""));
-
-      renderResults(page);
-    }
-
-    function renderResults(page){
-      currentPage = page;
-      const start=(page-1)*pageSize;
-      const end=start+pageSize;
-      const pageResults=filteredResults.slice(start,end);
-
-      document.getElementById("resultsGrid").innerHTML=pageResults.map(r=>{
-        const title=r.title.english||r.title.romaji;
-        const poster=r.coverImage?.large||FALLBACK_POSTER;
-        const year=r.startDate?.year||"—";
-        const rating=r.averageScore? (r.averageScore/10).toFixed(1) : "—";
-        const status = r.status || "";
-        return `
-          <a href="info.html?id=${r.id}&type=anime" class="bg-[#1a1a1a] rounded-xl overflow-hidden hover:scale-105 transition block">
-            <img src="${poster}" class="w-full h-72 object-cover" alt="${title}">
-            <div class="p-2">
-              <h3 class="text-sm font-semibold text-white line-clamp-1">${title}</h3>
-              <p class="text-xs text-gray-400">${r.format||""} | ${year} | ${status} | <i class="fa fa-star star"></i> ${rating}</p>
+    
+    // ========== SKELETON LOADER ==========
+    function showSkeleton(show) {
+      if (!show) {
+        document.querySelectorAll('.skeleton-card').forEach(el => el.remove());
+        return;
+      }
+      if (currentPage === 1 && allMedia.length === 0) {
+        grid.innerHTML = '';
+        for (let i = 0; i < PER_PAGE; i++) {
+          const skel = document.createElement('div');
+          skel.className = 'skeleton-card bg-[#151515] rounded-xl overflow-hidden';
+          skel.innerHTML = `
+            <div class="h-72 skeleton w-full"></div>
+            <div class="p-3 space-y-2">
+              <div class="h-4 skeleton w-3/4 rounded"></div>
+              <div class="h-3 skeleton w-1/2 rounded"></div>
             </div>
-          </a>`;
-      }).join("");
-
-      const totalPages=Math.ceil(filteredResults.length/pageSize);
-      document.getElementById("pagination").style.display=totalPages>1?"flex":"none";
-      document.getElementById("pageInfo").innerText=`Page ${page} of ${totalPages}`;
-      document.getElementById("prevPage").disabled=page<=1;
-      document.getElementById("nextPage").disabled=page>=totalPages;
+          `;
+          grid.appendChild(skel);
+        }
+      }
     }
-
-    // Pagination
-    document.getElementById("prevPage").addEventListener("click",()=>renderResults(currentPage-1));
-    document.getElementById("nextPage").addEventListener("click",()=>renderResults(currentPage+1));
-
-    // Year/sort filters
-    document.getElementById("yearFilter").addEventListener("input",()=>applyFilters(1));
-    document.getElementById("sortFilter").addEventListener("change",()=>applyFilters(1));
-
-    // Adult toggle
-    document.getElementById("adultToggle").addEventListener("change",(e)=>{
-      includeAdult=e.target.checked;
-      fetchTrending();
-    });
-
-    // Start
-    fetchTrending();
+    
+    // ========== ESCAPE HTML FOR SECURITY ==========
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+      });
+    }
+    
+    // ========== RENDER RESULTS ==========
+    function renderMedia() {
+      if (allMedia.length === 0 && !isLoading) {
+        grid.innerHTML = `<div class="col-span-full text-center py-20 bg-[#111] rounded-2xl border border-gray-800">
+          <i class="fa-regular fa-face-frown text-5xl text-gray-600 mb-4"></i>
+          <p class="text-gray-400">No anime found. Try changing your filters.</p>
+        </div>`;
+        resultCountSpan.innerText = '0';
+        return;
+      }
+      
+      resultCountSpan.innerText = allMedia.length;
+      const fragment = document.createDocumentFragment();
+      
+      allMedia.forEach(anime => {
+        const title = anime.title.english || anime.title.romaji || "Untitled";
+        const poster = anime.coverImage?.large || FALLBACK_POSTER;
+        const year = anime.startDate?.year || "TBA";
+        const rating = anime.averageScore ? (anime.averageScore / 10).toFixed(1) : "?";
+        
+        let statusText = "";
+        let statusIcon = "";
+        if (anime.status === "RELEASING") { statusText = "Ongoing"; statusIcon = "🟢"; }
+        else if (anime.status === "FINISHED") { statusText = "Finished"; statusIcon = "✅"; }
+        else { statusText = "Upcoming"; statusIcon = "⏳"; }
+        
+        const card = document.createElement('a');
+        card.href = `info.html?id=${anime.id}&type=anime`;
+        card.className = 'group bg-[#1a1a1a] rounded-xl overflow-hidden hover:scale-105 transition-all duration-300 hover:shadow-xl block';
+        card.innerHTML = `
+          <div class="relative overflow-hidden">
+            <img src="${poster}" class="w-full h-72 object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" alt="${escapeHtml(title)}">
+            <div class="absolute top-2 right-2 bg-black/70 backdrop-blur-sm rounded-full px-2 py-0.5 text-xs font-semibold flex items-center gap-1">
+              <i class="fa-solid fa-star text-yellow-400 text-[10px]"></i> ${rating}
+            </div>
+          </div>
+          <div class="p-3">
+            <h3 class="font-semibold text-sm line-clamp-1 group-hover:text-red-400">${escapeHtml(title)}</h3>
+            <p class="text-xs text-gray-400 mt-1 flex justify-between">
+              <span>${anime.format || "??"}</span>
+              <span>${year}</span>
+            </p>
+            <p class="text-[10px] text-gray-500 mt-1">${statusIcon} ${statusText}</p>
+          </div>
+        `;
+        fragment.appendChild(card);
+      });
+      
+      grid.innerHTML = '';
+      grid.appendChild(fragment);
+    }
+    
+    // ========== LOAD MORE (INFINITE SCROLL CORE) ==========
+    async function loadMore() {
+      if (isLoading || !hasNextPage) return;
+      const newMedia = await fetchAnime(currentPage);
+      if (newMedia.length > 0) {
+        allMedia = [...allMedia, ...newMedia];
+        renderMedia();
+        currentPage++;
+      }
+      if (!hasNextPage) {
+        endMessage.classList.remove('hidden');
+        if (observer) observer.disconnect();
+      } else {
+        endMessage.classList.add('hidden');
+      }
+    }
+    
+    // ========== RESET ALL FILTERS ==========
+    async function resetAndReload() {
+      currentPage = 1;
+      allMedia = [];
+      hasNextPage = true;
+      isLoading = false;
+      endMessage.classList.add('hidden');
+      
+      // Reset filter values
+      activeFilters = {
+        search: '',
+        type: '',
+        genres: [],
+        year: '',
+        sort: 'TRENDING_DESC',
+        isAdult: false
+      };
+      
+      // Reset UI inputs
+      searchInput.value = '';
+      yearFilter.value = '';
+      sortFilter.value = 'TRENDING_DESC';
+      adultToggle.checked = false;
+      
+      // Reset genre chips
+      document.querySelectorAll('#genreFilters .chip').forEach(chip => chip.classList.remove('active'));
+      
+      // Reset type chips
+      document.querySelectorAll('#typeFilters .chip').forEach(chip => {
+        if (chip.dataset.type === '') chip.classList.add('active');
+        else chip.classList.remove('active');
+      });
+      
+      await loadMore();
+      if (observer) observer.disconnect();
+      setupObserver();
+    }
+    
+    // ========== APPLY FILTERS (NEW SEARCH) ==========
+    async function applyFilters() {
+      currentPage = 1;
+      allMedia = [];
+      hasNextPage = true;
+      endMessage.classList.add('hidden');
+      await loadMore();
+      if (observer) observer.disconnect();
+      setupObserver();
+    }
+    
+    // ========== SETUP EVENT LISTENERS ==========
+    function setupFilterListeners() {
+      // Type filters
+      document.querySelectorAll('#typeFilters .chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          document.querySelectorAll('#typeFilters .chip').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          activeFilters.type = chip.dataset.type;
+          applyFilters();
+        });
+      });
+      
+      // Genre filters
+      const genreContainer = document.getElementById('genreFilters');
+      genreContainer.innerHTML = GENRES_LIST.map(g => `<span class="chip" data-genre="${g}">${g}</span>`).join('');
+      document.querySelectorAll('#genreFilters .chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          chip.classList.toggle('active');
+          activeFilters.genres = Array.from(document.querySelectorAll('#genreFilters .chip.active')).map(c => c.dataset.genre);
+          applyFilters();
+        });
+      });
+      
+      // Year filter
+      yearFilter.addEventListener('input', () => {
+        activeFilters.year = yearFilter.value;
+        applyFilters();
+      });
+      
+      // Sort filter
+      sortFilter.addEventListener('change', () => {
+        activeFilters.sort = sortFilter.value;
+        applyFilters();
+      });
+      
+      // Adult toggle
+      adultToggle.addEventListener('change', () => {
+        activeFilters.isAdult = adultToggle.checked;
+        applyFilters();
+      });
+      
+      // Search with debounce
+      let debounceTimer;
+      searchInput.addEventListener('input', (e) => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          activeFilters.search = e.target.value;
+          applyFilters();
+        }, 500);
+      });
+      
+      // Reset button
+      resetBtn.addEventListener('click', resetAndReload);
+    }
+    
+    // ========== INTERSECTION OBSERVER (INFINITE SCROLL) ==========
+    let observer;
+    function setupObserver() {
+      observer = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isLoading) {
+          loadMore();
+        }
+      }, { threshold: 0.1 });
+      observer.observe(sentinel);
+    }
+    
+    // ========== INITIALIZE ==========
+    async function init() {
+      setupFilterListeners();
+      await loadMore();
+      setupObserver();
+    }
+    
+    init();
   </script>
 </body>
 </html>
