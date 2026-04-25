@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Neek — Infinite Anime Search</title>
+  <title>Neek — Browse Anime</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -227,6 +227,7 @@
     }
 
     function escapeHtml(str) {
+      if (!str) return '';
       return str.replace(/[&<>]/g, function(m) {
         if (m === '&') return '&amp;';
         if (m === '<') return '&lt;';
@@ -247,7 +248,7 @@
       resultCountSpan.innerText = allMedia.length;
       const fragment = document.createDocumentFragment();
       allMedia.forEach(anime => {
-        const title = anime.title.english || anime.title.romaji;
+        const title = anime.title.english || anime.title.romaji || "Untitled";
         const poster = anime.coverImage?.large || 'https://via.placeholder.com/300x450?text=No+Image';
         const year = anime.startDate?.year || 'TBA';
         const rating = anime.averageScore ? (anime.averageScore / 10).toFixed(1) : '?';
@@ -255,13 +256,15 @@
         if (anime.status === 'RELEASING') statusText = '🟢 Ongoing';
         else if (anime.status === 'FINISHED') statusText = '✅ Finished';
         else statusText = '⏳ Upcoming';
+        
+        // ✅ FIXED: Use local info.html instead of anilist.co
         const card = document.createElement('a');
-        card.href = `https://anilist.co/anime/${anime.id}`;
-        card.target = '_blank';
+        card.href = `info.html?id=${anime.id}&type=anime`;
         card.className = 'group bg-[#131313] rounded-xl overflow-hidden border border-gray-800 hover:border-red-500/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl';
+        // No target="_blank" so it opens in same tab
         card.innerHTML = `
           <div class="relative overflow-hidden">
-            <img src="${poster}" class="w-full h-72 object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" alt="${title}">
+            <img src="${poster}" class="w-full h-72 object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" alt="${escapeHtml(title)}">
             <div class="absolute top-2 right-2 bg-black/70 backdrop-blur-sm rounded-full px-2 py-0.5 text-xs font-semibold flex items-center gap-1">
               <i class="fa-solid fa-star text-yellow-400 text-[10px]"></i> ${rating}
             </div>
@@ -288,7 +291,7 @@
       }
       if (!hasNextPage) {
         endMessage.classList.remove('hidden');
-        observer.disconnect();
+        if (observer) observer.disconnect();
       } else {
         endMessage.classList.add('hidden');
       }
@@ -380,7 +383,7 @@
           loadMore();
         }
       }, { threshold: 0.1 });
-      observer.observe(sentinel);
+      if (sentinel) observer.observe(sentinel);
     }
 
     async function init() {
