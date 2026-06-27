@@ -354,7 +354,7 @@ function renderSources() {
         document.querySelectorAll(".source-btn").forEach(b => b.classList.remove("active"));
         btn.classList.add("active");
         
-        const embedUrl = `https://streamtape.com/e/${source.vidcode}`;
+        const embedUrl = `https://pixeldrain.com/u/${source.vidcode}?embed`;
         document.getElementById("player").innerHTML =
           `<iframe src="${embedUrl}" allowfullscreen class="w-full h-full"></iframe>`;
       };
